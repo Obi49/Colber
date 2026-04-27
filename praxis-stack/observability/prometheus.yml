@@ -1,0 +1,24 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: nats
+    metrics_path: /varz
+    static_configs:
+      - targets: ["nats:8222"]
+
+  # AgentStack services (à activer quand les microservices seront déployés)
+  # - job_name: agent-identity
+  #   static_configs:
+  #     - targets: ["agent-identity:9464"]
+  # - job_name: reputation
+  #   static_configs:
+  #     - targets: ["reputation:9464"]
+  # - job_name: memory
+  #   static_configs:
+  #     - targets: ["memory:9464"]
