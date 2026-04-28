@@ -1,0 +1,111 @@
+syntax = "proto3";
+
+package praxis.negotiation.v1;
+
+// Praxis — Negotiation broker gRPC contract (v1).
+// Mirrors the REST + MCP surfaces. Used for inter-service calls inside the
+// cluster (gRPC over service mesh).
+
+service NegotiationService {
+  // Create a new negotiation.
+  rpc Start(StartRequest) returns (NegotiationView);
+
+  // Submit a proposal.
+  rpc Propose(ProposeRequest) returns (NegotiationView);
+
+  // Submit a counter-proposal.
+  rpc Counter(CounterRequest) returns (NegotiationView);
+
+  // Finalize the deal with multi-party signatures.
+  rpc Settle(SettleRequest) returns (NegotiationView);
+
+  // Read the current projection.
+  rpc Get(GetRequest) returns (NegotiationView);
+
+  // Read the event log (paginated by `seq`).
+  rpc History(HistoryRequest) returns (HistoryResponse);
+}
+
+// ---------- shared ----------
+
+// The negotiation projection. Free-form fields (terms, proposals,
+// settlement signatures) are JSON-encoded to keep the proto stable as the
+// domain shape evolves.
+message NegotiationView {
+  string negotiation_id = 1;
+  string status = 2;            // open | negotiating | settled | cancelled | expired
+  string strategy = 3;          // ascending-auction | multi-criteria
+  string terms_json = 4;
+  repeated string party_dids = 5;
+  string proposals_json = 6;    // JSON-encoded ProposalRecord[]
+  string current_best_proposal_id = 7;
+  string winning_proposal_id = 8;
+  string settlement_signatures_json = 9;
+  string created_at = 10;
+  string updated_at = 11;
+  string expires_at = 12;
+}
+
+// ---------- start ----------
+
+message StartRequest {
+  string terms_json = 1;       // JSON-encoded NegotiationTerms
+  string created_by = 2;
+  string idempotency_key = 3;
+}
+
+// ---------- propose / counter ----------
+
+message ProposeRequest {
+  string negotiation_id = 1;
+  string proposal_json = 2;    // JSON-encoded Proposal
+  string public_key = 3;       // base64 Ed25519 public key
+}
+
+message CounterRequest {
+  string negotiation_id = 1;
+  string counter_to = 2;       // proposalId being countered
+  string proposal_json = 3;    // JSON-encoded Proposal
+  string public_key = 4;
+}
+
+// ---------- settle ----------
+
+message SettlementSignature {
+  string did = 1;
+  string signature = 2;        // base64 Ed25519 signature
+}
+
+message SettlementPublicKey {
+  string did = 1;
+  string public_key = 2;       // base64 Ed25519 public key
+}
+
+message SettleRequest {
+  string negotiation_id = 1;
+  string winning_proposal_id = 2;        // optional — empty string means strategy.pickWinner
+  repeated SettlementSignature signatures = 3;
+  repeated SettlementPublicKey public_keys = 4;
+}
+
+// ---------- get / history ----------
+
+message GetRequest {
+  string negotiation_id = 1;
+}
+
+message HistoryRequest {
+  string negotiation_id = 1;
+  uint64 cursor = 2;          // 0 means "from the beginning"
+  uint32 limit = 3;
+}
+
+message HistoryEvent {
+  uint64 seq = 1;
+  string event_json = 2;       // JSON-encoded NegotiationEvent
+}
+
+message HistoryResponse {
+  repeated HistoryEvent events = 1;
+  uint64 next_cursor = 2;     // 0 means "no more pages"
+}

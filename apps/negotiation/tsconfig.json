@@ -1,0 +1,16 @@
+{
+  "extends": "@praxis/tsconfig/node-app.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist"
+  },
+  "references": [
+    { "path": "../../packages/core-types" },
+    { "path": "../../packages/core-crypto" },
+    { "path": "../../packages/core-config" },
+    { "path": "../../packages/core-logger" },
+    { "path": "../../packages/core-mcp" }
+  ],
+  "include": ["src/**/*"],
+  "exclude": ["dist", "node_modules", "**/*.test.ts", "test/**/*"]
+}
