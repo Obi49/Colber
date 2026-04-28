@@ -1,0 +1,169 @@
+syntax = "proto3";
+
+package praxis.observability.v1;
+
+// Praxis — Observability gRPC contract (v1).
+// Mirror of the REST + MCP surfaces. Used for inter-service calls
+// inside the cluster (gRPC over Linkerd / Istio service mesh).
+
+service ObservabilityService {
+  // Ingest a batch of log events.
+  rpc IngestLogs(IngestLogsRequest) returns (IngestResponse);
+
+  // Ingest a batch of trace spans.
+  rpc IngestSpans(IngestSpansRequest) returns (IngestResponse);
+
+  // Structured query against logs or spans.
+  rpc Query(QueryRequest) returns (QueryResponse);
+
+  // Alert rule CRUD.
+  rpc CreateAlert(CreateAlertRequest) returns (Alert);
+  rpc GetAlert(GetAlertRequest) returns (Alert);
+  rpc ListAlerts(ListAlertsRequest) returns (ListAlertsResponse);
+  rpc UpdateAlert(UpdateAlertRequest) returns (Alert);
+  rpc DeleteAlert(DeleteAlertRequest) returns (DeleteAlertResponse);
+}
+
+// ---------- shared ----------
+
+// Flat string-keyed attribute map. Values are JSON-encoded scalars.
+message AttributeMap {
+  // JSON-encoded; e.g. `{"http.method":"GET","retries":3}`.
+  string json = 1;
+}
+
+// ---------- ingest ----------
+
+message IngestLogsRequest {
+  // Each entry is a JSON-encoded LogEvent (see HTTP schema). gRPC carries
+  // raw JSON to avoid duplicating the entire shape; validation happens
+  // server-side and per-event errors land in `rejected`.
+  repeated string events_json = 1;
+}
+
+message IngestSpansRequest {
+  repeated string spans_json = 1;
+}
+
+message Rejection {
+  uint32 index = 1;
+  string reason = 2;
+}
+
+message IngestResponse {
+  uint32 accepted = 1;
+  repeated Rejection rejected = 2;
+}
+
+// ---------- query ----------
+
+message QueryFilter {
+  string field = 1;
+  string op = 2;
+  // JSON-encoded scalar or array; e.g. `"reputation"`, `42`, `["error","fatal"]`.
+  string value_json = 3;
+}
+
+message TimeRange {
+  string from = 1;
+  string to = 2;
+}
+
+message QueryRequest {
+  // "logs" | "spans"
+  string scope = 1;
+  repeated QueryFilter filters = 2;
+  TimeRange time_range = 3;
+  uint32 limit = 4;
+  uint32 offset = 5;
+}
+
+message QueryRow {
+  // JSON-encoded QueryRow — wire size is dominated by the attribute map
+  // anyway, and the schema is open-ended (extra fields per scope), so a
+  // single JSON column keeps the proto stable.
+  string row_json = 1;
+}
+
+message QueryResponse {
+  repeated QueryRow rows = 1;
+  uint32 total = 2;
+}
+
+// ---------- alerts ----------
+
+message Condition {
+  string operator = 1;            // "and" | "or"
+  repeated QueryFilter filters = 2;
+  uint32 window_seconds = 3;
+  uint32 threshold = 4;
+}
+
+message NotificationChannel {
+  string type = 1;                // "webhook" | "slack" | "email"
+  string config_json = 2;         // type-specific config
+}
+
+message Notification {
+  repeated NotificationChannel channels = 1;
+}
+
+message Alert {
+  string id = 1;
+  string owner_operator_id = 2;
+  string name = 3;
+  string description = 4;
+  bool enabled = 5;
+  string scope = 6;               // "logs" | "spans"
+  Condition condition = 7;
+  uint32 cooldown_seconds = 8;
+  Notification notification = 9;
+  string created_at = 10;
+  string updated_at = 11;
+}
+
+message CreateAlertRequest {
+  string owner_operator_id = 1;
+  string name = 2;
+  string description = 3;
+  bool enabled = 4;
+  string scope = 5;
+  Condition condition = 6;
+  uint32 cooldown_seconds = 7;
+  Notification notification = 8;
+}
+
+message GetAlertRequest {
+  string id = 1;
+}
+
+message ListAlertsRequest {
+  string operator_id = 1;
+}
+
+message ListAlertsResponse {
+  repeated Alert alerts = 1;
+}
+
+message UpdateAlertRequest {
+  string id = 1;
+  // Empty string / null = unchanged.
+  string name = 2;
+  string description = 3;
+  // Optional booleans use a wrapper so "absent" is distinguishable from `false`.
+  bool set_enabled = 4;
+  bool enabled_value = 5;
+  string scope = 6;
+  Condition condition = 7;
+  uint32 cooldown_seconds = 8;
+  Notification notification = 9;
+}
+
+message DeleteAlertRequest {
+  string id = 1;
+}
+
+message DeleteAlertResponse {
+  string id = 1;
+  bool deleted = 2;
+}
