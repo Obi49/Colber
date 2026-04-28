@@ -313,11 +313,17 @@ ADRs formels à produire en P0.2 (Lot 0.2 du plan).
 
 ### Documents de pilotage
 
-- `AgentStack_Cahier_des_charges.docx` — CDC v1.0 (figé, ancien nom).
-- `PLAN_DE_DEVELOPPEMENT.md` — 5 phases, 32 sprints, gates, KPI.
-- `ARCHITECTURE_BREAKDOWN.md` — modèle C4 + WBS + SLO.
-- `STATUS.md` — ce document (snapshot état projet).
-- `praxis-stack/DEPLOY.md` — runbook déploiement VM.
+Tous les documents sont dans `docs/` à la racine du repo.
+
+- `docs/AgentStack_Cahier_des_charges.docx` — CDC v1.0 (figé, ancien nom).
+- `docs/PLAN_DE_DEVELOPPEMENT.md` — 5 phases, 32 sprints, gates, KPI.
+- `docs/ARCHITECTURE_BREAKDOWN.md` — modèle C4 + WBS + SLO.
+- `docs/STATUS.md` — ce document (snapshot état projet).
+- `docs/ROADMAP.md` — plan d'attaque opérationnel + briefs.
+- `docs/ONBOARDING.md` — guide reprise de session.
+- `docs/DEPLOY.md` — runbook déploiement VM.
+- `docs/DESIGN_BRIEF.md` — prompt Claude Design pour les schémas.
+- `README.md` (racine) — point d'entrée GitHub.
 
 ### Code
 

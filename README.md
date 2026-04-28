@@ -27,7 +27,7 @@ Praxis se positionne comme la couche de **trust, coordination & continuity** au-
 
 > 💡 **INSURANCE est en mode simulation pure pour la v1** : pas de Solidity, pas de Foundry, pas de viem, pas de Base Sepolia. La version on-chain réelle (smart contracts, escrow Base L2, audit Trail of Bits) est l'étape 7b en P3. Décision validée CdP.
 
-> 📄 **État détaillé** : [STATUS.md](STATUS.md) · **Plan d'attaque** : [ROADMAP.md](ROADMAP.md)
+> 📄 **État détaillé** : [docs/STATUS.md](docs/STATUS.md) · **Plan d'attaque** : [docs/ROADMAP.md](docs/ROADMAP.md)
 
 ---
 
@@ -65,7 +65,7 @@ Praxis se positionne comme la couche de **trust, coordination & continuity** au-
 | **NEGOTIATION**   | Broker de négociation A2A multi-parties (event-sourced) | Postgres (event store + projection)         |
 | **INSURANCE**     | Garantie de livrable agentique avec escrow              | Postgres (escrow simulé en v1; on-chain P3) |
 
-Détails complets : [ARCHITECTURE_BREAKDOWN.md](ARCHITECTURE_BREAKDOWN.md) (modèle C4 + WBS + SLO).
+Détails complets : [docs/ARCHITECTURE_BREAKDOWN.md](docs/ARCHITECTURE_BREAKDOWN.md) (modèle C4 + WBS + SLO).
 
 ### Effet de plateforme
 
@@ -101,7 +101,7 @@ cd praxis-stack
 docker compose -f docker-compose.yml -f docker-compose.services.yml up -d
 ```
 
-Voir [praxis-stack/DEPLOY.md](praxis-stack/DEPLOY.md) pour le runbook complet.
+Voir [docs/DEPLOY.md](docs/DEPLOY.md) pour le runbook complet.
 
 ### Tests E2E contre une VM déployée
 
@@ -175,21 +175,24 @@ Praxis/
 ├── praxis-stack/                  # Stack Docker β
 │   ├── docker-compose.yml         # Datastores + infra (postgres, redis, neo4j, ...)
 │   ├── docker-compose.services.yml# Services applicatifs (build + up)
-│   ├── services.env               # Secrets dev (gitignoré sur la VM)
-│   └── DEPLOY.md                  # Runbook déploiement
+│   └── services.env               # Secrets dev (gitignoré sur la VM)
 │
 ├── .tools/                        # Scripts de pilotage local
 │   ├── ssh_run.py                 # Exécution SSH paramiko (sudo via stdin)
 │   ├── ssh_push.py                # SFTP push avec mkdir tree
 │   └── e2e_smoke.py               # Tests E2E des 5 services + identity
 │
-├── AgentStack_Cahier_des_charges.docx  # CDC v1.0 figé (ancien nom AgentStack)
-├── PLAN_DE_DEVELOPPEMENT.md       # 5 phases / 32 sprints / gates / KPI
-├── ARCHITECTURE_BREAKDOWN.md      # Modèle C4 + WBS + SLO + sécurité
-├── STATUS.md                      # Snapshot état projet (mis à jour à chaque pause)
-├── ROADMAP.md                     # Plan d'attaque + briefs prêts pour agents
-├── ONBOARDING.md                  # Guide reprise de session (humain ou agent)
-└── README.md                      # Ce fichier
+├── docs/                          # Documentation projet (toute la doc en un endroit)
+│   ├── AgentStack_Cahier_des_charges.docx  # CDC v1.0 figé (ancien nom AgentStack)
+│   ├── PLAN_DE_DEVELOPPEMENT.md   # 5 phases / 32 sprints / gates / KPI
+│   ├── ARCHITECTURE_BREAKDOWN.md  # Modèle C4 + WBS + SLO + sécurité
+│   ├── STATUS.md                  # Snapshot état projet (mis à jour à chaque pause)
+│   ├── ROADMAP.md                 # Plan d'attaque + briefs prêts pour agents
+│   ├── ONBOARDING.md              # Guide reprise de session (humain ou agent)
+│   ├── DEPLOY.md                  # Runbook déploiement VM β
+│   └── DESIGN_BRIEF.md            # Brief Claude Design pour les schémas
+│
+└── README.md                      # Ce fichier (point d'entrée GitHub)
 ```
 
 ---
@@ -199,16 +202,18 @@ Praxis/
 ### Pour comprendre le projet (ordre recommandé)
 
 1. **[README.md](README.md)** (ce fichier) — vue d'ensemble, statut, quick start.
-2. **[ONBOARDING.md](ONBOARDING.md)** — **point d'entrée pour reprendre une session** (humain ou agent IA).
-3. **[STATUS.md](STATUS.md)** — état projet à l'instant T (modules livrés, infra, tests, décisions, points d'attention).
-4. **[ROADMAP.md](ROADMAP.md)** — plan d'attaque opérationnel + **briefs prêts à coller** dans des agents dev.
-5. **[ARCHITECTURE_BREAKDOWN.md](ARCHITECTURE_BREAKDOWN.md)** — décomposition technique modèle C4.
-6. **[PLAN_DE_DEVELOPPEMENT.md](PLAN_DE_DEVELOPPEMENT.md)** — découpage en 5 phases sur 18 mois.
-7. **[AgentStack_Cahier_des_charges.docx](AgentStack_Cahier_des_charges.docx)** — spécifications fonctionnelles et techniques v1.0 (figé, ancien nom).
+2. **[docs/ONBOARDING.md](docs/ONBOARDING.md)** — **point d'entrée pour reprendre une session** (humain ou agent IA).
+3. **[docs/STATUS.md](docs/STATUS.md)** — état projet à l'instant T (modules livrés, infra, tests, décisions, points d'attention).
+4. **[docs/ROADMAP.md](docs/ROADMAP.md)** — plan d'attaque opérationnel + **briefs prêts à coller** dans des agents dev.
+5. **[docs/ARCHITECTURE_BREAKDOWN.md](docs/ARCHITECTURE_BREAKDOWN.md)** — décomposition technique modèle C4.
+6. **[docs/PLAN_DE_DEVELOPPEMENT.md](docs/PLAN_DE_DEVELOPPEMENT.md)** — découpage en 5 phases sur 18 mois.
+7. **[docs/AgentStack_Cahier_des_charges.docx](docs/AgentStack_Cahier_des_charges.docx)** — spécifications fonctionnelles et techniques v1.0 (figé, ancien nom).
+8. **[docs/DEPLOY.md](docs/DEPLOY.md)** — runbook de déploiement VM β.
+9. **[docs/DESIGN_BRIEF.md](docs/DESIGN_BRIEF.md)** — prompt prêt à coller dans Claude Design pour les schémas (fonctionnel + workflow A2A).
 
 ### Workflow de collaboration (PM ↔ agents dev)
 
-Voir [ONBOARDING.md](ONBOARDING.md) §"Workflow validé". Résumé :
+Voir [docs/ONBOARDING.md](docs/ONBOARDING.md) §"Workflow validé". Résumé :
 
 1. Le **chef de projet (CdP)** rédige un brief complet pour un agent dev (`backend-development:backend-architect`).
 2. L'agent code (~30 min, ~50 fichiers cohérents).
@@ -224,7 +229,7 @@ Voir [ONBOARDING.md](ONBOARDING.md) §"Workflow validé". Résumé :
 
 ## 🛣️ Prochaines étapes possibles
 
-Toutes optionnelles, ordre à arbitrer selon priorités business — cf. [ROADMAP.md](ROADMAP.md) :
+Toutes optionnelles, ordre à arbitrer selon priorités business — cf. [docs/ROADMAP.md](docs/ROADMAP.md) :
 
 - **Étape 2** — OBSERVABILITY v1.1 : anomalies ML (IQR/EWMA/Z-score) + tiering S3 + exporter OTLP.
 - **Étape 3** — REPUTATION v2 : multi-dim (delivery/quality/communication) + anti-Sybil (Louvain/Leiden via Neo4j GDS) + workflow contestation.
@@ -245,7 +250,7 @@ Toutes optionnelles, ordre à arbitrer selon priorités business — cf. [ROADMA
 - **Auth endpoints memory v1** : `callerDid`/`queryDid` en clair (pas de signature). À durcir en P2.
 - **PCI / KYC / AML** : non applicable au MVP simulation. Devient critique avec INSURANCE on-chain (étape 7b).
 
-Pour les détails sécurité-conformité prévus en GA (RGPD, audit trail, AI Act anticipation, bug bounty) : [ARCHITECTURE_BREAKDOWN.md §4](ARCHITECTURE_BREAKDOWN.md).
+Pour les détails sécurité-conformité prévus en GA (RGPD, audit trail, AI Act anticipation, bug bounty) : [docs/ARCHITECTURE_BREAKDOWN.md §4](docs/ARCHITECTURE_BREAKDOWN.md).
 
 ---
 

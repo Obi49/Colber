@@ -11,8 +11,8 @@ transactions, RATED edges); signed score snapshots, feedback idempotency
 records, and Merkle anchor stubs live in **Postgres**; signed score envelopes
 are cached in **Redis**.
 
-See [`ARCHITECTURE_BREAKDOWN.md` §3.1](../../ARCHITECTURE_BREAKDOWN.md) and
-[`PLAN_DE_DEVELOPPEMENT.md` Lot 1.2, Sprints 3 → 6](../../PLAN_DE_DEVELOPPEMENT.md).
+See [`ARCHITECTURE_BREAKDOWN.md` §3.1](../../docs/ARCHITECTURE_BREAKDOWN.md) and
+[`PLAN_DE_DEVELOPPEMENT.md` Lot 1.2, Sprints 3 → 6](../../docs/PLAN_DE_DEVELOPPEMENT.md).
 
 ---
 

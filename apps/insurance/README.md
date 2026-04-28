@@ -4,13 +4,13 @@
 > claims workflow, global exposure cap. **v1 MVP is simulation-only**:
 > there is no on-chain integration in this service. The on-chain version
 > (Solidity + viem + Base Sepolia) is a separate P3 ticket — see
-> [`ROADMAP.md` étape 7b](../../ROADMAP.md).
+> [`ROADMAP.md` étape 7b](../../docs/ROADMAP.md).
 
 The fifth Praxis service after `agent-identity`, `reputation`, `memory`,
 `observability`, and `negotiation`.
 
-See [`ARCHITECTURE_BREAKDOWN.md` §3.5](../../ARCHITECTURE_BREAKDOWN.md) and
-[`ROADMAP.md` étape 7](../../ROADMAP.md).
+See [`ARCHITECTURE_BREAKDOWN.md` §3.5](../../docs/ARCHITECTURE_BREAKDOWN.md) and
+[`ROADMAP.md` étape 7](../../docs/ROADMAP.md).
 
 ---
 

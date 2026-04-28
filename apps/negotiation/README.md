@@ -7,8 +7,8 @@
 The fifth Praxis service after `agent-identity`, `reputation`, `memory`,
 and `observability`.
 
-See [`ARCHITECTURE_BREAKDOWN.md` §3.4](../../ARCHITECTURE_BREAKDOWN.md) and
-[`ROADMAP.md` étape 8](../../ROADMAP.md).
+See [`ARCHITECTURE_BREAKDOWN.md` §3.4](../../docs/ARCHITECTURE_BREAKDOWN.md) and
+[`ROADMAP.md` étape 8](../../docs/ROADMAP.md).
 
 ---
 

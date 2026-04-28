@@ -7,8 +7,8 @@
 Implements W3C `did:key` (Ed25519) registration, resolution, and signature
 verification. Exposes the same domain on three transports: REST, gRPC, MCP.
 
-See [`ARCHITECTURE_BREAKDOWN.md` §3.6.1](../../ARCHITECTURE_BREAKDOWN.md) and
-[`PLAN_DE_DEVELOPPEMENT.md` Lot 1.1, Sprint 1](../../PLAN_DE_DEVELOPPEMENT.md).
+See [`ARCHITECTURE_BREAKDOWN.md` §3.6.1](../../docs/ARCHITECTURE_BREAKDOWN.md) and
+[`PLAN_DE_DEVELOPPEMENT.md` Lot 1.1, Sprint 1](../../docs/PLAN_DE_DEVELOPPEMENT.md).
 
 ---
 
@@ -39,13 +39,13 @@ pnpm --filter @praxis/agent-identity dev
 
 The service exposes:
 
-| Surface     | Address (default)               |
-| ----------- | ------------------------------- |
-| REST        | `http://localhost:4001`         |
-| gRPC        | `localhost:4002` (insecure dev) |
-| `/metrics`  | `http://localhost:4001/metrics` |
-| `/healthz`  | `http://localhost:4001/healthz` |
-| `/readyz`   | `http://localhost:4001/readyz`  |
+| Surface    | Address (default)               |
+| ---------- | ------------------------------- |
+| REST       | `http://localhost:4001`         |
+| gRPC       | `localhost:4002` (insecure dev) |
+| `/metrics` | `http://localhost:4001/metrics` |
+| `/healthz` | `http://localhost:4001/healthz` |
+| `/readyz`  | `http://localhost:4001/readyz`  |
 
 ## REST endpoints
 
@@ -91,8 +91,8 @@ Resolve a URL-encoded DID to its agent record.
     "signatureScheme": "Ed25519",
     "ownerOperatorId": "op_abc123",
     "registeredAt": "…",
-    "revokedAt": null
-  }
+    "revokedAt": null,
+  },
 }
 ```
 
@@ -124,11 +124,11 @@ Errors: `404 DID_NOT_FOUND`, `410 DID_REVOKED`, `400 VALIDATION_FAILED`.
 Three tools registered under the `identity.` namespace. Schemas are Zod-defined
 in `src/mcp/tools.ts` and round-trip via the in-process `McpToolRegistry`.
 
-| Tool                | Version | Purpose                                                        |
-| ------------------- | ------- | -------------------------------------------------------------- |
-| `identity.register` | `1.0.0` | Register an Ed25519 public key, return the derived `did:key`.  |
-| `identity.resolve`  | `1.0.0` | Resolve a DID to its agent record.                             |
-| `identity.verify`   | `1.0.0` | Verify a signature against the public key bound to a DID.      |
+| Tool                | Version | Purpose                                                       |
+| ------------------- | ------- | ------------------------------------------------------------- |
+| `identity.register` | `1.0.0` | Register an Ed25519 public key, return the derived `did:key`. |
+| `identity.resolve`  | `1.0.0` | Resolve a DID to its agent record.                            |
+| `identity.verify`   | `1.0.0` | Verify a signature against the public key bound to a DID.     |
 
 The registry is built at startup; an MCP transport (stdio/SSE) will be wired
 in a follow-up sprint when the upstream `@modelcontextprotocol/sdk` surface

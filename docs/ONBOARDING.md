@@ -22,7 +22,7 @@
 
 | #   | Document                                                                 | Quoi y trouver                                                                                                          | Durée     |
 | --- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- | --------- |
-| 1   | [README.md](README.md)                                                   | Vue d'ensemble + statut + quick start                                                                                   | 5 min     |
+| 1   | [../README.md](../README.md)                                             | Vue d'ensemble + statut + quick start                                                                                   | 5 min     |
 | 2   | **[STATUS.md](STATUS.md)**                                               | **État projet à l'instant T** : modules livrés, infra VM, DBs, tests, décisions archi (18), points d'attention sécurité | 10 min    |
 | 3   | **[ROADMAP.md](ROADMAP.md)**                                             | **Plan d'attaque opérationnel** + **briefs prêts à coller** dans des agents dev pour chaque étape future                | 10 min    |
 | 4   | [PLAN_DE_DEVELOPPEMENT.md](PLAN_DE_DEVELOPPEMENT.md)                     | Plan canonique 18 mois (5 phases, 32 sprints, gates, KPI, risques)                                                      | parcourir |

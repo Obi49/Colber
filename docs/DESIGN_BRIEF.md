@@ -261,7 +261,7 @@ Crée un dossier `docs/diagrams/` à la racine et place-y :
 - `docs/diagrams/praxis-functional@2x.png` (fallback PNG)
 - `docs/diagrams/praxis-workflow-a2a@2x.png` (fallback PNG)
 
-Puis update [README.md](README.md) (section "Vision et architecture") et [ARCHITECTURE_BREAKDOWN.md](ARCHITECTURE_BREAKDOWN.md) (§1.3 et §3) pour intégrer les schémas avec `![Praxis fonctionnel](docs/diagrams/praxis-functional.svg)` etc.
+Puis update [`../README.md`](../README.md) (section "Vision et architecture") et [`ARCHITECTURE_BREAKDOWN.md`](ARCHITECTURE_BREAKDOWN.md) (§1.3 et §3) pour intégrer les schémas. Depuis le README à la racine, utilise `![Praxis fonctionnel](docs/diagrams/praxis-functional.svg)`. Depuis les fichiers de docs/, utilise `![Praxis fonctionnel](diagrams/praxis-functional.svg)`.
 
 ### Variantes à demander en suivi (optionnel)
 

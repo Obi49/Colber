@@ -12,8 +12,8 @@ trail live in **Postgres**. Embeddings are generated via a pluggable provider
 abstraction (default `nomic-embed-text` over Ollama; deterministic stub for
 unit tests).
 
-See [`ARCHITECTURE_BREAKDOWN.md` §3.2](../../ARCHITECTURE_BREAKDOWN.md) and
-[`PLAN_DE_DEVELOPPEMENT.md` Lot 1.3, Sprints 4 → 7](../../PLAN_DE_DEVELOPPEMENT.md).
+See [`ARCHITECTURE_BREAKDOWN.md` §3.2](../../docs/ARCHITECTURE_BREAKDOWN.md) and
+[`PLAN_DE_DEVELOPPEMENT.md` Lot 1.3, Sprints 4 → 7](../../docs/PLAN_DE_DEVELOPPEMENT.md).
 
 ---
 

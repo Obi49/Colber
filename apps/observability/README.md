@@ -10,8 +10,8 @@ charges §2.3 — `log`, `trace`, `query`, `alert` — over three transports
 rule configuration lives in **Postgres**. Embeddings are not used by this
 service.
 
-See [`ARCHITECTURE_BREAKDOWN.md` §3.3](../../ARCHITECTURE_BREAKDOWN.md) and
-[`PLAN_DE_DEVELOPPEMENT.md` Lot 2.1, Sprints 9 → 11](../../PLAN_DE_DEVELOPPEMENT.md).
+See [`ARCHITECTURE_BREAKDOWN.md` §3.3](../../docs/ARCHITECTURE_BREAKDOWN.md) and
+[`PLAN_DE_DEVELOPPEMENT.md` Lot 2.1, Sprints 9 → 11](../../docs/PLAN_DE_DEVELOPPEMENT.md).
 
 ---
 
