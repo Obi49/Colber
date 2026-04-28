@@ -85,12 +85,14 @@ const buildQdrantFilter = (filter: VectorFilter | undefined): QdrantFilter | und
   // ACL clauses. Each entry in `anyOfClauses` is an AND of its fields, and
   // the entries OR together. We encode each as a nested Filter under
   // `should`. Qdrant supports nested filters here via the `filter` shape.
-  const should: { filter: { must: QdrantFilterCondition[] } }[] = [];
+  // Qdrant 1.15+ expects nested boolean filters to appear directly as
+  // Condition objects (i.e. `{ must: [...] }`), not wrapped in `{ filter: {...} }`.
+  const should: { must: QdrantFilterCondition[] }[] = [];
   if (filter.anyOfClauses && filter.anyOfClauses.length > 0) {
     for (const clause of filter.anyOfClauses) {
       const conds = clauseToConditions(clause);
       if (conds.length > 0) {
-        should.push({ filter: { must: conds } });
+        should.push({ must: conds });
       }
     }
   }
