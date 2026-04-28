@@ -2,33 +2,41 @@
 
 **Référence** : `PLAN_DE_DEVELOPPEMENT.md` (plan canonique 18 mois) — ce document est le **plan d'attaque opérationnel pour les sessions suivantes** avec les briefs prêts à coller dans les agents dev.
 
-**Date de la pause** : 2026-04-28
-**État au moment de la pause** : voir [STATUS.md](STATUS.md). 3/5 modules livrés (agent-identity, REPUTATION, MEMORY).
+**Date de la dernière mise à jour** : 2026-04-28 (PM)
+**État courant** : voir [STATUS.md](STATUS.md). **4/5 modules livrés** (agent-identity, REPUTATION, MEMORY, OBSERVABILITY v1). E2E 11/11 verts sur VM β.
 
 ---
 
 ## Ordre de bataille recommandé
 
-| Étape  | Module / Lot                                                              | Effort estimé | Dépendances    | Bloquant pour            |
-| ------ | ------------------------------------------------------------------------- | ------------- | -------------- | ------------------------ |
-| **1**  | OBSERVABILITY (sprints 9-11 — ingestion + query + alertes config)         | 1 session     | ClickHouse OK  | rien (livrable autonome) |
-| **2**  | OBSERVABILITY v1.1 (sprints 12-13 — anomalies ML + tiering + export OTel) | 1 session     | étape 1        | rien                     |
-| **3**  | REPUTATION v2 (sprints 11-14 — multi-dim + anti-Sybil + contestation)     | 1-2 sessions  | étape 1 (logs) | INSURANCE pricing v2     |
-| **4**  | Plugins frameworks (LangChain + CrewAI + Autogen)                         | 1 session     | aucune         | adoption marché          |
-| **5**  | Console opérateur web (Next.js 15)                                        | 1-2 sessions  | aucune         | self-service P3          |
-| **6**  | SDK officiels (TS sur npm + Python sur PyPI)                              | 1 session     | aucune         | listage AgenticTrade     |
-| **7**  | INSURANCE (sprints 17-22 — pricing, escrow on-chain, claim)               | 2 sessions    | REPUTATION v2  | NEGOTIATION coverage     |
-| **8**  | NEGOTIATION (sprints 18-23 — auctions, multi-criteria, médiation LLM)     | 2 sessions    | INSURANCE      | GA publique              |
-| **9**  | GA publique (sprint 24 — bug bounty, audit sécu tiers, self-service)      | 1 session     | étapes 7-8     | P4                       |
-| **10** | P4 industrialisation (multi-région, enterprise, standardisation)          | 4-8 sessions  | étape 9        | levée Série A            |
+| Étape  | Module / Lot                                                              | Effort estimé | Dépendances    | Bloquant pour        |
+| ------ | ------------------------------------------------------------------------- | ------------- | -------------- | -------------------- |
+| ~~1~~  | ✅ ~~OBSERVABILITY (sprints 9-11)~~ — **livré 2026-04-28**, E2E 11/11     | —             | —              | —                    |
+| **2**  | OBSERVABILITY v1.1 (sprints 12-13 — anomalies ML + tiering + export OTel) | 1 session     | étape 1        | rien                 |
+| **3**  | REPUTATION v2 (sprints 11-14 — multi-dim + anti-Sybil + contestation)     | 1-2 sessions  | étape 1 (logs) | INSURANCE pricing v2 |
+| **4**  | Plugins frameworks (LangChain + CrewAI + Autogen)                         | 1 session     | aucune         | adoption marché      |
+| **5**  | Console opérateur web (Next.js 15)                                        | 1-2 sessions  | aucune         | self-service P3      |
+| **6**  | SDK officiels (TS sur npm + Python sur PyPI)                              | 1 session     | aucune         | listage AgenticTrade |
+| **7**  | INSURANCE (sprints 17-22 — pricing, escrow on-chain, claim)               | 2 sessions    | REPUTATION v2  | NEGOTIATION coverage |
+| **8**  | NEGOTIATION (sprints 18-23 — auctions, multi-criteria, médiation LLM)     | 2 sessions    | INSURANCE      | GA publique          |
+| **9**  | GA publique (sprint 24 — bug bounty, audit sécu tiers, self-service)      | 1 session     | étapes 7-8     | P4                   |
+| **10** | P4 industrialisation (multi-région, enterprise, standardisation)          | 4-8 sessions  | étape 9        | levée Série A        |
 
 > Une "session" ≈ 1-2 heures de travail intensif avec des agents dev sub-traités.
 
 ---
 
-## Étape 1 — OBSERVABILITY (REPRENDRE ICI)
+## Étape 1 — OBSERVABILITY ✅ LIVRÉE (2026-04-28)
 
-### Contexte
+### Résumé livraison
+
+- Scaffold initial repris depuis `feature/observability-wip` (commit `86a4f05` "ne build pas").
+- Délégation à `backend-architect` pour le fix-up TS strict + lint (10 fichiers modifiés, 32 tests verts en local).
+- Commit `391e82f` (scaffold + fix), `dbe1827` (compose + e2e étendu), `0976383` (fix timestamps ClickHouse + DELETE sans Content-Type).
+- VM : `praxis-observability` healthy, ports `14031`/`14032`, DB `praxis_observability` + ClickHouse tables `praxis_logs`/`praxis_spans` (DateTime64 UTC, partitions/jour, TTL 30j).
+- E2E `.tools/e2e_smoke.py` : 11/11 verts (4 healthchecks + 7 steps métier).
+
+### Contexte historique (avant livraison)
 
 Module **interrompu** lors de la session précédente par le rate limit de l'agent (reset 13:30 Paris). Le brief est prêt à recoller à l'identique dans un agent `backend-development:backend-architect`.
 

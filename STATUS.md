@@ -1,15 +1,15 @@
 # STATUS — Praxis (snapshot pause)
 
 **Date** : 2026-04-28
-**Phase** : transition P1 → P2
+**Phase** : P2 démarrée (sprints 9-11)
 **Branche active** : `main`
-**Dernier commit pushé** : `a5396ab`
+**Dernier commit pushé** : `0976383`
 
 ---
 
 ## TL;DR
 
-3 modules livrés, déployés, testés en bout en bout sur la VM β `100.83.10.125`. Pipeline CI propre (build / typecheck / test / lint tous verts). Prêt à enchaîner sur OBSERVABILITY après pause.
+4 modules livrés, déployés, testés en bout en bout sur la VM β `100.83.10.125` (11/11 steps E2E verts). Pipeline CI propre (build / typecheck / test / lint tous verts, 193 tests passing). Prêt à enchaîner sur OBSERVABILITY v1.1 (anomalies + tiering + OTel) ou REPUTATION v2.
 
 ---
 
@@ -44,7 +44,24 @@ Oracle de fiabilité agentique avec attestations cryptographiques.
 - **Tests** : 62 (unit scoring + JCS + attestation + service + integration).
 - **Image Docker** : `praxis/reputation:dev` (317 MB).
 
-### 1.3 `memory` ✅ (P1 sprints 4-7)
+### 1.3 `observability` ✅ (P2 sprints 9-11)
+
+Logging + tracing distribué pour les interactions agent-to-agent (A2A).
+
+- **Endpoints** :
+  - REST : `POST /v1/observability/logs`, `POST /v1/observability/traces`, `POST /v1/observability/query`, CRUD `GET/POST/PATCH/DELETE /v1/observability/alerts/...`
+  - gRPC : `praxis.observability.v1.ObservabilityService` (logs / traces / query + CRUD alerts)
+  - MCP : `observability.log`, `observability.trace`, `observability.query`, `observability.alert`
+- **Storage** :
+  - ClickHouse 24.10 : 2 tables (`praxis_logs`, `praxis_spans`) auto-créées au démarrage, partitionnement par jour, ORDER BY `(timestamp, traceId, spanId)`, TTL 30 jours configurable.
+  - Postgres `praxis_observability` (migration drizzle 0000) : table `alert_rules` (id, ownerOperatorId, name, scope, condition jsonb, cooldownSeconds, notification jsonb).
+- **DSL filtres** (`condition`) : zod-validé, opérateurs `eq/neq/in/gt/gte/lt/lte/contains/matches`, allowlist de fields par scope (logs : service/level/agentDid/operatorId/traceId/spanId/parentSpanId/message/`attributes.<key>` ; spans : + kind/status/statusMessage/name/durationMs).
+- **Ingestion** : batcher in-memory flush à 1000 ms ou 500 events. `OBSERVABILITY_MAX_EVENTS_PER_REQUEST=1000`. Conversion ISO → format ClickHouse (`YYYY-MM-DD HH:MM:SS.sss`) au moment de l'insert.
+- **Out of scope v1** (renvoyés en v1.1, sprint 12-13) : ML anomaly detection, tiering S3 chaud/tiède/froid, exporter OTLP, evaluation engine des règles d'alerte.
+- **Tests** : 32 unit (telemetry-validation, query-builder, batcher), fakes `InMemoryClickHouseClient` + `InMemoryAlertRepository`. 1 placeholder live test gated `PRAXIS_LIVE_TESTS=1`.
+- **Image Docker** : `praxis/observability:dev` (Alpine multi-stage).
+
+### 1.4 `memory` ✅ (P1 sprints 4-7)
 
 Mémoire externe persistante avec recherche sémantique via embeddings.
 
@@ -74,34 +91,37 @@ Mémoire externe persistante avec recherche sémantique via embeddings.
 - **Docker** : 29.2.1 + Compose v5.1.0
 - **Tailscale** : actif (PID 675), ne JAMAIS toucher
 
-### 2.2 Stack Docker — 13 conteneurs (`docker compose -p praxis ps`)
+### 2.2 Stack Docker — 14 conteneurs (`docker compose -p praxis ps`)
 
-| Conteneur               | Image                                       | Rôle                                | Port hôte       |
-| ----------------------- | ------------------------------------------- | ----------------------------------- | --------------- |
-| `praxis-postgres`       | `postgres:16-alpine`                        | Métadonnées des 3 services          | `15432`         |
-| `praxis-redis`          | `redis:7-alpine`                            | Cache scoring                       | `16379`         |
-| `praxis-nats`           | `nats:2.10-alpine`                          | Bus événements (réservé futur)      | `14222`/`18222` |
-| `praxis-qdrant`         | `qdrant/qdrant:v1.15.4`                     | Vecteurs MEMORY                     | `16333`/`16334` |
-| `praxis-clickhouse`     | `clickhouse/clickhouse-server:24.10-alpine` | Logs/traces (réservé OBSERVABILITY) | `18123`/`19000` |
-| `praxis-neo4j`          | `neo4j:5-community`                         | Graphe REPUTATION                   | `17474`/`17687` |
-| `praxis-ollama`         | `ollama/ollama:0.4.7`                       | Embeddings (nomic-embed-text 768d)  | `11434`         |
-| `praxis-prometheus`     | `prom/prometheus:v2.55.1`                   | Métriques                           | `19090`         |
-| `praxis-grafana`        | `grafana/grafana:11.3.0`                    | Dashboards (admin/praxis_dev)       | `13000`         |
-| `praxis-traefik`        | `traefik:v3.2`                              | Reverse proxy interne               | `18000`/`18080` |
-| `praxis-agent-identity` | `praxis/agent-identity:dev`                 | Service applicatif                  | `14001`/`14002` |
-| `praxis-reputation`     | `praxis/reputation:dev`                     | Service applicatif                  | `14011`/`14012` |
-| `praxis-memory`         | `praxis/memory:dev`                         | Service applicatif                  | `14021`/`14022` |
+| Conteneur               | Image                                       | Rôle                               | Port hôte       |
+| ----------------------- | ------------------------------------------- | ---------------------------------- | --------------- |
+| `praxis-postgres`       | `postgres:16-alpine`                        | Métadonnées des 4 services         | `15432`         |
+| `praxis-redis`          | `redis:7-alpine`                            | Cache scoring                      | `16379`         |
+| `praxis-nats`           | `nats:2.10-alpine`                          | Bus événements (réservé futur)     | `14222`/`18222` |
+| `praxis-qdrant`         | `qdrant/qdrant:v1.15.4`                     | Vecteurs MEMORY                    | `16333`/`16334` |
+| `praxis-clickhouse`     | `clickhouse/clickhouse-server:24.10-alpine` | Logs/traces OBSERVABILITY          | `18123`/`19000` |
+| `praxis-neo4j`          | `neo4j:5-community`                         | Graphe REPUTATION                  | `17474`/`17687` |
+| `praxis-ollama`         | `ollama/ollama:0.4.7`                       | Embeddings (nomic-embed-text 768d) | `11434`         |
+| `praxis-prometheus`     | `prom/prometheus:v2.55.1`                   | Métriques                          | `19090`         |
+| `praxis-grafana`        | `grafana/grafana:11.3.0`                    | Dashboards (admin/praxis_dev)      | `13000`         |
+| `praxis-traefik`        | `traefik:v3.2`                              | Reverse proxy interne              | `18000`/`18080` |
+| `praxis-agent-identity` | `praxis/agent-identity:dev`                 | Service applicatif                 | `14001`/`14002` |
+| `praxis-reputation`     | `praxis/reputation:dev`                     | Service applicatif                 | `14011`/`14012` |
+| `praxis-memory`         | `praxis/memory:dev`                         | Service applicatif                 | `14021`/`14022` |
+| `praxis-observability`  | `praxis/observability:dev`                  | Service applicatif                 | `14031`/`14032` |
 
 > **Note traefik** : flapping observé en fin de session (Up + Restarting). Pas bloquant car les services sont exposés directement sur leurs ports décalés. À diagnostiquer en P2.
 
 ### 2.3 Bases Postgres
 
-| DB                  | Service        | Tables                                                                          |
-| ------------------- | -------------- | ------------------------------------------------------------------------------- |
-| `praxis_identity`   | agent-identity | agents                                                                          |
-| `praxis_reputation` | reputation     | score_snapshots, feedback_log, merkle_anchors, \_\_drizzle_migrations           |
-| `praxis_memory`     | memory         | memories, memory_versions, memory_shares, memory_quotas, \_\_drizzle_migrations |
-| `praxis`            | (legacy)       | obsolète, à supprimer                                                           |
+| DB                       | Service        | Tables                                                                          |
+| ------------------------ | -------------- | ------------------------------------------------------------------------------- |
+| `praxis_identity`        | agent-identity | agents                                                                          |
+| `praxis_reputation`      | reputation     | score_snapshots, feedback_log, merkle_anchors, \_\_drizzle_migrations           |
+| `praxis_memory`          | memory         | memories, memory_versions, memory_shares, memory_quotas, \_\_drizzle_migrations |
+| `praxis_observability`   | observability  | alert_rules, \_\_drizzle_migrations                                             |
+| `praxis` (ClickHouse DB) | observability  | praxis_logs, praxis_spans (DateTime64 UTC, partitions par jour, TTL 30j)        |
+| `praxis` (legacy)        | (legacy)       | obsolète, à supprimer                                                           |
 
 ---
 
@@ -110,32 +130,39 @@ Mémoire externe persistante avec recherche sémantique via embeddings.
 ### 3.1 Tests internes (locaux, FULL TURBO)
 
 ```
-pnpm build     →  8 packages, all green
-pnpm typecheck → 13 packages, all green
-pnpm test      → 161 tests passing, 1 skipped (live testcontainers placeholder)
+pnpm build     →  9 packages, all green
+pnpm typecheck → 14 packages, all green
+pnpm test      → 193 tests passing, 1 skipped (live testcontainers placeholder)
 pnpm lint      →  0 errors, 0 warnings
 ```
 
 ### 3.2 Tests E2E sur VM β (`PRAXIS_VM=100.83.10.125 python .tools/e2e_smoke.py`)
 
 ```
-=== Healthchecks ===                  3/3 OK
-=== Register agent A and B ===         ✓ A, ✓ B (DIDs Ed25519)
-=== Resolve agent A ===                OK
-=== Verify signature via identity ===  valid: true
-=== Submit signed feedback A → B ===   201
-=== Read score B ===                   510 (= 500 base + 10 tx réussie)
-                                       avec attestation Ed25519 sur JCS
-=== Memory store + search ===          3 hits, score cosine 0.687
-                                       ("fast PDF delivery" ↔ "PDF reports 24h")
+=== Healthchecks ===                       4/4 OK (incl. observability)
+=== Register agent A and B ===              ✓ A, ✓ B (DIDs Ed25519)
+=== Resolve agent A ===                     OK
+=== Verify signature via identity ===       valid: true
+=== Submit signed feedback A → B ===        201
+=== Read score B ===                        510 (= 500 base + 10 tx réussie)
+                                            avec attestation Ed25519 sur JCS
+=== Memory store + search ===               3 hits, score cosine 0.687
+                                            ("fast PDF delivery" ↔ "PDF reports 24h")
+=== Observability ingest logs + query ===   202 → 2 rows queried back
+=== Observability ingest spans + query ===  202 → 1 row queried back
+=== Observability CRUD alert ===            create→get→patch→list→delete→404
 ALL E2E STEPS PASSED
 ```
 
 ---
 
-## 4. Historique Git (10 commits sur `main`)
+## 4. Historique Git (14 commits sur `main`)
 
 ```
+0976383 fix(observability): timestamps ISO → format ClickHouse au moment de l'insert
+dbe1827 chore(deploy): observability service dans le compose + e2e_smoke étendu
+391e82f feat(observability): module OBSERVABILITY v1 — logs, traces, query, alerts
+a81f8c8 docs: snapshot pause — STATUS, ROADMAP, README à jour
 a5396ab chore: ignore Claude Code scheduled_tasks.lock
 3edb036 chore(deploy): script smoke E2E + guide DEPLOY.md (7/7 verts sur VM)
 c490be7 chore(deploy): séparer DBs Postgres par service + bump Qdrant 1.15.4
@@ -154,17 +181,20 @@ Repo : https://github.com/Obi49/Praxis
 
 ## 5. Décisions architecturales prises
 
-| #   | Décision                                                                  | Justification                                                                          |
-| --- | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| 1   | Monorepo Turborepo + pnpm workspaces                                      | Standard 2025, build cache, supporte SDK + services + console                          |
-| 2   | TypeScript strict + exactOptionalPropertyTypes + noUncheckedIndexedAccess | Sécurité types maximale dès l'origine                                                  |
-| 3   | Fastify v5 (non Express)                                                  | Performance + écosystème zod + DX                                                      |
-| 4   | drizzle-orm + postgres-js (NON prisma)                                    | Léger, typé, migrations versionnées, pas de runtime client lourd                       |
-| 5   | DID method `did:key` (Ed25519) en MVP                                     | Self-resolvable, pas d'infra externe ; `did:web`/`did:ethr` plus tard                  |
-| 6   | Embeddings self-hosted (Ollama + nomic-embed-text)                        | Pas de dépendance OpenAI, gratuit, autonomie tests, cohérent avec positionnement trust |
-| 7   | 3 DBs Postgres séparées par service                                       | Migrations Drizzle indépendantes, isolation logique forte                              |
-| 8   | Cohabitation isolée avec ShowWeb3 (option A)                              | Zéro impact sur projet existant, ports décalés, volumes nommés Praxis                  |
-| 9   | Qdrant 1.15+ (et non 1.12)                                                | Compat client `@qdrant/js-client-rest@1.17`                                            |
+| #   | Décision                                                                   | Justification                                                                          |
+| --- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| 1   | Monorepo Turborepo + pnpm workspaces                                       | Standard 2025, build cache, supporte SDK + services + console                          |
+| 2   | TypeScript strict + exactOptionalPropertyTypes + noUncheckedIndexedAccess  | Sécurité types maximale dès l'origine                                                  |
+| 3   | Fastify v5 (non Express)                                                   | Performance + écosystème zod + DX                                                      |
+| 4   | drizzle-orm + postgres-js (NON prisma)                                     | Léger, typé, migrations versionnées, pas de runtime client lourd                       |
+| 5   | DID method `did:key` (Ed25519) en MVP                                      | Self-resolvable, pas d'infra externe ; `did:web`/`did:ethr` plus tard                  |
+| 6   | Embeddings self-hosted (Ollama + nomic-embed-text)                         | Pas de dépendance OpenAI, gratuit, autonomie tests, cohérent avec positionnement trust |
+| 7   | 3 DBs Postgres séparées par service                                        | Migrations Drizzle indépendantes, isolation logique forte                              |
+| 8   | Cohabitation isolée avec ShowWeb3 (option A)                               | Zéro impact sur projet existant, ports décalés, volumes nommés Praxis                  |
+| 9   | Qdrant 1.15+ (et non 1.12)                                                 | Compat client `@qdrant/js-client-rest@1.17`                                            |
+| 10  | OBSERVABILITY : ClickHouse via HTTP (pas natif)                            | Portabilité, pas de protocole binaire, suffisant pour le throughput attendu            |
+| 11  | OBSERVABILITY : ingestion via parallel arrays (pas JSON type)              | Compatible toutes versions ClickHouse, pas besoin du flag expérimental                 |
+| 12  | OBSERVABILITY : timestamps convertis ISO → format CH au moment de l'insert | DateTime64 JSONEachRow refuse le `T`/`Z` ISO ; conversion explicite côté repository    |
 
 ADRs formels à produire en P0.2 (Lot 0.2 du plan).
 
@@ -186,14 +216,13 @@ ADRs formels à produire en P0.2 (Lot 0.2 du plan).
 - 🟡 **`SignatureProvider`** dans `core-crypto` n'expose pas `derivePublicKey` ; reputation a importé `@noble/ed25519` directement. Refactor possible.
 - 🟡 **Live test placeholder** dans chaque service (testcontainers non installé). Activable via `PRAXIS_LIVE_TESTS=1`.
 
-### 6.3 Module OBSERVABILITY (à reprendre)
+### 6.3 Modules livrés en cette session (2026-04-28 PM)
 
-Tâche commencée : agent backend-architect lancé avec un brief complet (cf. log précédent). **Coupure usage limit reset 13:30 Paris**. Brief disponible : voir prompt original incluant logs+spans ClickHouse + alertes Postgres + 4 endpoints MCP. Après la reprise :
+**OBSERVABILITY v1** : récupéré depuis la branche `feature/observability-wip` (scaffold partiel `86a4f05` qui ne buildait pas), réparé via délégation à `backend-architect` (TS strict readonly, exactOptionalPropertyTypes, 89 problèmes lint), 32 tests passent. Déployé sur la VM ; deux bugs trouvés en E2E et corrigés (`0976383`) : (a) timestamps ISO refusés en JSONEachRow par ClickHouse `DateTime64`, (b) e2e_smoke envoyait `Content-Type: application/json` sur DELETE sans body et Fastify v5 répondait 500. E2E final 11/11 verts.
 
-1. Relancer l'agent backend-architect avec le même brief.
-2. Workflow identique aux modules précédents : build/test/lint → commit → push → docker build sur VM → up → E2E.
-3. Créer `praxis_observability` DB côté Postgres avant up.
-4. Ajouter le service au `docker-compose.services.yml`.
+### 6.4 Prochaine étape
+
+Voir [ROADMAP.md](ROADMAP.md) — étape 1 (OBSERVABILITY v1) terminée ; prochaine = étape 2 (OBSERVABILITY v1.1 anomalies+tiering+OTel) **ou** étape 3 (REPUTATION v2 multi-dim+anti-Sybil) selon priorisation. Étape 3 ne dépend que de logs OBSERVABILITY (now done).
 
 ---
 
