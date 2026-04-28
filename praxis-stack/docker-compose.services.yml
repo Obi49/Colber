@@ -35,7 +35,7 @@ services:
       HTTP_PORT: 4001
       GRPC_HOST: 0.0.0.0
       GRPC_PORT: 4002
-      DATABASE_URL: postgresql://praxis:praxis_dev@postgres:5432/praxis
+      DATABASE_URL: postgresql://praxis:praxis_dev@postgres:5432/praxis_identity
       PRETTY_LOGS: 'false'
     ports:
       - '14001:4001'
@@ -72,7 +72,7 @@ services:
       HTTP_PORT: 4011
       GRPC_HOST: 0.0.0.0
       GRPC_PORT: 4012
-      DATABASE_URL: postgresql://praxis:praxis_dev@postgres:5432/praxis
+      DATABASE_URL: postgresql://praxis:praxis_dev@postgres:5432/praxis_reputation
       NEO4J_BOLT_URL: bolt://neo4j:7687
       NEO4J_USERNAME: neo4j
       NEO4J_PASSWORD: praxis_dev
@@ -124,7 +124,7 @@ services:
       HTTP_PORT: 4021
       GRPC_HOST: 0.0.0.0
       GRPC_PORT: 4022
-      DATABASE_URL: postgresql://praxis:praxis_dev@postgres:5432/praxis
+      DATABASE_URL: postgresql://praxis:praxis_dev@postgres:5432/praxis_memory
       QDRANT_URL: http://qdrant:6333
       QDRANT_COLLECTION: praxis_memories
       MEMORY_EMBEDDING_PROVIDER: ollama

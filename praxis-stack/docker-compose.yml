@@ -25,11 +25,10 @@ volumes:
 x-logging: &default-logging
   driver: json-file
   options:
-    max-size: "10m"
-    max-file: "3"
+    max-size: '10m'
+    max-file: '3'
 
 services:
-
   # ------- BASES DE DONNÉES -------
 
   postgres:
@@ -41,11 +40,11 @@ services:
       POSTGRES_PASSWORD: praxis_dev
       POSTGRES_DB: praxis
     ports:
-      - "15432:5432"
+      - '15432:5432'
     volumes:
       - pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U praxis -d praxis"]
+      test: ['CMD-SHELL', 'pg_isready -U praxis -d praxis']
       interval: 10s
       timeout: 5s
       retries: 6
@@ -56,13 +55,13 @@ services:
     image: redis:7-alpine
     container_name: praxis-redis
     restart: unless-stopped
-    command: ["redis-server", "--appendonly", "yes"]
+    command: ['redis-server', '--appendonly', 'yes']
     ports:
-      - "16379:6379"
+      - '16379:6379'
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 5s
       retries: 6
@@ -73,14 +72,14 @@ services:
     image: nats:2.10-alpine
     container_name: praxis-nats
     restart: unless-stopped
-    command: ["-js", "-m", "8222", "-sd", "/data"]
+    command: ['-js', '-m', '8222', '-sd', '/data']
     ports:
-      - "14222:4222"
-      - "18222:8222"
+      - '14222:4222'
+      - '18222:8222'
     volumes:
       - nats_data:/data
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8222/healthz"]
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:8222/healthz']
       interval: 10s
       timeout: 5s
       retries: 6
@@ -88,16 +87,16 @@ services:
     logging: *default-logging
 
   qdrant:
-    image: qdrant/qdrant:v1.12.4
+    image: qdrant/qdrant:v1.15.4
     container_name: praxis-qdrant
     restart: unless-stopped
     ports:
-      - "16333:6333"
-      - "16334:6334"
+      - '16333:6333'
+      - '16334:6334'
     volumes:
       - qdrant_data:/qdrant/storage
     healthcheck:
-      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/127.0.0.1/6333' || exit 1"]
+      test: ['CMD-SHELL', "bash -c 'echo > /dev/tcp/127.0.0.1/6333' || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 6
@@ -117,12 +116,16 @@ services:
         soft: 262144
         hard: 262144
     ports:
-      - "18123:8123"
-      - "19000:9000"
+      - '18123:8123'
+      - '19000:9000'
     volumes:
       - clickhouse_data:/var/lib/clickhouse
     healthcheck:
-      test: ["CMD-SHELL", "clickhouse-client --user=praxis --password=praxis_dev --query='SELECT 1' >/dev/null 2>&1 || exit 1"]
+      test:
+        [
+          'CMD-SHELL',
+          "clickhouse-client --user=praxis --password=praxis_dev --query='SELECT 1' >/dev/null 2>&1 || exit 1",
+        ]
       interval: 15s
       timeout: 5s
       retries: 10
@@ -141,12 +144,12 @@ services:
       NEO4J_server_memory_heap_max__size: 1G
       NEO4J_server_memory_pagecache_size: 512m
     ports:
-      - "17474:7474"
-      - "17687:7687"
+      - '17474:7474'
+      - '17687:7687'
     volumes:
       - neo4j_data:/data
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:7474 || exit 1"]
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:7474 || exit 1']
       interval: 15s
       timeout: 5s
       retries: 10
@@ -160,11 +163,11 @@ services:
     container_name: praxis-ollama
     restart: unless-stopped
     ports:
-      - "11434:11434"
+      - '11434:11434'
     volumes:
       - ollama_data:/root/.ollama
     healthcheck:
-      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1 || exit 1"]
+      test: ['CMD-SHELL', 'ollama list >/dev/null 2>&1 || exit 1']
       interval: 15s
       timeout: 5s
       retries: 6
@@ -177,11 +180,11 @@ services:
     depends_on:
       ollama:
         condition: service_healthy
-    entrypoint: ["/bin/sh", "-c"]
+    entrypoint: ['/bin/sh', '-c']
     command:
       - "OLLAMA_HOST=ollama:11434 ollama pull nomic-embed-text && echo 'nomic-embed-text ready'"
     networks: [praxis_net]
-    restart: "no"
+    restart: 'no'
     logging: *default-logging
 
   # ------- OBSERVABILITÉ -------
@@ -191,16 +194,16 @@ services:
     container_name: praxis-prometheus
     restart: unless-stopped
     command:
-      - "--config.file=/etc/prometheus/prometheus.yml"
-      - "--storage.tsdb.path=/prometheus"
-      - "--storage.tsdb.retention.time=15d"
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
     ports:
-      - "19090:9090"
+      - '19090:9090'
     volumes:
       - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:9090/-/healthy"]
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:9090/-/healthy']
       interval: 15s
       timeout: 5s
       retries: 6
@@ -214,9 +217,9 @@ services:
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: praxis_dev
-      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_USERS_ALLOW_SIGN_UP: 'false'
     ports:
-      - "13000:3000"
+      - '13000:3000'
     volumes:
       - grafana_data:/var/lib/grafana
       - ./observability/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
@@ -224,7 +227,7 @@ services:
       prometheus:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:3000/api/health || exit 1']
       interval: 15s
       timeout: 5s
       retries: 6
@@ -238,15 +241,15 @@ services:
     container_name: praxis-traefik
     restart: unless-stopped
     command:
-      - "--api.dashboard=true"
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.dashboard.address=:8080"
+      - '--api.dashboard=true'
+      - '--api.insecure=true'
+      - '--providers.docker=true'
+      - '--providers.docker.exposedbydefault=false'
+      - '--entrypoints.web.address=:80'
+      - '--entrypoints.dashboard.address=:8080'
     ports:
-      - "18000:80"
-      - "18080:8080"
+      - '18000:80'
+      - '18080:8080'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks: [praxis_net]
