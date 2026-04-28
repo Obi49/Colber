@@ -3,7 +3,7 @@
 **Référence** : `PLAN_DE_DEVELOPPEMENT.md` (plan canonique 18 mois) — ce document est le **plan d'attaque opérationnel pour les sessions suivantes** avec les briefs prêts à coller dans les agents dev.
 
 **Date de la dernière mise à jour** : 2026-04-28 (soir)
-**État courant** : voir [STATUS.md](STATUS.md). **4/5 modules livrés** (REPUTATION, MEMORY, OBSERVABILITY, NEGOTIATION) + agent-identity. E2E 17/17 verts sur VM β. **Reste INSURANCE pour la v1 complète.**
+**État courant** : voir [STATUS.md](STATUS.md). 🎯 **v1 ATTEINTE — 5/5 modules livrés** (REPUTATION, MEMORY, OBSERVABILITY, NEGOTIATION, INSURANCE) + agent-identity. E2E **23/23 verts** sur VM β. Prochaines étapes possibles ci-dessous, à arbitrer selon priorités business.
 
 ---
 
@@ -17,7 +17,7 @@
 | **4**  | Plugins frameworks (LangChain + CrewAI + Autogen)                            | 1 session     | aucune                 | adoption marché      |
 | **5**  | Console opérateur web (Next.js 15)                                           | 1-2 sessions  | aucune                 | self-service P3      |
 | **6**  | SDK officiels (TS sur npm + Python sur PyPI)                                 | 1 session     | aucune                 | listage AgenticTrade |
-| **7**  | **INSURANCE v1 MVP** (mode simulation, sans on-chain) — _prochaine session_  | 1 session     | aucune                 | **v1 complète 5/5**  |
+| ~~7~~  | ✅ ~~INSURANCE v1 MVP (mode simulation)~~ — **livré 2026-04-28**, E2E 23/23  | —             | —                      | —                    |
 | ~~8~~  | ✅ ~~NEGOTIATION (sprints 18-23)~~ — **livré 2026-04-28**, E2E 17/17         | —             | —                      | —                    |
 | **7b** | INSURANCE on-chain réel (Solidity + Foundry + audit Base Sepolia → mainnet)  | 2-3 sessions  | étape 7, REPUTATION v2 | GA publique          |
 | **8b** | NEGOTIATION v1.1 (cancellation + sweeper + LLM mediator + EIP-712 + bridges) | 1-2 sessions  | étape 7b               | rien                 |
@@ -242,7 +242,33 @@ SDK = clients HTTP/gRPC typés générés depuis les `.proto` + REST OpenAPI (à
 
 ---
 
-## Étape 7 — INSURANCE v1 MVP (REPRENDRE ICI — prochaine session)
+## Étape 7 — INSURANCE v1 MVP ✅ LIVRÉE (2026-04-28)
+
+### Résumé livraison
+
+- 5ᵉ et dernier module pour atteindre la v1 complète (5/5).
+- Délégation à `backend-architect` from scratch (41 fichiers, 54 tests). Mirror négociation pour packaging/Dockerfile/tests.
+- Commit `a6489e6` (module), `4c72638` (compose + e2e étendu).
+- Pricing engine fonctionnel : 1000 USDC × 2% × multiplier(score=510 → 1.0) = 20 USDC. Fallback score=500 sur erreur reputation (warn log).
+- Escrow simulé Postgres : table `escrow_holdings` + audit trail `escrow_events` (BIGSERIAL append-only). État machine validée (locked → released | claimed | refunded, no skipping).
+- VM : `praxis-insurance` healthy, ports `14051`/`14052`, DB `praxis_insurance`. Premier déploiement réussi sans bug e2e (signature stricte côté serveur évitée car v1 sans signature).
+- E2E `.tools/e2e_smoke.py` : 23/23 verts (6 healthchecks + lifecycle complet quote → subscribe → idempotent replay → claim → admin transition `claimed` (avec claimId) → policy=claimed, claim=paid, payout=1000 → status final cohérent).
+- Décisions clés (cf. STATUS §5 #16-18) :
+  - Mode simulation pure (validé CdP "pas de réel chain pour le moment").
+  - Pricing brackets simples (4 paliers de score) en v1.
+  - Exposure cap = aggregate `SUM(...) WHERE status='locked'` sans `FOR UPDATE` (soft circuit-breaker MVP).
+
+### Out of scope v1 → étape 7b
+
+- Smart contracts Solidity 0.8.x, Foundry, viem.
+- Audit Trail of Bits / OpenZeppelin (mandatory avant mainnet).
+- Safe multisig + AWS KMS pour la wallet platform.
+- Claim arbitrator avec oracles externes + auto-decide rules.
+- Reinsurer-adapter (CDC §10.4).
+- Circuit-breaker dynamique avancé.
+- SLA evaluator automatique.
+
+### Contexte historique (avant livraison)
 
 ### Périmètre v1 (validé CdP 2026-04-28 : "pas de réel chain pour le moment")
 

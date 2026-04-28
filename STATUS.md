@@ -1,15 +1,15 @@
 # STATUS — Praxis (snapshot pause)
 
-**Date** : 2026-04-28
-**Phase** : P2 → P3 (NEGOTIATION livrée hors-séquence)
+**Date** : 2026-04-28 (soir)
+**Phase** : **v1 PLATFORM COMPLÈTE — 5/5 modules**
 **Branche active** : `main`
-**Dernier commit pushé** : `c16cc78`
+**Dernier commit pushé** : `4c72638` (fonctionnel) — finalisation docs en cours
 
 ---
 
 ## TL;DR
 
-**4/5 modules livrés** (REPUTATION, MEMORY, OBSERVABILITY, NEGOTIATION) + agent-identity. Déployés, testés en bout en bout sur la VM β `100.83.10.125` : **17/17 steps E2E verts**. Pipeline CI propre (build / typecheck / test / lint tous verts, **295 tests passing, 3 skipped**). **Reste INSURANCE pour la v1 complète** (prochaine session — module on-chain, mode simulation MVP probable).
+🎉 **v1 atteinte : 5/5 modules livrés** (REPUTATION, MEMORY, OBSERVABILITY, NEGOTIATION, INSURANCE) + agent-identity. Déployés, testés en bout en bout sur la VM β `100.83.10.125` : **23/23 steps E2E verts**. Pipeline CI propre (build / typecheck / test / lint tous verts, **385 tests passing, 4 skipped**). INSURANCE livrée en mode simulation (pas d'on-chain réel — validé CdP) ; la version Solidity + Base Sepolia + audit est l'étape 7b (P3).
 
 ---
 
@@ -82,7 +82,28 @@ Broker de négociation A2A event-sourced. Livré hors-séquence (avant INSURANCE
 - **Tests** : 61 unit + integration (strategies × 2, projection rebuild, state machine, JCS+signing, REST lifecycle full via fastify.inject, idempotency replay). 1 placeholder live test gated `PRAXIS_LIVE_TESTS=1`.
 - **Image Docker** : `praxis/negotiation:dev` (Alpine multi-stage).
 
-### 1.5 `memory` ✅ (P1 sprints 4-7)
+### 1.5 `insurance` ✅ (P3 sprints 17-22, MVP simulation)
+
+Garantie de livrable agentique : pricing, escrow simulé, claims. **Mode simulation pure en v1** : pas de Solidity, pas de Foundry, pas de viem, pas de Base Sepolia. La version on-chain réelle est l'étape 7b (P3, après audit).
+
+- **Endpoints** :
+  - REST : `POST /v1/insurance/{quote,subscribe,claims}`, `GET /v1/insurance/policies/:id`, `GET /v1/insurance/policies?subscriberDid=...`, `POST /v1/insurance/admin/escrow/:id/transition` (gated `INSURANCE_ADMIN_ENABLED`).
+  - gRPC : `praxis.insurance.v1.InsuranceService` (5 RPCs).
+  - MCP : `insurance.quote`, `insurance.subscribe`, `insurance.claim`, `insurance.status`.
+- **Pricing engine** : `prime = amount × baseRateBps / 10_000 × multiplier(score)`. Multiplier brackets : 700+ → 0.8, 500-699 → 1.0, 300-499 → 1.4, <300 → 2.0. Lookup réputation via HTTP avec cache 60s (fallback score=500 sur erreur, warn log).
+- **Escrow simulé** : table `escrow_holdings` avec état machine `locked` → `released` | `claimed` | `refunded`. Transitions append à `escrow_events` (BIGSERIAL audit trail). Comment `// TODO P3: Solidity + viem` explicite.
+- **Plafond global** : `INSURANCE_MAX_GLOBAL_EXPOSURE_USDC` (défaut 100 000) vérifié dans la transaction de subscribe (sum des holdings status=locked).
+- **Idempotency** : `subscribe` (UNIQUE `idempotency_key` global) et `claim` (UNIQUE `(policy_id, idempotency_key)`). Replay → 200 + même ressource.
+- **Storage** : Postgres `praxis_insurance` (drizzle 0000) :
+  - `policies` (NUMERIC(18,6) USDC precision, sla_terms jsonb, idempotency_key UNIQUE).
+  - `escrow_holdings` (FK policy 1:1, status, locked_at/released_at/claimed_at/refunded_at).
+  - `escrow_events` (BIGSERIAL append-only).
+  - `claims` (FK policy, status, evidence jsonb, payout_usdc, UNIQUE(policy_id, idempotency_key)).
+- **Out of scope v1** (étape 7b) : Solidity contracts, Foundry, viem, Base Sepolia/mainnet, audit Trail of Bits/OpenZeppelin, Safe multisig + AWS KMS, claim arbitrator avec oracles, reinsurer-adapter, circuit-breaker dynamique, SLA evaluator automatique.
+- **Tests** : 54 unit + integration verts (pricing 16, escrow 15, exposure 4, reputation-client 7, REST integration 12). 1 placeholder live test gated `PRAXIS_LIVE_TESTS=1`.
+- **Image Docker** : `praxis/insurance:dev` (Alpine multi-stage).
+
+### 1.6 `memory` ✅ (P1 sprints 4-7)
 
 Mémoire externe persistante avec recherche sémantique via embeddings.
 
@@ -112,7 +133,7 @@ Mémoire externe persistante avec recherche sémantique via embeddings.
 - **Docker** : 29.2.1 + Compose v5.1.0
 - **Tailscale** : actif (PID 675), ne JAMAIS toucher
 
-### 2.2 Stack Docker — 15 conteneurs (`docker compose -p praxis ps`)
+### 2.2 Stack Docker — 16 conteneurs (`docker compose -p praxis ps`)
 
 | Conteneur               | Image                                       | Rôle                               | Port hôte       |
 | ----------------------- | ------------------------------------------- | ---------------------------------- | --------------- |
@@ -131,6 +152,7 @@ Mémoire externe persistante avec recherche sémantique via embeddings.
 | `praxis-memory`         | `praxis/memory:dev`                         | Service applicatif                 | `14021`/`14022` |
 | `praxis-observability`  | `praxis/observability:dev`                  | Service applicatif                 | `14031`/`14032` |
 | `praxis-negotiation`    | `praxis/negotiation:dev`                    | Service applicatif                 | `14041`/`14042` |
+| `praxis-insurance`      | `praxis/insurance:dev`                      | Service applicatif                 | `14051`/`14052` |
 
 > **Note traefik** : flapping observé en fin de session (Up + Restarting). Pas bloquant car les services sont exposés directement sur leurs ports décalés. À diagnostiquer en P2.
 
@@ -143,6 +165,7 @@ Mémoire externe persistante avec recherche sémantique via embeddings.
 | `praxis_memory`          | memory         | memories, memory_versions, memory_shares, memory_quotas, \_\_drizzle_migrations |
 | `praxis_observability`   | observability  | alert_rules, \_\_drizzle_migrations                                             |
 | `praxis_negotiation`     | negotiation    | negotiation_events, negotiation_state, \_\_drizzle_migrations                   |
+| `praxis_insurance`       | insurance      | policies, escrow_holdings, escrow_events, claims, \_\_drizzle_migrations        |
 | `praxis` (ClickHouse DB) | observability  | praxis_logs, praxis_spans (DateTime64 UTC, partitions par jour, TTL 30j)        |
 | `praxis` (legacy)        | (legacy)       | obsolète, à supprimer                                                           |
 
@@ -153,16 +176,16 @@ Mémoire externe persistante avec recherche sémantique via embeddings.
 ### 3.1 Tests internes (locaux, FULL TURBO)
 
 ```
-pnpm build     → 10 packages, all green
-pnpm typecheck → 15 packages, all green
-pnpm test      → 295 tests passing, 3 skipped (live testcontainers placeholders)
+pnpm build     → 11 packages, all green
+pnpm typecheck → 16 packages, all green
+pnpm test      → 385 tests passing, 4 skipped (live testcontainers placeholders)
 pnpm lint      →  0 errors, 0 warnings
 ```
 
 ### 3.2 Tests E2E sur VM β (`PRAXIS_VM=100.83.10.125 python .tools/e2e_smoke.py`)
 
 ```
-=== Healthchecks ===                       5/5 OK (incl. negotiation)
+=== Healthchecks ===                       6/6 OK (incl. insurance)
 === Register agent A and B ===              ✓ A, ✓ B (DIDs Ed25519)
 === Resolve agent A ===                     OK
 === Verify signature via identity ===       valid: true
@@ -170,23 +193,29 @@ pnpm lint      →  0 errors, 0 warnings
 === Read score B ===                        510 (= 500 base + 10 tx réussie)
                                             avec attestation Ed25519 sur JCS
 === Memory store + search ===               3 hits, score cosine 0.687
-                                            ("fast PDF delivery" ↔ "PDF reports 24h")
 === Observability ingest logs + query ===   202 → 2 rows queried back
 === Observability ingest spans + query ===  202 → 1 row queried back
 === Observability CRUD alert ===            create→get→patch→list→delete→404
 === Negotiation lifecycle ===               start → idempotent replay (same id)
                                             → propose A=100 → counter B=150 (best=B)
-                                            → settle (sigs A+B sur JCS{negoId, winId})
-                                            → history events=4 [started, submitted,
-                                                                 counter, settled]
+                                            → settle (sigs A+B JCS) → history 4 events
+=== Insurance lifecycle ===                 quote A→B amount=1000 → premium=20 (score 510)
+                                            → subscribe (escrow=locked) → idempotent replay
+                                            → claim B (ticket OPS-1234, status=open)
+                                            → admin transition escrow=claimed (avec claimId)
+                                              → policy=claimed, claim=paid, payout=1000
+                                            → status final cohérent
 ALL E2E STEPS PASSED
 ```
 
 ---
 
-## 4. Historique Git (18 commits sur `main`)
+## 4. Historique Git (21 commits sur `main`)
 
 ```
+4c72638 chore(deploy): insurance service dans le compose + e2e_smoke étendu
+a6489e6 feat(insurance): module INSURANCE v1 MVP — pricing + escrow simulé (sans on-chain)
+f26c6b3 docs: STATUS + ROADMAP — NEGOTIATION v1 livrée (E2E 17/17), reste INSURANCE
 c16cc78 fix(e2e): proposals.amount en int (et non float) pour matcher la canon JS
 6dd93e1 chore(deploy): negotiation service dans le compose + e2e_smoke étendu
 4283555 feat(negotiation): module NEGOTIATION v1 — event-sourced auction broker
@@ -213,23 +242,26 @@ Repo : https://github.com/Obi49/Praxis
 
 ## 5. Décisions architecturales prises
 
-| #   | Décision                                                                          | Justification                                                                          |
-| --- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| 1   | Monorepo Turborepo + pnpm workspaces                                              | Standard 2025, build cache, supporte SDK + services + console                          |
-| 2   | TypeScript strict + exactOptionalPropertyTypes + noUncheckedIndexedAccess         | Sécurité types maximale dès l'origine                                                  |
-| 3   | Fastify v5 (non Express)                                                          | Performance + écosystème zod + DX                                                      |
-| 4   | drizzle-orm + postgres-js (NON prisma)                                            | Léger, typé, migrations versionnées, pas de runtime client lourd                       |
-| 5   | DID method `did:key` (Ed25519) en MVP                                             | Self-resolvable, pas d'infra externe ; `did:web`/`did:ethr` plus tard                  |
-| 6   | Embeddings self-hosted (Ollama + nomic-embed-text)                                | Pas de dépendance OpenAI, gratuit, autonomie tests, cohérent avec positionnement trust |
-| 7   | 3 DBs Postgres séparées par service                                               | Migrations Drizzle indépendantes, isolation logique forte                              |
-| 8   | Cohabitation isolée avec ShowWeb3 (option A)                                      | Zéro impact sur projet existant, ports décalés, volumes nommés Praxis                  |
-| 9   | Qdrant 1.15+ (et non 1.12)                                                        | Compat client `@qdrant/js-client-rest@1.17`                                            |
-| 10  | OBSERVABILITY : ClickHouse via HTTP (pas natif)                                   | Portabilité, pas de protocole binaire, suffisant pour le throughput attendu            |
-| 11  | OBSERVABILITY : ingestion via parallel arrays (pas JSON type)                     | Compatible toutes versions ClickHouse, pas besoin du flag expérimental                 |
-| 12  | OBSERVABILITY : timestamps convertis ISO → format CH au moment de l'insert        | DateTime64 JSONEachRow refuse le `T`/`Z` ISO ; conversion explicite côté repository    |
-| 13  | NEGOTIATION : event sourcing pur (event store + projection UPSERT en transaction) | Audit trail intégral + rebuild idempotent ; idempotency via UNIQUE constraint trio     |
-| 14  | NEGOTIATION : signatures Ed25519+JCS (et non EIP-712) en v1                       | Pas de chain réelle pour le moment (validé CdP) ; EIP-712 reporté en P3                |
-| 15  | NEGOTIATION : public keys inline dans le body (pas de lookup agent-identity)      | Friction inutile en MVP ; lookup + cache prévu en v1.1                                 |
+| #   | Décision                                                                              | Justification                                                                          |
+| --- | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| 1   | Monorepo Turborepo + pnpm workspaces                                                  | Standard 2025, build cache, supporte SDK + services + console                          |
+| 2   | TypeScript strict + exactOptionalPropertyTypes + noUncheckedIndexedAccess             | Sécurité types maximale dès l'origine                                                  |
+| 3   | Fastify v5 (non Express)                                                              | Performance + écosystème zod + DX                                                      |
+| 4   | drizzle-orm + postgres-js (NON prisma)                                                | Léger, typé, migrations versionnées, pas de runtime client lourd                       |
+| 5   | DID method `did:key` (Ed25519) en MVP                                                 | Self-resolvable, pas d'infra externe ; `did:web`/`did:ethr` plus tard                  |
+| 6   | Embeddings self-hosted (Ollama + nomic-embed-text)                                    | Pas de dépendance OpenAI, gratuit, autonomie tests, cohérent avec positionnement trust |
+| 7   | 3 DBs Postgres séparées par service                                                   | Migrations Drizzle indépendantes, isolation logique forte                              |
+| 8   | Cohabitation isolée avec ShowWeb3 (option A)                                          | Zéro impact sur projet existant, ports décalés, volumes nommés Praxis                  |
+| 9   | Qdrant 1.15+ (et non 1.12)                                                            | Compat client `@qdrant/js-client-rest@1.17`                                            |
+| 10  | OBSERVABILITY : ClickHouse via HTTP (pas natif)                                       | Portabilité, pas de protocole binaire, suffisant pour le throughput attendu            |
+| 11  | OBSERVABILITY : ingestion via parallel arrays (pas JSON type)                         | Compatible toutes versions ClickHouse, pas besoin du flag expérimental                 |
+| 12  | OBSERVABILITY : timestamps convertis ISO → format CH au moment de l'insert            | DateTime64 JSONEachRow refuse le `T`/`Z` ISO ; conversion explicite côté repository    |
+| 13  | NEGOTIATION : event sourcing pur (event store + projection UPSERT en transaction)     | Audit trail intégral + rebuild idempotent ; idempotency via UNIQUE constraint trio     |
+| 14  | NEGOTIATION : signatures Ed25519+JCS (et non EIP-712) en v1                           | Pas de chain réelle pour le moment (validé CdP) ; EIP-712 reporté en P3                |
+| 15  | NEGOTIATION : public keys inline dans le body (pas de lookup agent-identity)          | Friction inutile en MVP ; lookup + cache prévu en v1.1                                 |
+| 16  | INSURANCE : mode simulation pure en v1 (pas d'on-chain réel)                          | Validé CdP "pas de réel chain pour le moment" ; on-chain → étape 7b après audit        |
+| 17  | INSURANCE : pricing brackets simples (4 paliers de score) en v1                       | Lisible, prévisible, débogeable ; pricing v2 avec dim+historique → après REPUTATION v2 |
+| 18  | INSURANCE : exposure cap = aggregate `SUM(...) WHERE status='locked'` sans FOR UPDATE | Soft circuit-breaker MVP ; advisory lock prévu si concurrence forte observée           |
 
 ADRs formels à produire en P0.2 (Lot 0.2 du plan).
 
@@ -255,21 +287,25 @@ ADRs formels à produire en P0.2 (Lot 0.2 du plan).
 
 **OBSERVABILITY v1** : récupéré depuis la branche `feature/observability-wip` (scaffold partiel `86a4f05` qui ne buildait pas), réparé via délégation à `backend-architect` (TS strict readonly, exactOptionalPropertyTypes, 89 problèmes lint), 32 tests passent. Déployé sur la VM ; deux bugs trouvés en E2E et corrigés (`0976383`) : (a) timestamps ISO refusés en JSONEachRow par ClickHouse `DateTime64`, (b) e2e_smoke envoyait `Content-Type: application/json` sur DELETE sans body et Fastify v5 répondait 500. E2E final 11/11 verts.
 
-**NEGOTIATION v1** (5ᵉ service, livré hors-séquence) : délégué à `backend-architect` from scratch (45 fichiers, 61 tests). Event sourcing strict Postgres (event store + projection UPSERT en même transaction). Stratégies ascending-auction et multi-criteria. Signatures Ed25519+JCS pour proposals et settlement multi-parties. Pas d'on-chain en v1 (validé CdP). Déployé sur la VM (build ~10 min) ; 1 bug e2e trouvé et corrigé (`c16cc78`) : différence de sérialisation des floats Python (`100.0` → `"100.0"`) vs JS (`100.0` → `"100"`) cassait la canonicalisation JCS et donc la vérification de signature. E2E final 17/17 verts.
+**NEGOTIATION v1** (livré hors-séquence avant INSURANCE) : délégué à `backend-architect` from scratch (45 fichiers, 61 tests). Event sourcing strict Postgres (event store + projection UPSERT en même transaction). Stratégies ascending-auction et multi-criteria. Signatures Ed25519+JCS pour proposals et settlement multi-parties. Pas d'on-chain en v1 (validé CdP). Déployé sur la VM (build ~10 min) ; 1 bug e2e trouvé et corrigé (`c16cc78`) : différence de sérialisation des floats Python (`100.0` → `"100.0"`) vs JS (`100.0` → `"100"`) cassait la canonicalisation JCS et donc la vérification de signature. E2E 17/17 verts.
 
-### 6.4 Prochaine étape — INSURANCE v1
+**INSURANCE v1 MVP** (5ᵉ et dernier module — **v1 atteinte 🎯**) : délégué à `backend-architect` from scratch (41 fichiers, 54 tests). Mode simulation pure : pricing engine basé sur les brackets de score réputation (lookup HTTP avec cache 60s + fallback score=500 sur erreur), escrow simulé avec audit trail Postgres (locked → released | claimed | refunded), claims workflow simulé via endpoint admin (`INSURANCE_ADMIN_ENABLED=true` côté VM), plafond global d'engagement statique. Pas d'on-chain réel (étape 7b en P3 après audit). Déployé sans bug — premier run e2e tout vert. E2E final **23/23 verts**.
 
-**Périmètre v1** (validé CdP 2026-04-28) :
+### 6.4 Bilan v1 et prochaines étapes
 
-- Pricing engine + escrow MVP **sans on-chain réel** (pas de Solidity, pas de Foundry, pas de viem, pas de Base Sepolia).
-- API REST + gRPC + MCP : `insurance.{quote, subscribe, claim, status}`.
-- Postgres `praxis_insurance` (polices, sinistres, primes, devis).
-- Pricing : `prime = f(montant, score réputation, type livrable, historique paire)`.
-- Mock du smart contract escrow : table Postgres `escrow_holdings` + lifecycle simulé (locked → released | claimed | refunded).
-- Out of scope v1 (renvoyé P3 onchain) : Solidity, viem, audit Trail of Bits/OpenZeppelin, Safe multisig, AWS KMS, claim arbitrator avec oracles, reinsurer-adapter.
-- Cible : 5/5 modules sur la VM β + e2e step "insurance quote → subscribe → claim → status".
+**v1 atteinte** : 6 services applicatifs Praxis sur la VM β (agent-identity + REPUTATION + MEMORY + OBSERVABILITY + NEGOTIATION + INSURANCE), tous testés en bout en bout. 16 conteneurs Docker isolés sur la VM `100.83.10.125` (cohabitation propre avec ShowWeb3). 21 commits sur `main`.
 
-Voir [ROADMAP.md](ROADMAP.md) — étape 7 (INSURANCE) à reprendre ; les autres étapes (REPUTATION v2, plugins, console, SDK, GA, P4) restent telles quelles.
+**Prochaines étapes possibles** (cf. [ROADMAP.md](ROADMAP.md) — pas d'ordre imposé, à arbitrer selon priorités business) :
+
+- **Étape 2** : OBSERVABILITY v1.1 (anomalies ML + tiering S3 + exporter OTLP).
+- **Étape 3** : REPUTATION v2 (multi-dim + anti-Sybil + contestation feedback).
+- **Étape 4** : Plugins frameworks (LangChain + CrewAI + Autogen).
+- **Étape 5** : Console opérateur web (Next.js 15).
+- **Étape 6** : SDK officiels (TS sur npm + Python sur PyPI).
+- **Étape 7b** : INSURANCE on-chain réel (Solidity + Foundry + Base Sepolia + audit Trail of Bits).
+- **Étape 8b** : NEGOTIATION v1.1 (cancellation + sweeper + LLM mediator + EIP-712 + bridges).
+- **Étape 9** : GA publique (bug bounty + audit + self-service).
+- **Étape 10** : P4 industrialisation (multi-région + enterprise + standardisation).
 
 ---
 
