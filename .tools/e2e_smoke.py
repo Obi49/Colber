@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """End-to-end smoke test of Praxis services running on the VM.
 
-Exercises agent-identity, reputation, memory by:
+Exercises agent-identity, reputation, memory, observability by:
 1. Generating a fresh Ed25519 keypair locally.
 2. Registering a new agent on agent-identity.
 3. Resolving the agent.
 4. Submitting a signed feedback on reputation (between 2 freshly registered agents).
 5. Reading the reputation score.
 6. Storing a memory and searching it.
+7. Ingesting logs + traces on observability and querying them back.
+8. CRUD on observability alerts.
 
 All HTTP requests go through the VM's exposed ports.
 """
@@ -15,11 +17,12 @@ import sys
 import io
 import os
 import json
+import time
 import uuid
 import base64
 import urllib.request
 import urllib.error
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
@@ -28,6 +31,7 @@ VM = os.environ.get("PRAXIS_VM", "100.83.10.125")
 IDENTITY = f"http://{VM}:14001"
 REPUTATION = f"http://{VM}:14011"
 MEMORY = f"http://{VM}:14021"
+OBSERVABILITY = f"http://{VM}:14031"
 
 
 def http(method: str, url: str, body: dict | None = None) -> tuple[int, dict | str]:
@@ -95,7 +99,12 @@ def main() -> int:
 
     # ---- 1. Healthchecks ----
     step("Healthchecks")
-    for name, base in [("agent-identity", IDENTITY), ("reputation", REPUTATION), ("memory", MEMORY)]:
+    for name, base in [
+        ("agent-identity", IDENTITY),
+        ("reputation", REPUTATION),
+        ("memory", MEMORY),
+        ("observability", OBSERVABILITY),
+    ]:
         code, body = http("GET", f"{base}/healthz")
         ok = code == 200
         print(f"  {name:<16} /healthz  -> {code} {'OK' if ok else 'FAIL'}")
@@ -203,6 +212,166 @@ def main() -> int:
             print(f"  search -> {scode} {len(sbody) if isinstance(sbody, list) else sbody}")
             if scode != 200:
                 failed.append("memory search")
+
+    # ---- 8. Observability: ingest logs + query ----
+    step("Observability ingest logs + query")
+    trace_id = uuid.uuid4().hex + uuid.uuid4().hex[:0]  # 32 hex
+    trace_id = trace_id[:32]
+    span_a = uuid.uuid4().hex[:16]
+    span_b = uuid.uuid4().hex[:16]
+    now_iso = datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+    log_events = [
+        {
+            "timestamp": now_iso,
+            "traceId": trace_id,
+            "spanId": span_a,
+            "service": "e2e-smoke",
+            "operatorId": operator_id,
+            "level": "info",
+            "message": "smoke test log A",
+            "attributes": {"step": "ingest-logs", "n": 1},
+            "resource": {"env": "dev", "region": "vm-beta"},
+        },
+        {
+            "timestamp": now_iso,
+            "traceId": trace_id,
+            "spanId": span_b,
+            "service": "e2e-smoke",
+            "operatorId": operator_id,
+            "level": "warn",
+            "message": "smoke test log B",
+            "attributes": {"step": "ingest-logs", "n": 2},
+            "resource": {"env": "dev", "region": "vm-beta"},
+        },
+    ]
+    code, body = http("POST", f"{OBSERVABILITY}/v1/observability/logs", {"events": log_events})
+    print(f"  POST /logs -> {code}")
+    if code != 202:
+        print(f"     body: {body}")
+        failed.append("observability ingest logs")
+    else:
+        accepted = (body.get("data") or {}).get("accepted") if isinstance(body, dict) else 0
+        print(f"     accepted={accepted}, rejected={(body.get('data') or {}).get('rejected')}")
+
+    # Give the batcher a chance to flush (flush interval = 1s).
+    time.sleep(2.5)
+
+    # Query logs back. Use a generous time window: ±5 minutes.
+    now_dt = datetime.now(timezone.utc)
+    window_from = (now_dt - timedelta(minutes=5)).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+    window_to = (now_dt + timedelta(minutes=5)).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+    code, body = http("POST", f"{OBSERVABILITY}/v1/observability/query", {
+        "scope": "logs",
+        "filters": [
+            {"field": "service", "op": "eq", "value": "e2e-smoke"},
+            {"field": "operatorId", "op": "eq", "value": operator_id},
+        ],
+        "timeRange": {"from": window_from, "to": window_to},
+        "limit": 50,
+        "offset": 0,
+    })
+    rows = (body.get("data") or {}).get("rows", []) if isinstance(body, dict) else []
+    print(f"  POST /query (logs) -> {code} rows={len(rows)}")
+    if code != 200 or len(rows) < 2:
+        print(f"     body: {body}")
+        failed.append("observability query logs")
+
+    # ---- 9. Observability: ingest spans + query ----
+    step("Observability ingest spans + query")
+    span_start = (now_dt - timedelta(seconds=2)).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+    span_end = now_dt.isoformat(timespec="milliseconds").replace("+00:00", "Z")
+    span_payload = {
+        "traceId": trace_id,
+        "spanId": uuid.uuid4().hex[:16],
+        "name": "smoke.span",
+        "kind": "internal",
+        "service": "e2e-smoke",
+        "operatorId": operator_id,
+        "startTimestamp": span_start,
+        "endTimestamp": span_end,
+        "durationMs": 2000,
+        "status": "ok",
+        "attributes": {"step": "ingest-spans"},
+    }
+    code, body = http("POST", f"{OBSERVABILITY}/v1/observability/traces", {"spans": [span_payload]})
+    print(f"  POST /traces -> {code}")
+    if code != 202:
+        print(f"     body: {body}")
+        failed.append("observability ingest spans")
+
+    time.sleep(2.5)
+
+    code, body = http("POST", f"{OBSERVABILITY}/v1/observability/query", {
+        "scope": "spans",
+        "filters": [{"field": "service", "op": "eq", "value": "e2e-smoke"}],
+        "timeRange": {"from": window_from, "to": window_to},
+        "limit": 50,
+        "offset": 0,
+    })
+    rows = (body.get("data") or {}).get("rows", []) if isinstance(body, dict) else []
+    print(f"  POST /query (spans) -> {code} rows={len(rows)}")
+    if code != 200 or len(rows) < 1:
+        print(f"     body: {body}")
+        failed.append("observability query spans")
+
+    # ---- 10. Observability: CRUD alert ----
+    step("Observability CRUD alert")
+    alert_create = {
+        "ownerOperatorId": operator_id,
+        "name": "smoke-alert-error-rate",
+        "description": "Alert when e2e-smoke service emits >=3 errors in 60s",
+        "scope": "logs",
+        "condition": {
+            "operator": "and",
+            "filters": [
+                {"field": "service", "op": "eq", "value": "e2e-smoke"},
+                {"field": "level", "op": "eq", "value": "error"},
+            ],
+            "windowSeconds": 60,
+            "threshold": 3,
+        },
+        "cooldownSeconds": 120,
+        "notification": {
+            "channels": [{"type": "webhook", "url": "https://example.invalid/hook"}]
+        },
+    }
+    code, body = http("POST", f"{OBSERVABILITY}/v1/observability/alerts", alert_create)
+    alert_id = ((body.get("data") or {}).get("id") if isinstance(body, dict) else None)
+    print(f"  POST /alerts -> {code} id={alert_id}")
+    if code != 201 or not alert_id:
+        print(f"     body: {body}")
+        failed.append("observability create alert")
+
+    if alert_id:
+        code, body = http("GET", f"{OBSERVABILITY}/v1/observability/alerts/{alert_id}")
+        print(f"  GET /alerts/:id -> {code}")
+        if code != 200:
+            failed.append("observability get alert")
+
+        code, body = http("PATCH", f"{OBSERVABILITY}/v1/observability/alerts/{alert_id}", {
+            "enabled": False,
+            "cooldownSeconds": 600,
+        })
+        enabled_after = ((body.get("data") or {}).get("enabled") if isinstance(body, dict) else None)
+        print(f"  PATCH /alerts/:id -> {code} enabled={enabled_after}")
+        if code != 200 or enabled_after is not False:
+            failed.append("observability patch alert")
+
+        code, body = http("GET", f"{OBSERVABILITY}/v1/observability/alerts?operatorId={operator_id}")
+        alerts = ((body.get("data") or {}).get("alerts", []) if isinstance(body, dict) else [])
+        print(f"  GET /alerts?operatorId -> {code} count={len(alerts)}")
+        if code != 200 or not any(a.get("id") == alert_id for a in alerts):
+            failed.append("observability list alerts")
+
+        code, body = http("DELETE", f"{OBSERVABILITY}/v1/observability/alerts/{alert_id}")
+        print(f"  DELETE /alerts/:id -> {code}")
+        if code != 204:
+            failed.append("observability delete alert")
+
+        code, body = http("GET", f"{OBSERVABILITY}/v1/observability/alerts/{alert_id}")
+        print(f"  GET /alerts/:id (post-delete) -> {code}")
+        if code != 404:
+            failed.append("observability get alert post-delete")
 
     # ---- Summary ----
     print("\n" + ("=" * 50))
