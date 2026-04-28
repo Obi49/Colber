@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./tooling/tsconfig/base.json",
+  "include": [],
+  "references": [
+    { "path": "./packages/core-types" },
+    { "path": "./packages/core-crypto" },
+    { "path": "./packages/core-config" },
+    { "path": "./packages/core-logger" },
+    { "path": "./packages/core-mcp" },
+    { "path": "./apps/agent-identity" }
+  ]
+}

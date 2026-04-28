@@ -1,0 +1,11 @@
+{
+  "name": "@praxis/tsconfig",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "files": [
+    "base.json",
+    "node-lib.json",
+    "node-app.json"
+  ]
+}

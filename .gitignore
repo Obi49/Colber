@@ -41,6 +41,16 @@ tmp/
 # --- Claude Code session-local settings ---
 .claude/settings.local.json
 
+# --- Husky ---
+.husky/_
+
+# --- Vitest / coverage ---
+coverage/
+.vitest-cache/
+
+# --- Drizzle generated journal locks (keep migrations themselves) ---
+# (intentionally left empty — drizzle/ folder IS committed)
+
 # --- Misc ---
 *.bak
 *.orig
