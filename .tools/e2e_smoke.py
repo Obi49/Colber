@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """End-to-end smoke test of Praxis services running on the VM.
 
-Exercises agent-identity, reputation, memory, observability, negotiation by:
+Exercises the 5 modules (agent-identity + reputation, memory, observability,
+negotiation, insurance) by:
 1. Generating a fresh Ed25519 keypair locally.
 2. Registering a new agent on agent-identity.
 3. Resolving the agent.
@@ -11,6 +12,8 @@ Exercises agent-identity, reputation, memory, observability, negotiation by:
 7. Ingesting logs + traces on observability and querying them back.
 8. CRUD on observability alerts.
 9. Running a full negotiation lifecycle (start → propose → counter → settle).
+10. Running an insurance lifecycle (quote → subscribe → claim → admin transition →
+    status), including idempotency replays.
 
 All HTTP requests go through the VM's exposed ports.
 """
@@ -34,6 +37,7 @@ REPUTATION = f"http://{VM}:14011"
 MEMORY = f"http://{VM}:14021"
 OBSERVABILITY = f"http://{VM}:14031"
 NEGOTIATION = f"http://{VM}:14041"
+INSURANCE = f"http://{VM}:14051"
 
 
 def http(method: str, url: str, body: dict | None = None, timeout: int = 60) -> tuple[int, dict | str]:
@@ -107,6 +111,7 @@ def main() -> int:
         ("memory", MEMORY),
         ("observability", OBSERVABILITY),
         ("negotiation", NEGOTIATION),
+        ("insurance", INSURANCE),
     ]:
         code, body = http("GET", f"{base}/healthz")
         ok = code == 200
@@ -502,6 +507,114 @@ def main() -> int:
             expected = {"negotiation.started", "proposal.submitted", "counter.submitted", "negotiation.settled"}
             if code != 200 or not expected.issubset(set(event_types)):
                 failed.append("negotiation history")
+
+    # ---- 12. Insurance: quote → subscribe → claim → admin transition → status ----
+    step("Insurance lifecycle")
+    if "A" in agents and "B" in agents:
+        # ----- Quote -----
+        sla_terms = {"deliveryWindowHours": 24, "requirements": ["UTF-8 CSV", "≤ 5 MB"]}
+        code, body = http("POST", f"{INSURANCE}/v1/insurance/quote", {
+            "subscriberDid": agents["A"]["did"],
+            "beneficiaryDid": agents["B"]["did"],
+            "dealSubject": "data-extraction-job",
+            "amountUsdc": 1000,
+            "slaTerms": sla_terms,
+        })
+        quote_data = body.get("data") if isinstance(body, dict) else {}
+        premium = quote_data.get("premiumUsdc") if isinstance(quote_data, dict) else None
+        rep_score = quote_data.get("reputationScore") if isinstance(quote_data, dict) else None
+        print(f"  POST /quote -> {code} premium={premium} score={rep_score}")
+        if code != 200 or premium is None:
+            print(f"     body: {body}")
+            failed.append("insurance quote")
+
+        # ----- Subscribe -----
+        idem_key = str(uuid.uuid4())
+        code, body = http("POST", f"{INSURANCE}/v1/insurance/subscribe", {
+            "subscriberDid": agents["A"]["did"],
+            "beneficiaryDid": agents["B"]["did"],
+            "dealSubject": "data-extraction-job",
+            "amountUsdc": 1000,
+            "slaTerms": sla_terms,
+            "idempotencyKey": idem_key,
+        })
+        view = body.get("data") if isinstance(body, dict) else {}
+        policy_id = ((view or {}).get("policy") or {}).get("id")
+        holding_id = ((view or {}).get("escrow") or {}).get("id")
+        escrow_status = ((view or {}).get("escrow") or {}).get("status")
+        print(f"  POST /subscribe -> {code} policy={policy_id} escrow={escrow_status}")
+        if code != 201 or not policy_id or escrow_status != "locked":
+            print(f"     body: {body}")
+            failed.append("insurance subscribe")
+
+        if policy_id:
+            # ----- Idempotent replay subscribe -----
+            code, body = http("POST", f"{INSURANCE}/v1/insurance/subscribe", {
+                "subscriberDid": agents["A"]["did"],
+                "beneficiaryDid": agents["B"]["did"],
+                "dealSubject": "data-extraction-job",
+                "amountUsdc": 1000,
+                "slaTerms": sla_terms,
+                "idempotencyKey": idem_key,
+            })
+            replayed_id = (((body.get("data") or {}).get("policy") or {}).get("id")
+                           if isinstance(body, dict) else None)
+            ok = code == 200 and replayed_id == policy_id
+            print(f"  POST /subscribe (idempotent replay) -> {code} same-policy={replayed_id == policy_id}")
+            if not ok:
+                failed.append("insurance subscribe idempotency")
+
+            # ----- File claim -----
+            claim_idem = str(uuid.uuid4())
+            code, body = http("POST", f"{INSURANCE}/v1/insurance/claims", {
+                "policyId": policy_id,
+                "claimantDid": agents["B"]["did"],
+                "reason": "deliverable not received within SLA window",
+                "evidence": {"missingArtifact": "csv-export-2026-04.csv", "ticketId": "OPS-1234"},
+                "idempotencyKey": claim_idem,
+            })
+            claim_data = body.get("data") if isinstance(body, dict) else {}
+            claim_id = (claim_data or {}).get("id")
+            claim_status = (claim_data or {}).get("status")
+            print(f"  POST /claims -> {code} claim={claim_id} status={claim_status}")
+            if code != 201 or not claim_id or claim_status != "open":
+                print(f"     body: {body}")
+                failed.append("insurance file claim")
+
+            # ----- Admin transition: escrow → claimed (with linked claimId) -----
+            if claim_id and holding_id:
+                code, body = http(
+                    "POST",
+                    f"{INSURANCE}/v1/insurance/admin/escrow/{holding_id}/transition",
+                    {"to": "claimed", "claimId": claim_id, "reason": "claim approved by ops"},
+                )
+                view = body.get("data") if isinstance(body, dict) else {}
+                escrow_after = ((view or {}).get("escrow") or {}).get("status")
+                policy_status_after = ((view or {}).get("policy") or {}).get("status")
+                claims_after = (view or {}).get("claims", [])
+                target_claim = next((c for c in claims_after if c.get("id") == claim_id), None)
+                claim_status_after = (target_claim or {}).get("status")
+                payout = (target_claim or {}).get("payoutUsdc")
+                print(f"  POST /admin/transition claimed -> {code} escrow={escrow_after} "
+                      f"policy={policy_status_after} claim={claim_status_after} payout={payout}")
+                if (
+                    code != 200
+                    or escrow_after != "claimed"
+                    or policy_status_after != "claimed"
+                    or claim_status_after != "paid"
+                    or payout != 1000
+                ):
+                    print(f"     body: {body}")
+                    failed.append("insurance admin transition claimed")
+
+            # ----- Status -----
+            code, body = http("GET", f"{INSURANCE}/v1/insurance/policies/{policy_id}")
+            view = body.get("data") if isinstance(body, dict) else {}
+            policy_status_final = ((view or {}).get("policy") or {}).get("status")
+            claims_final = (view or {}).get("claims", [])
+            print(f"  GET /policies/:id -> {code} status={policy_status_final} claims={len(claims_final)}")
+            if code != 200 or policy_status_final != "claimed" or len(claims_final) < 1:
+                failed.append("insurance status")
 
     # ---- Summary ----
     print("\n" + ("=" * 50))
