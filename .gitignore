@@ -7,6 +7,7 @@
 *.p12
 *.pfx
 .tools/.secrets
+praxis-stack/services.env
 
 # --- Node / pnpm / Turborepo ---
 node_modules/
