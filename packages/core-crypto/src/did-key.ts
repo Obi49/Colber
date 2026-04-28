@@ -50,9 +50,10 @@ export const decodeDidKey = (did: string): DecodedDidKey => {
   }
 
   // Identify the scheme by its 2-byte multicodec prefix.
-  for (const [scheme, prefix] of Object.entries(MULTICODEC_PREFIXES) as Array<
-    [SignatureScheme, Uint8Array]
-  >) {
+  for (const [scheme, prefix] of Object.entries(MULTICODEC_PREFIXES) as [
+    SignatureScheme,
+    Uint8Array,
+  ][]) {
     if (decoded[0] === prefix[0] && decoded[1] === prefix[1]) {
       return { scheme, publicKey: decoded.slice(prefix.length) };
     }

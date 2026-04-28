@@ -1,14 +1,24 @@
 import * as ed from '@noble/ed25519';
 import { sha512 } from '@noble/hashes/sha2';
 
-import type { KeyPair, SignatureScheme, VerificationResult } from '@praxis/core-types';
-
 import type { SignatureProvider } from './provider.js';
+import type { KeyPair, SignatureScheme, VerificationResult } from '@praxis/core-types';
 
 // `@noble/ed25519` v2 is hash-pluggable but ships without a default hash to
 // stay zero-dep. We wire it to `@noble/hashes/sha2` once at module load.
-ed.hashes.sha512 = (...messages: Uint8Array[]) =>
-  sha512(messages.length === 1 ? (messages[0] as Uint8Array) : ed.utils.concatBytes(...messages));
+const wireSha512 = (...messages: Uint8Array[]): Uint8Array => {
+  // Single-message fast path. `noUncheckedIndexedAccess` makes the array
+  // access narrow to `Uint8Array | undefined`; the `messages.length === 1`
+  // guard rules out `undefined` at runtime, so we use a non-null assertion
+  // to satisfy the type system without a type assertion (which the
+  // `non-nullable-type-assertion-style` lint rule would flag).
+  if (messages.length === 1) {
+    return sha512(messages[0]!);
+  }
+  return sha512(ed.etc.concatBytes(...messages));
+};
+ed.etc.sha512Sync = wireSha512;
+ed.etc.sha512Async = (...messages: Uint8Array[]) => Promise.resolve(wireSha512(...messages));
 
 const ED25519_PUBLIC_KEY_BYTES = 32;
 const ED25519_PRIVATE_KEY_BYTES = 32;
@@ -18,7 +28,7 @@ class Ed25519Provider implements SignatureProvider {
   public readonly scheme: SignatureScheme = 'Ed25519';
 
   public async generateKeyPair(): Promise<KeyPair> {
-    const privateKey = ed.utils.randomSecretKey();
+    const privateKey = ed.utils.randomPrivateKey();
     const publicKey = await ed.getPublicKeyAsync(privateKey);
     return { scheme: this.scheme, privateKey, publicKey };
   }

@@ -5,12 +5,17 @@ import prettierConfig from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import';
 
 /**
- * Base Praxis ESLint flat config.
- * Use as the foundation; specialised configs (e.g. ./node) extend it.
+ * Build the base Praxis ESLint flat config.
  *
- * @type {import('eslint').Linter.Config[]}
+ * @param {object} options
+ * @param {string} options.tsconfigRootDir Absolute path to the repo root,
+ *   typically `import.meta.dirname` from the consuming `eslint.config.js`.
+ *   Required so eslint resolves the per-package `tsconfig.eslint.json`
+ *   files relative to a stable anchor (not `process.cwd()`), letting both
+ *   `pnpm lint` (per-package cwd) and `lint-staged` (repo-root cwd) work.
+ * @returns {import('eslint').Linter.Config[]}
  */
-export const baseConfig = [
+export const buildBaseConfig = ({ tsconfigRootDir }) => [
   js.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   ...tseslint.configs.stylisticTypeChecked,
@@ -22,7 +27,14 @@ export const baseConfig = [
       ecmaVersion: 2023,
       sourceType: 'module',
       parserOptions: {
-        projectService: true,
+        // Each workspace package ships a `tsconfig.eslint.json` that
+        // re-includes test files & tooling configs which the build
+        // `tsconfig.json` excludes (`*.test.ts`, `vitest.config.ts`,
+        // `drizzle.config.ts`). The glob list below + `tsconfigRootDir`
+        // pin the resolution to absolute paths so eslint works from any
+        // cwd (turbo runs each package, lint-staged runs from repo root).
+        project: ['./packages/*/tsconfig.eslint.json', './apps/*/tsconfig.eslint.json'],
+        tsconfigRootDir,
       },
     },
     rules: {
@@ -54,13 +66,7 @@ export const baseConfig = [
       'import/order': [
         'warn',
         {
-          groups: [
-            'builtin',
-            'external',
-            'internal',
-            ['parent', 'sibling', 'index'],
-            'type',
-          ],
+          groups: ['builtin', 'external', 'internal', ['parent', 'sibling', 'index'], 'type'],
           'newlines-between': 'always',
           alphabetize: { order: 'asc', caseInsensitive: true },
         },
@@ -84,4 +90,4 @@ export const baseConfig = [
   prettierConfig,
 ];
 
-export default baseConfig;
+export default buildBaseConfig;
