@@ -415,10 +415,13 @@ def main() -> int:
                 failed.append("negotiation idempotency")
 
             # ----- Proposal A: 100 USDC -----
+            # Note: use ints (not floats) for amount because JS JSON.stringify(100.0) → "100"
+            # whereas Python json.dumps(100.0) → "100.0"; signing both sides on the same
+            # bytes requires the canonical form to match.
             proposal_a_id = str(uuid.uuid4())
             proposed_a_at = datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
             canon_a = {
-                "amount": 100.0,
+                "amount": 100,
                 "fromDid": agents["A"]["did"],
                 "proposalId": proposal_a_id,
                 "proposedAt": proposed_a_at,
@@ -428,7 +431,7 @@ def main() -> int:
                 "proposal": {
                     "proposalId": proposal_a_id,
                     "fromDid": agents["A"]["did"],
-                    "amount": 100.0,
+                    "amount": 100,
                     "signature": b64(sig_a),
                     "proposedAt": proposed_a_at,
                 },
@@ -443,7 +446,7 @@ def main() -> int:
             proposal_b_id = str(uuid.uuid4())
             proposed_b_at = datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
             canon_b = {
-                "amount": 150.0,
+                "amount": 150,
                 "fromDid": agents["B"]["did"],
                 "proposalId": proposal_b_id,
                 "proposedAt": proposed_b_at,
@@ -454,7 +457,7 @@ def main() -> int:
                 "proposal": {
                     "proposalId": proposal_b_id,
                     "fromDid": agents["B"]["did"],
-                    "amount": 150.0,
+                    "amount": 150,
                     "signature": b64(sig_b),
                     "proposedAt": proposed_b_at,
                 },
