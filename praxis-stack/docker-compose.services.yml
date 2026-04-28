@@ -153,3 +153,51 @@ services:
       start_period: 30s
     networks: [praxis_net]
     logging: *default-logging
+
+  # ------- OBSERVABILITY -------
+
+  observability:
+    image: praxis/observability:dev
+    container_name: praxis-observability
+    restart: unless-stopped
+    build:
+      context: ..
+      dockerfile: apps/observability/Dockerfile
+    environment:
+      NODE_ENV: production
+      LOG_LEVEL: info
+      SERVICE_NAME: observability
+      HTTP_HOST: 0.0.0.0
+      HTTP_PORT: 4031
+      GRPC_HOST: 0.0.0.0
+      GRPC_PORT: 4032
+      DATABASE_URL: postgresql://praxis:praxis_dev@postgres:5432/praxis_observability
+      CLICKHOUSE_URL: http://clickhouse:8123
+      CLICKHOUSE_USER: praxis
+      CLICKHOUSE_PASSWORD: praxis_dev
+      CLICKHOUSE_DATABASE: praxis
+      OBSERVABILITY_FLUSH_INTERVAL_MS: '1000'
+      OBSERVABILITY_FLUSH_BATCH: '500'
+      OBSERVABILITY_MAX_EVENTS_PER_REQUEST: '1000'
+      OBSERVABILITY_MAX_QUERY_LIMIT: '1000'
+      OBSERVABILITY_LOG_TTL_DAYS: '30'
+      OBSERVABILITY_SPAN_TTL_DAYS: '30'
+      PRETTY_LOGS: 'false'
+    ports:
+      - '14031:4031'
+      - '14032:4032'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+      agent-identity:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:4031/healthz || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    networks: [praxis_net]
+    logging: *default-logging
