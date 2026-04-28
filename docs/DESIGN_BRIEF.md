@@ -187,6 +187,101 @@ SÉQUENCE (de haut en bas, ~12 étapes numérotées) :
   les distinguer.
 - En bas du schéma, légende compacte : flèches/couleurs/icônes.
 
+# ⚠️ RÈGLES DE LISIBILITÉ DU SENS DES FLÈCHES (CRITIQUE)
+
+Sur le premier rendu produit, le SENS des flèches (qui appelle qui)
+n'était PAS lisible au premier coup d'œil. À corriger absolument avec
+les conventions strictes ci-dessous :
+
+## Convention requête vs réponse
+
+- **Flèche REQUÊTE (call)** : trait PLEIN, épaisseur **2 px minimum**
+  (idéalement 2.5 px), tête de flèche TRIANGLE PLEIN d'au moins 10×10
+  px, couleur saturée (la couleur du module destinataire). Label en
+  texte regular au-dessus de la flèche.
+- **Flèche RÉPONSE (return)** : trait POINTILLÉ (dash 4-2), épaisseur
+  **1.5 px**, tête de flèche TRIANGLE OUVERT (contour seulement) ou
+  petite chevron `‹`, couleur dans la même teinte mais désaturée
+  (40-50% opacité). Label en italique sous la flèche, préfixé `↩`.
+
+L'œil doit pouvoir distinguer requête vs réponse à 1 mètre de
+distance. Si on hésite, c'est que la convention n'est pas assez
+contrastée.
+
+## Indicateur d'origine de chaque étape
+
+À GAUCHE du numéro de l'étape (le cercle ①②③…), ajouter un PETIT
+PASTILLE colorée indiquant l'INITIATEUR de l'étape :
+
+- **Pastille noire/bleu foncé "A"** quand Agent A initie (étapes
+  ①②③⑤⑥⑦⑩⑪⑫).
+- **Pastille gris clair "B"** quand Agent B initie (étapes ④⑨).
+- **Pastille bandée "AB"** quand l'étape est initiée par les deux
+  parties simultanément (aucune dans cette séquence — réservé
+  futur).
+
+Cette pastille permet de voir **d'un seul coup d'œil** qui démarre
+chaque étape sans avoir à suivre la flèche jusqu'à son origine.
+
+## Bande horizontale par initiateur
+
+L'arrière-plan de chaque étape est une bande horizontale très
+légèrement teintée selon l'initiateur :
+
+- Étape initiée par Agent A → bande `#F0F4FF` (bleu très clair, 5%
+  opacité).
+- Étape initiée par Agent B → bande `#F8F8F8` (gris très clair).
+- Bande haute de 4-6 px maximum, juste pour donner du rythme — pas un
+  rectangle pleine hauteur qui mangerait les autres éléments.
+
+## Espacement vertical entre étapes
+
+Au minimum **80 px** entre la fin d'une étape (réponse incluse) et le
+début de la suivante. La cause principale d'illisibilité est le
+chevauchement des flèches successives. **Ne pas comprimer** pour
+faire tenir sur une seule page : préférer un schéma plus long
+(format A4 portrait OU format A3 portrait si nécessaire).
+
+## Numérotation visible
+
+Le cercle numéroté (①②③…) doit être :
+- À l'extérieur GAUCHE du diagramme (avant la colonne Agent A), pas
+  noyé dans la zone des flèches.
+- Diamètre minimum 24 px, fond coloré selon le module dominant de
+  l'étape, texte blanc gras, taille ≥ 14 px.
+
+## Légende OBLIGATOIRE en haut du schéma
+
+En-tête fixe à 60-80 px avant la première étape :
+
+  ┌──────────────────────────────────────────────────────────────┐
+  │  Légende :                                                   │
+  │  ──────► requête (call)         ‹ ─ ─ ─ réponse (return)    │
+  │  🅰 = initié par Agent A         🅱 = initié par Agent B     │
+  │  🔒 Ed25519 + JCS               👁 OBSERVABILITY trace en    │
+  │                                    continu (colonne cyan)    │
+  └──────────────────────────────────────────────────────────────┘
+
+## Direction explicite sur les self-calls et calls internes
+
+L'étape ⑥ contient un call interne `INSURANCE → REPUTATION` (lookup
+score). Pour ce genre de call interne, utiliser une flèche COURBE
+(pas droite) qui part de la colonne INSURANCE et revient à la même
+colonne après être passée par REPUTATION. Label `(internal call,
+HTTP, cache 60s)`.
+
+## Format final recommandé
+
+- **Format A4 portrait**, 210 × 297 mm équivalent, 96 dpi base.
+- **Hauteur SVG indicative** : 1400-1800 px pour les 12 étapes.
+- **Largeur** : 900-1100 px (7 colonnes × ~140 px chacune).
+- **Marges** : 60 px haut/bas, 40 px gauche/droite.
+- Si la version A4 est trop dense malgré les règles ci-dessus,
+  produire une version sur **2 pages** : étapes ①-⑥ sur la première,
+  ⑦-⑫ sur la seconde, avec une bande de continuité visuelle
+  (pointillé descendant) en bas de la première et haut de la
+  seconde.
+
 ANNOTATION GLOBALE (en pied de schéma) :
 "Tous les échanges A → modules sont signés Ed25519 + JCS RFC 8785.
 Idempotency via UUID v4 sur start, subscribe, claim. Aucun appel
@@ -269,3 +364,31 @@ Puis update [`../README.md`](../README.md) (section "Vision et architecture") et
 - **Variante "developer doc"** du schéma #2 — plus dense, types de payloads visibles, codes HTTP.
 - **Variante "noir & blanc"** des deux schémas pour impression / fax / fallback couleur.
 - **Schéma #3 — Architecture C2** (containers/runtimes K8s + datastores + flux d'événements internes), basé sur ARCHITECTURE_BREAKDOWN.md §2-§3, à demander quand tu auras besoin d'onboarder un développeur tiers.
+- **Schéma #2-bis — Workflow horizontal "phases"** (alternative au sequence diagram) — voir ci-dessous.
+
+### Variante "Workflow horizontal par phases" (alternative au sequence diagram)
+
+Si la séquence verticale reste compliquée à lire malgré les règles strictes du §"Lisibilité", produire une variante **flow horizontal** :
+
+**Layout** : paysage 16:9, 4 phases en bandes verticales de gauche à droite :
+
+```
+┌──────────────┬───────────────┬──────────────┬──────────────────┐
+│ 1. DÉCOUVERTE│ 2. NÉGOCIATION│ 3. GARANTIE  │ 4. LIVRAISON     │
+│              │               │              │ + FEEDBACK       │
+│ ① score B    │ ② start       │ ⑥ quote      │ ⑧ exécution      │
+│              │ ③ propose A   │ ⑦ subscribe  │ ⑨ memory.store   │
+│              │ ④ counter B   │              │ ⑩ memory.search  │
+│              │ ⑤ settle      │              │ ⑪ feedback       │
+│              │               │              │ ⑫ release escrow │
+│              │               │              │                  │
+│ Module       │ Module        │ Module       │ Modules          │
+│ REPUTATION   │ NEGOTIATION   │ INSURANCE    │ MEMORY +         │
+│              │               │              │ REPUTATION +     │
+│              │               │              │ INSURANCE        │
+└──────────────┴───────────────┴──────────────┴──────────────────┘
+```
+
+Au-dessus, une grosse flèche horizontale traversante avec dégradé subtil indique le **temps qui passe** (gauche → droite). En dessous, une barre cyan transparente symbolise OBSERVABILITY qui trace tout en continu.
+
+Avantages : un coup d'œil suffit à comprendre la séquence et le rôle de chaque module ; pas de risque de confusion sur le sens des flèches puisqu'il n'y a qu'**une seule direction globale**. Inconvénient : moins de détail sur les payloads et signatures — réservé aux slides synthétiques et aux pages d'accueil. Le diagramme de séquence détaillé reste la référence pour la doc technique.
