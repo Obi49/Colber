@@ -1,0 +1,10 @@
+node_modules
+dist
+build
+coverage
+.turbo
+.next
+.nuxt
+pnpm-lock.yaml
+*.tsbuildinfo
+apps/agent-identity/drizzle/meta

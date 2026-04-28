@@ -1,0 +1,38 @@
+{
+  "name": "@praxis/core-logger",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "description": "pino-based structured logger factory for Praxis services. Adds correlation, redaction defaults, and pretty mode in dev.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rm -rf dist .turbo *.tsbuildinfo",
+    "lint": "eslint src",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc -b --noEmit"
+  },
+  "dependencies": {
+    "pino": "^9.5.0",
+    "pino-pretty": "^11.3.0"
+  },
+  "devDependencies": {
+    "@praxis/eslint-config": "workspace:*",
+    "@praxis/tsconfig": "workspace:*",
+    "@types/node": "^22.9.0",
+    "@vitest/coverage-v8": "^2.1.5",
+    "eslint": "^9.15.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.5"
+  }
+}

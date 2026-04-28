@@ -1,0 +1,10 @@
+{
+  "extends": "@praxis/tsconfig/node-lib.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist"
+  },
+  "references": [{ "path": "../core-types" }],
+  "include": ["src/**/*"],
+  "exclude": ["dist", "node_modules", "**/*.test.ts"]
+}

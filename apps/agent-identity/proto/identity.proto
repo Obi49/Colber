@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package praxis.identity.v1;
+
+// Praxis — Agent Identity gRPC contract (v1).
+// Mirror of the REST + MCP surfaces. Used for inter-service calls
+// inside the cluster (gRPC over Linkerd / Istio service mesh).
+
+service IdentityService {
+  // Register a new agent identity from an Ed25519 public key.
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+
+  // Resolve a DID to the agent's record.
+  rpc Resolve(ResolveRequest) returns (AgentRecord);
+
+  // Verify a signature against the public key bound to a DID.
+  rpc Verify(VerifyRequest) returns (VerifyResponse);
+}
+
+message RegisterRequest {
+  // Ed25519 public key, base64-encoded (32 raw bytes).
+  string public_key = 1;
+  // Operator that owns this agent.
+  string owner_operator_id = 2;
+}
+
+message RegisterResponse {
+  string did = 1;
+  string agent_id = 2;
+  // ISO-8601 UTC.
+  string registered_at = 3;
+}
+
+message ResolveRequest {
+  string did = 1;
+}
+
+message AgentRecord {
+  string did = 1;
+  string agent_id = 2;
+  string public_key = 3;
+  string signature_scheme = 4;
+  string owner_operator_id = 5;
+  string registered_at = 6;
+  // Empty string if not revoked.
+  string revoked_at = 7;
+}
+
+message VerifyRequest {
+  string did = 1;
+  // base64-encoded.
+  string message = 2;
+  // base64-encoded.
+  string signature = 3;
+}
+
+message VerifyResponse {
+  bool valid = 1;
+  // Empty string if valid; otherwise machine-readable reason code.
+  string reason = 2;
+}
