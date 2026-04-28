@@ -193,6 +193,51 @@ services:
     networks: [praxis_net]
     logging: *default-logging
 
+  # ------- INSURANCE -------
+
+  insurance:
+    image: praxis/insurance:dev
+    container_name: praxis-insurance
+    restart: unless-stopped
+    build:
+      context: ..
+      dockerfile: apps/insurance/Dockerfile
+    environment:
+      NODE_ENV: production
+      LOG_LEVEL: info
+      SERVICE_NAME: insurance
+      HTTP_HOST: 0.0.0.0
+      HTTP_PORT: 4051
+      GRPC_HOST: 0.0.0.0
+      GRPC_PORT: 4052
+      DATABASE_URL: postgresql://praxis:praxis_dev@postgres:5432/praxis_insurance
+      REPUTATION_URL: http://reputation:4011
+      INSURANCE_BASE_RATE_BPS: '200'
+      INSURANCE_QUOTE_VALIDITY_SECONDS: '300'
+      INSURANCE_MAX_GLOBAL_EXPOSURE_USDC: '100000'
+      INSURANCE_DEFAULT_POLICY_DURATION_HOURS: '168'
+      INSURANCE_REPUTATION_CACHE_TTL_SECONDS: '60'
+      INSURANCE_ADMIN_ENABLED: 'true'
+      PRETTY_LOGS: 'false'
+    ports:
+      - '14051:4051'
+      - '14052:4052'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      reputation:
+        condition: service_healthy
+      agent-identity:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:4051/healthz || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    networks: [praxis_net]
+    logging: *default-logging
+
   # ------- OBSERVABILITY -------
 
   observability:
