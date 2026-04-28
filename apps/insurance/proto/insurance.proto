@@ -1,0 +1,127 @@
+syntax = "proto3";
+
+package praxis.insurance.v1;
+
+// Praxis — Insurance broker gRPC contract (v1).
+// Mirrors the REST + MCP surfaces. v1 is simulation-only (no on-chain).
+// Free-form fields (sla_terms, evidence, escrow, claims) are JSON-encoded
+// to keep the proto stable as the domain shape evolves.
+
+service InsuranceService {
+  // Calculate a premium quote without committing to a policy.
+  rpc Quote(QuoteRequest) returns (QuoteView);
+
+  // Create a policy + lock the simulated escrow.
+  rpc Subscribe(SubscribeRequest) returns (PolicyView);
+
+  // File a claim against an existing policy.
+  rpc FileClaim(FileClaimRequest) returns (ClaimView);
+
+  // Read a policy with its embedded escrow + claims.
+  rpc GetPolicy(GetPolicyRequest) returns (PolicyView);
+
+  // List policies for a subscriber, paginated.
+  rpc ListPolicies(ListPoliciesRequest) returns (ListPoliciesResponse);
+}
+
+// ---------- shared ----------
+
+message QuoteView {
+  string subscriber_did = 1;
+  string beneficiary_did = 2;
+  string deal_subject = 3;
+  double amount_usdc = 4;
+  double premium_usdc = 5;
+  double risk_multiplier = 6;
+  uint32 reputation_score = 7;
+  string computed_at = 8;
+  string valid_until = 9;
+}
+
+message EscrowView {
+  string holding_id = 1;
+  string policy_id = 2;
+  double amount_usdc = 3;
+  string status = 4;            // locked | released | claimed | refunded
+  string locked_at = 5;
+  string released_at = 6;       // empty when not yet
+  string claimed_at = 7;        // empty when not yet
+  string refunded_at = 8;       // empty when not yet
+}
+
+message ClaimView {
+  string claim_id = 1;
+  string policy_id = 2;
+  string claimant_did = 3;
+  string reason = 4;
+  string evidence_json = 5;
+  string status = 6;            // open | approved | rejected | paid
+  string created_at = 7;
+  string decided_at = 8;        // empty when not yet
+  double payout_usdc = 9;       // 0 when not yet
+}
+
+message PolicyView {
+  string policy_id = 1;
+  string subscriber_did = 2;
+  string beneficiary_did = 3;
+  string deal_subject = 4;
+  double amount_usdc = 5;
+  double premium_usdc = 6;
+  double risk_multiplier = 7;
+  uint32 reputation_score = 8;
+  string sla_terms_json = 9;
+  string status = 10;           // pending | active | expired | cancelled | claimed
+  string created_at = 11;
+  string expires_at = 12;
+  EscrowView escrow = 13;
+  repeated ClaimView claims = 14;
+}
+
+// ---------- quote ----------
+
+message QuoteRequest {
+  string subscriber_did = 1;
+  string beneficiary_did = 2;
+  string deal_subject = 3;
+  double amount_usdc = 4;
+  string sla_terms_json = 5;     // JSON-encoded SlaTerms
+}
+
+// ---------- subscribe ----------
+
+message SubscribeRequest {
+  string subscriber_did = 1;
+  string beneficiary_did = 2;
+  string deal_subject = 3;
+  double amount_usdc = 4;
+  string sla_terms_json = 5;     // JSON-encoded SlaTerms
+  string idempotency_key = 6;
+}
+
+// ---------- claim ----------
+
+message FileClaimRequest {
+  string policy_id = 1;
+  string claimant_did = 2;
+  string reason = 3;
+  string evidence_json = 4;      // JSON-encoded evidence record
+  string idempotency_key = 5;
+}
+
+// ---------- get / list ----------
+
+message GetPolicyRequest {
+  string policy_id = 1;
+}
+
+message ListPoliciesRequest {
+  string subscriber_did = 1;
+  uint32 limit = 2;
+  uint32 offset = 3;
+}
+
+message ListPoliciesResponse {
+  repeated PolicyView policies = 1;
+  uint32 total = 2;
+}
