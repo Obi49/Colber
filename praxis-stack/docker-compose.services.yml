@@ -154,6 +154,45 @@ services:
     networks: [praxis_net]
     logging: *default-logging
 
+  # ------- NEGOTIATION -------
+
+  negotiation:
+    image: praxis/negotiation:dev
+    container_name: praxis-negotiation
+    restart: unless-stopped
+    build:
+      context: ..
+      dockerfile: apps/negotiation/Dockerfile
+    environment:
+      NODE_ENV: production
+      LOG_LEVEL: info
+      SERVICE_NAME: negotiation
+      HTTP_HOST: 0.0.0.0
+      HTTP_PORT: 4041
+      GRPC_HOST: 0.0.0.0
+      GRPC_PORT: 4042
+      DATABASE_URL: postgresql://praxis:praxis_dev@postgres:5432/praxis_negotiation
+      NEGOTIATION_DEFAULT_DEADLINE_HOURS: '24'
+      NEGOTIATION_MAX_PROPOSALS_PER_NEGOTIATION: '200'
+      NEGOTIATION_MAX_PARTIES: '16'
+      PRETTY_LOGS: 'false'
+    ports:
+      - '14041:4041'
+      - '14042:4042'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      agent-identity:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:4041/healthz || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    networks: [praxis_net]
+    logging: *default-logging
+
   # ------- OBSERVABILITY -------
 
   observability:
