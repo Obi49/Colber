@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """End-to-end smoke test of Praxis services running on the VM.
 
-Exercises agent-identity, reputation, memory, observability by:
+Exercises agent-identity, reputation, memory, observability, negotiation by:
 1. Generating a fresh Ed25519 keypair locally.
 2. Registering a new agent on agent-identity.
 3. Resolving the agent.
@@ -10,6 +10,7 @@ Exercises agent-identity, reputation, memory, observability by:
 6. Storing a memory and searching it.
 7. Ingesting logs + traces on observability and querying them back.
 8. CRUD on observability alerts.
+9. Running a full negotiation lifecycle (start → propose → counter → settle).
 
 All HTTP requests go through the VM's exposed ports.
 """
@@ -32,6 +33,7 @@ IDENTITY = f"http://{VM}:14001"
 REPUTATION = f"http://{VM}:14011"
 MEMORY = f"http://{VM}:14021"
 OBSERVABILITY = f"http://{VM}:14031"
+NEGOTIATION = f"http://{VM}:14041"
 
 
 def http(method: str, url: str, body: dict | None = None, timeout: int = 60) -> tuple[int, dict | str]:
@@ -104,6 +106,7 @@ def main() -> int:
         ("reputation", REPUTATION),
         ("memory", MEMORY),
         ("observability", OBSERVABILITY),
+        ("negotiation", NEGOTIATION),
     ]:
         code, body = http("GET", f"{base}/healthz")
         ok = code == 200
@@ -372,6 +375,130 @@ def main() -> int:
         print(f"  GET /alerts/:id (post-delete) -> {code}")
         if code != 404:
             failed.append("observability get alert post-delete")
+
+    # ---- 11. Negotiation: start → propose → counter → settle ----
+    step("Negotiation lifecycle")
+    if "A" in agents and "B" in agents:
+        deadline = (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+        idem_key = str(uuid.uuid4())
+        terms = {
+            "subject": "data-extraction-job",
+            "strategy": "ascending-auction",
+            "constraints": {"region": "EU", "format": "csv"},
+            "partyDids": [agents["A"]["did"], agents["B"]["did"]],
+            "deadline": deadline,
+            "reservePrice": 50.0,
+            "currency": "USDC",
+        }
+        code, body = http("POST", f"{NEGOTIATION}/v1/negotiation", {
+            "terms": terms,
+            "createdBy": agents["A"]["did"],
+            "idempotencyKey": idem_key,
+        })
+        nego_id = ((body.get("data") or {}).get("negotiationId") if isinstance(body, dict) else None)
+        print(f"  POST /negotiation -> {code} id={nego_id}")
+        if code != 201 or not nego_id:
+            print(f"     body: {body}")
+            failed.append("negotiation start")
+
+        if nego_id:
+            # ----- Idempotency replay (same idempotencyKey → 200 + same id) -----
+            code, body = http("POST", f"{NEGOTIATION}/v1/negotiation", {
+                "terms": terms,
+                "createdBy": agents["A"]["did"],
+                "idempotencyKey": idem_key,
+            })
+            replayed_id = ((body.get("data") or {}).get("negotiationId") if isinstance(body, dict) else None)
+            ok = code == 200 and replayed_id == nego_id
+            print(f"  POST /negotiation (idempotent replay) -> {code} same-id={replayed_id == nego_id}")
+            if not ok:
+                failed.append("negotiation idempotency")
+
+            # ----- Proposal A: 100 USDC -----
+            proposal_a_id = str(uuid.uuid4())
+            proposed_a_at = datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+            canon_a = {
+                "amount": 100.0,
+                "fromDid": agents["A"]["did"],
+                "proposalId": proposal_a_id,
+                "proposedAt": proposed_a_at,
+            }
+            sig_a = sign_ed25519(agents["A"]["priv"], jcs_canonical(canon_a))
+            code, body = http("POST", f"{NEGOTIATION}/v1/negotiation/{nego_id}/propose", {
+                "proposal": {
+                    "proposalId": proposal_a_id,
+                    "fromDid": agents["A"]["did"],
+                    "amount": 100.0,
+                    "signature": b64(sig_a),
+                    "proposedAt": proposed_a_at,
+                },
+                "publicKey": b64(agents["A"]["pub"]),
+            })
+            print(f"  POST /propose A=100 -> {code}")
+            if code != 200:
+                print(f"     body: {body}")
+                failed.append("negotiation propose A")
+
+            # ----- Counter B: 150 USDC -----
+            proposal_b_id = str(uuid.uuid4())
+            proposed_b_at = datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+            canon_b = {
+                "amount": 150.0,
+                "fromDid": agents["B"]["did"],
+                "proposalId": proposal_b_id,
+                "proposedAt": proposed_b_at,
+            }
+            sig_b = sign_ed25519(agents["B"]["priv"], jcs_canonical(canon_b))
+            code, body = http("POST", f"{NEGOTIATION}/v1/negotiation/{nego_id}/counter", {
+                "counterTo": proposal_a_id,
+                "proposal": {
+                    "proposalId": proposal_b_id,
+                    "fromDid": agents["B"]["did"],
+                    "amount": 150.0,
+                    "signature": b64(sig_b),
+                    "proposedAt": proposed_b_at,
+                },
+                "publicKey": b64(agents["B"]["pub"]),
+            })
+            best_after_counter = ((body.get("data") or {}).get("currentBestProposalId") if isinstance(body, dict) else None)
+            print(f"  POST /counter B=150 -> {code} best={best_after_counter == proposal_b_id}")
+            if code != 200 or best_after_counter != proposal_b_id:
+                print(f"     body: {body}")
+                failed.append("negotiation counter B")
+
+            # ----- Settle: signatures A + B over {negotiationId, winningProposalId} -----
+            settle_canon = {
+                "negotiationId": nego_id,
+                "winningProposalId": proposal_b_id,
+            }
+            settle_bytes = jcs_canonical(settle_canon)
+            settle_sig_a = sign_ed25519(agents["A"]["priv"], settle_bytes)
+            settle_sig_b = sign_ed25519(agents["B"]["priv"], settle_bytes)
+            code, body = http("POST", f"{NEGOTIATION}/v1/negotiation/{nego_id}/settle", {
+                "winningProposalId": proposal_b_id,
+                "signatures": [
+                    {"did": agents["A"]["did"], "signature": b64(settle_sig_a)},
+                    {"did": agents["B"]["did"], "signature": b64(settle_sig_b)},
+                ],
+                "publicKeys": [
+                    {"did": agents["A"]["did"], "publicKey": b64(agents["A"]["pub"])},
+                    {"did": agents["B"]["did"], "publicKey": b64(agents["B"]["pub"])},
+                ],
+            })
+            status_after = ((body.get("data") or {}).get("status") if isinstance(body, dict) else None)
+            print(f"  POST /settle -> {code} status={status_after}")
+            if code != 200 or status_after != "settled":
+                print(f"     body: {body}")
+                failed.append("negotiation settle")
+
+            # ----- History sanity: at least 4 events (started, proposal, counter, settled) -----
+            code, body = http("GET", f"{NEGOTIATION}/v1/negotiation/{nego_id}/history?limit=50")
+            events = ((body.get("data") or {}).get("events", []) if isinstance(body, dict) else [])
+            event_types = [(e.get("event") or {}).get("type") for e in events]
+            print(f"  GET /history -> {code} events={len(events)} types={event_types}")
+            expected = {"negotiation.started", "proposal.submitted", "counter.submitted", "negotiation.settled"}
+            if code != 200 or not expected.issubset(set(event_types)):
+                failed.append("negotiation history")
 
     # ---- Summary ----
     print("\n" + ("=" * 50))
