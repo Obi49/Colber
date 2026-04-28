@@ -1,17 +1,13 @@
-import type { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
+import { ERROR_CODES, PraxisError, type ApiError } from '@praxis/core-types';
 import { ZodError } from 'zod';
 
-import { ERROR_CODES, PraxisError, type ApiError } from '@praxis/core-types';
+import type { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 
 /**
  * Centralised error handler for the REST layer.
  * Maps domain errors to a stable wire format (`ApiError`) and an HTTP status.
  */
-export const errorHandler = (
-  err: FastifyError,
-  req: FastifyRequest,
-  reply: FastifyReply,
-): void => {
+export const errorHandler = (err: FastifyError, req: FastifyRequest, reply: FastifyReply): void => {
   const traceId = req.id;
 
   if (err instanceof PraxisError) {

@@ -16,8 +16,9 @@ describe('createLogger', () => {
     new Promise<void>((resolve, reject) => {
       const lines: string[] = [];
       const stream = new Writable({
-        write(chunk, _enc, cb) {
-          lines.push(chunk.toString('utf8'));
+        write(chunk: Buffer | string, _enc, cb) {
+          const text = Buffer.isBuffer(chunk) ? chunk.toString('utf8') : chunk;
+          lines.push(text);
           cb();
         },
       });
@@ -38,7 +39,7 @@ describe('createLogger', () => {
         expect(parsed.foo).toBe('bar');
         resolve();
       } catch (e) {
-        reject(e);
+        reject(e instanceof Error ? e : new Error(String(e)));
       }
     }));
 });

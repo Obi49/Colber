@@ -1,9 +1,5 @@
+import type { AgentInsertParams, AgentRepository } from '../../src/domain/agent-repository.js';
 import type { AgentIdentity, Did } from '@praxis/core-types';
-
-import type {
-  AgentInsertParams,
-  AgentRepository,
-} from '../../src/domain/agent-repository.js';
 
 /**
  * Fake repository for unit-testing the domain service without a DB.

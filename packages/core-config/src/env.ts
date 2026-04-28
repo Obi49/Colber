@@ -1,5 +1,5 @@
 import { config as loadDotenv } from 'dotenv';
-import { type ZodError, type ZodSchema } from 'zod';
+import { type ZodError, type ZodType, type ZodTypeDef } from 'zod';
 
 export interface LoadConfigOptions {
   /** Defaults to `process.env`. Override only in tests. */
@@ -27,8 +27,18 @@ export class ConfigValidationError extends Error {
  * Load + validate environment variables against a Zod schema.
  * Throws `ConfigValidationError` on any failure — caller should let it
  * propagate to crash the process before serving traffic.
+ *
+ * The signature uses `ZodType<TOutput, _, TInput>` (rather than the alias
+ * `ZodSchema<T>` which collapses input and output) so that schemas with
+ * `.default()` / `.transform()` correctly infer the parsed Output type as
+ * the return value. Without this distinction, TS picks the input type and
+ * users see properties like `SERVICE_NAME?: string | undefined` on what
+ * should be a fully-defaulted required `string`.
  */
-export const loadConfig = <T>(schema: ZodSchema<T>, options: LoadConfigOptions = {}): T => {
+export const loadConfig = <TOutput, TInput = TOutput>(
+  schema: ZodType<TOutput, ZodTypeDef, TInput>,
+  options: LoadConfigOptions = {},
+): TOutput => {
   const { source = process.env, loadDotenv: shouldLoadDotenv = true, dotenvPath } = options;
 
   if (shouldLoadDotenv) {

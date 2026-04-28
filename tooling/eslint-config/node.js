@@ -1,16 +1,19 @@
 // @ts-check
 import globals from 'globals';
 
-import { baseConfig } from './index.js';
+import { buildBaseConfig } from './index.js';
 
 /**
- * Node.js-specific ESLint flat config.
+ * Node.js-specific ESLint flat config builder.
  * Adds Node globals on top of the base config.
  *
- * @type {import('eslint').Linter.Config[]}
+ * @param {object} options
+ * @param {string} options.tsconfigRootDir Absolute path to the repo root.
+ *   See {@link buildBaseConfig} for why this is required.
+ * @returns {import('eslint').Linter.Config[]}
  */
-export const nodeConfig = [
-  ...baseConfig,
+export const buildNodeConfig = ({ tsconfigRootDir }) => [
+  ...buildBaseConfig({ tsconfigRootDir }),
   {
     languageOptions: {
       globals: {
@@ -20,4 +23,4 @@ export const nodeConfig = [
   },
 ];
 
-export default nodeConfig;
+export default buildNodeConfig;

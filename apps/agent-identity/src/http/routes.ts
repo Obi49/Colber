@@ -1,6 +1,3 @@
-import type { FastifyInstance } from 'fastify';
-
-import type { IdentityService } from '../domain/identity-service.js';
 import {
   RegisterRequestSchema,
   ResolveResponseSchema,
@@ -10,6 +7,9 @@ import {
   type VerifyResponse,
 } from './schemas.js';
 
+import type { IdentityService } from '../domain/identity-service.js';
+import type { FastifyInstance } from 'fastify';
+
 /**
  * Wires the three REST endpoints under `/v1/identity/*`.
  * Schema validation uses Zod via the standard `body`/`params` parsing.
@@ -17,10 +17,7 @@ import {
  * Note: response shapes mirror the Zod schemas in `./schemas.ts` so
  * OpenAPI generation (TODO) can use the same source of truth.
  */
-export const registerIdentityRoutes = (
-  app: FastifyInstance,
-  service: IdentityService,
-): void => {
+export const registerIdentityRoutes = (app: FastifyInstance, service: IdentityService): void => {
   app.post('/v1/identity/register', async (req, reply) => {
     const body = RegisterRequestSchema.parse(req.body);
     const identity = await service.register({

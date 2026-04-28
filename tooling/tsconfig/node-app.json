@@ -4,9 +4,6 @@
   "extends": "./base.json",
   "compilerOptions": {
     "composite": true,
-    "rootDir": "./src",
-    "outDir": "./dist",
-    "tsBuildInfoFile": "./dist/.tsbuildinfo",
     "types": ["node"],
     "noEmit": false
   }

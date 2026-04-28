@@ -16,7 +16,7 @@ export class McpToolRegistry {
     this.tools.set(def.name, def as McpToolDefinition<unknown, unknown>);
   }
 
-  public list(): ReadonlyArray<McpToolDefinition<unknown, unknown>> {
+  public list(): readonly McpToolDefinition<unknown, unknown>[] {
     return Array.from(this.tools.values());
   }
 
@@ -29,11 +29,7 @@ export class McpToolRegistry {
    * the tool's Zod schemas; throws `PraxisError(VALIDATION_FAILED)` on
    * either side.
    */
-  public async invoke(
-    name: string,
-    rawInput: unknown,
-    ctx: McpToolContext,
-  ): Promise<unknown> {
+  public async invoke(name: string, rawInput: unknown, ctx: McpToolContext): Promise<unknown> {
     const tool = this.tools.get(name);
     if (!tool) {
       throw new PraxisError(ERROR_CODES.NOT_FOUND, `MCP tool not found: ${name}`, 404, {
@@ -42,12 +38,9 @@ export class McpToolRegistry {
     }
     const inputResult = tool.inputSchema.safeParse(rawInput);
     if (!inputResult.success) {
-      throw new PraxisError(
-        ERROR_CODES.VALIDATION_FAILED,
-        `Invalid input for ${name}`,
-        400,
-        { issues: inputResult.error.issues },
-      );
+      throw new PraxisError(ERROR_CODES.VALIDATION_FAILED, `Invalid input for ${name}`, 400, {
+        issues: inputResult.error.issues,
+      });
     }
 
     const output = await tool.handler(inputResult.data, ctx);

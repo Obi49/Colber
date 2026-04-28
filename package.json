@@ -2,6 +2,7 @@
   "name": "praxis",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "Praxis — infrastructure platform for the agentic economy (Insurance, Reputation, Observability, Negotiation, Memory).",
   "author": "Johan <dof1502.mwm27@gmail.com>",
   "license": "UNLICENSED",
@@ -29,6 +30,7 @@
     "prepare": "husky"
   },
   "devDependencies": {
+    "@praxis/eslint-config": "workspace:*",
     "@types/node": "^22.9.0",
     "eslint": "^9.15.0",
     "husky": "^9.1.7",

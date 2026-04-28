@@ -6,11 +6,10 @@
  */
 import { fileURLToPath } from 'node:url';
 
+import { createLogger } from '@praxis/core-logger';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
-
-import { createLogger } from '@praxis/core-logger';
 
 import { loadAppConfig } from '../config.js';
 
@@ -29,7 +28,9 @@ const main = async (): Promise<void> => {
   const db = drizzle(sql);
 
   try {
-    await migrate(db, { migrationsFolder: fileURLToPath(new URL('../../drizzle', import.meta.url)) });
+    await migrate(db, {
+      migrationsFolder: fileURLToPath(new URL('../../drizzle', import.meta.url)),
+    });
     log.info('migrations applied');
   } finally {
     await sql.end({ timeout: 5 });
@@ -39,7 +40,6 @@ const main = async (): Promise<void> => {
 const redactUrl = (url: string): string => url.replace(/:[^:@/]+@/, ':***@');
 
 main().catch((err) => {
-  // eslint-disable-next-line no-console
   console.error('Migration failed:', err);
   process.exit(1);
 });

@@ -2,11 +2,10 @@ import { fileURLToPath } from 'node:url';
 
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
-
 import { ERROR_CODES, PraxisError } from '@praxis/core-types';
-import type { Logger } from '@praxis/core-logger';
 
 import type { IdentityService } from '../domain/identity-service.js';
+import type { Logger } from '@praxis/core-logger';
 
 const PROTO_PATH = fileURLToPath(new URL('../../proto/identity.proto', import.meta.url));
 
@@ -23,7 +22,13 @@ interface VerifyReq {
   signature: string;
 }
 
-interface IdentityGrpcService {
+/**
+ * `addService` expects an `UntypedServiceImplementation` (object with an
+ * `[name: string]: UntypedHandleCall` index signature). We declare specific
+ * unary handler types for documentation/safety AND include the index
+ * signature so the object is assignable to the framework's parameter type.
+ */
+interface IdentityGrpcService extends grpc.UntypedServiceImplementation {
   Register: grpc.handleUnaryCall<RegisterReq, unknown>;
   Resolve: grpc.handleUnaryCall<ResolveReq, unknown>;
   Verify: grpc.handleUnaryCall<VerifyReq, unknown>;
@@ -46,14 +51,14 @@ const toGrpcError = (err: unknown): grpc.ServiceError => {
       details: err.code,
       metadata: new grpc.Metadata(),
       name: 'ServiceError',
-    }) as grpc.ServiceError;
+    });
   }
   return Object.assign(new Error('Internal error'), {
     code: grpc.status.INTERNAL,
     details: ERROR_CODES.INTERNAL_ERROR,
     metadata: new grpc.Metadata(),
     name: 'ServiceError',
-  }) as grpc.ServiceError;
+  });
 };
 
 export interface GrpcServerHandle {
@@ -66,10 +71,7 @@ export interface GrpcServerHandle {
  * but the actual proto file is loaded lazily on `start()` to keep test
  * boot fast.
  */
-export const buildGrpcServer = (
-  service: IdentityService,
-  logger: Logger,
-): GrpcServerHandle => {
+export const buildGrpcServer = (service: IdentityService, logger: Logger): GrpcServerHandle => {
   const server = new grpc.Server();
 
   const handlers: IdentityGrpcService = {

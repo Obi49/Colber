@@ -1,6 +1,5 @@
-import type { FastifyInstance } from 'fastify';
-
 import type { DbClient } from '../db/client.js';
+import type { FastifyInstance } from 'fastify';
 
 /**
  * Liveness + readiness endpoints (Kubernetes pattern).
@@ -16,9 +15,7 @@ export const registerHealthRoutes = (app: FastifyInstance, dbClient: DbClient): 
       return reply.code(200).send({ status: 'ready', checks: { database: 'ok' } });
     } catch (cause) {
       req.log.error({ err: cause }, 'readiness check failed');
-      return reply
-        .code(503)
-        .send({ status: 'not_ready', checks: { database: 'error' } });
+      return reply.code(503).send({ status: 'not_ready', checks: { database: 'error' } });
     }
   });
 };

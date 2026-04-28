@@ -3,22 +3,60 @@
  * Uses the in-memory repository fake — no real DB connection.
  */
 import { getSignatureProvider, toBase64 } from '@praxis/core-crypto';
-import { ERROR_CODES } from '@praxis/core-types';
 import { createLogger, type Logger } from '@praxis/core-logger';
-import type { FastifyInstance } from 'fastify';
+import { ERROR_CODES } from '@praxis/core-types';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import type { DbClient } from '../../src/db/client.js';
 import { IdentityService } from '../../src/domain/identity-service.js';
 import { buildApp } from '../../src/http/app.js';
 import { InMemoryAgentRepository } from '../fakes/in-memory-repo.js';
 
-/** Fake DB client that always reports healthy. */
+import type { DbClient, Database } from '../../src/db/client.js';
+import type { FastifyInstance } from 'fastify';
+import type { Sql } from 'postgres';
+
+/**
+ * Wire shapes for parsing inject() responses. The REST envelope is
+ * `{ ok: true, data: T } | { ok: false, error: { code, message, ... } }`,
+ * mirroring the runtime contract in `src/http/error-handler.ts`. We declare
+ * minimal subset shapes here so test assertions stay strongly typed without
+ * depending on internal handler types.
+ */
+interface OkEnvelope<T> {
+  ok: true;
+  data: T;
+}
+interface ErrEnvelope {
+  ok: false;
+  error: { code: string; message: string };
+}
+type Envelope<T> = OkEnvelope<T> | ErrEnvelope;
+interface RegisterData {
+  did: string;
+  agentId: string;
+  registeredAt: string;
+}
+interface ResolveData {
+  did: string;
+  agentId: string;
+  signatureScheme: string;
+}
+interface VerifyData {
+  valid: boolean;
+  reason?: string;
+}
+
+/**
+ * Fake DB client that always reports healthy.
+ *
+ * The `db` and `sql` fields are typed via the real interfaces but we never
+ * call any of their methods in tests (the route under test only uses
+ * `dbClient.ping()`). Empty objects are cast through `unknown` so we don't
+ * need an `any` escape hatch.
+ */
 const fakeDbClient = (alive = true): DbClient => ({
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  db: {} as any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  sql: {} as any,
+  db: {} as unknown as Database,
+  sql: {} as unknown as Sql,
   close: () => Promise.resolve(),
   ping: () => (alive ? Promise.resolve() : Promise.reject(new Error('db down'))),
 });
@@ -75,8 +113,11 @@ describe('REST /v1/identity/*', () => {
     });
 
     expect(res.statusCode).toBe(201);
-    const body = res.json() as { ok: true; data: { did: string; agentId: string; registeredAt: string } };
+    const body = res.json<Envelope<RegisterData>>();
     expect(body.ok).toBe(true);
+    if (!body.ok) {
+      throw new Error('expected ok envelope');
+    }
     expect(body.data.did).toMatch(/^did:key:z6Mk/);
     expect(body.data.agentId).toMatch(/^[0-9a-f-]{36}$/);
   });
@@ -88,8 +129,11 @@ describe('REST /v1/identity/*', () => {
       payload: { publicKey: '' },
     });
     expect(res.statusCode).toBe(400);
-    const body = res.json() as { ok: false; error: { code: string } };
+    const body = res.json<Envelope<RegisterData>>();
     expect(body.ok).toBe(false);
+    if (body.ok) {
+      throw new Error('expected error envelope');
+    }
     expect(body.error.code).toBe(ERROR_CODES.VALIDATION_FAILED);
   });
 
@@ -111,7 +155,10 @@ describe('REST /v1/identity/*', () => {
       payload,
     });
     expect(second.statusCode).toBe(409);
-    const body = second.json() as { ok: false; error: { code: string } };
+    const body = second.json<Envelope<RegisterData>>();
+    if (body.ok) {
+      throw new Error('expected error envelope');
+    }
     expect(body.error.code).toBe(ERROR_CODES.DID_ALREADY_REGISTERED);
   });
 
@@ -123,14 +170,21 @@ describe('REST /v1/identity/*', () => {
       url: '/v1/identity/register',
       payload: { publicKey: toBase64(kp.publicKey), ownerOperatorId: 'op' },
     });
-    const { data } = reg.json() as { data: { did: string } };
+    const regBody = reg.json<Envelope<RegisterData>>();
+    if (!regBody.ok) {
+      throw new Error('register failed');
+    }
+    const { data } = regBody;
 
     const res = await app.inject({
       method: 'GET',
       url: `/v1/identity/${encodeURIComponent(data.did)}`,
     });
     expect(res.statusCode).toBe(200);
-    const body = res.json() as { data: { did: string; signatureScheme: string } };
+    const body = res.json<Envelope<ResolveData>>();
+    if (!body.ok) {
+      throw new Error('expected ok envelope');
+    }
     expect(body.data.did).toBe(data.did);
     expect(body.data.signatureScheme).toBe('Ed25519');
   });
@@ -151,7 +205,11 @@ describe('REST /v1/identity/*', () => {
       url: '/v1/identity/register',
       payload: { publicKey: toBase64(kp.publicKey), ownerOperatorId: 'op' },
     });
-    const { data } = reg.json() as { data: { did: string } };
+    const regBody = reg.json<Envelope<RegisterData>>();
+    if (!regBody.ok) {
+      throw new Error('register failed');
+    }
+    const { data } = regBody;
 
     const message = new TextEncoder().encode('praxis-rest-test');
     const signature = await ed.sign(message, kp.privateKey);
@@ -166,7 +224,10 @@ describe('REST /v1/identity/*', () => {
       },
     });
     expect(res.statusCode).toBe(200);
-    const body = res.json() as { data: { valid: boolean } };
+    const body = res.json<Envelope<VerifyData>>();
+    if (!body.ok) {
+      throw new Error('expected ok envelope');
+    }
     expect(body.data.valid).toBe(true);
   });
 
@@ -178,7 +239,11 @@ describe('REST /v1/identity/*', () => {
       url: '/v1/identity/register',
       payload: { publicKey: toBase64(kp.publicKey), ownerOperatorId: 'op' },
     });
-    const { data } = reg.json() as { data: { did: string } };
+    const regBody = reg.json<Envelope<RegisterData>>();
+    if (!regBody.ok) {
+      throw new Error('register failed');
+    }
+    const { data } = regBody;
 
     const message = new TextEncoder().encode('original');
     const signature = await ed.sign(message, kp.privateKey);
@@ -193,7 +258,10 @@ describe('REST /v1/identity/*', () => {
       },
     });
     expect(res.statusCode).toBe(200);
-    const body = res.json() as { data: { valid: boolean } };
+    const body = res.json<Envelope<VerifyData>>();
+    if (!body.ok) {
+      throw new Error('expected ok envelope');
+    }
     expect(body.data.valid).toBe(false);
   });
 });

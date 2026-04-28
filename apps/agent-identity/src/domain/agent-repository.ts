@@ -1,5 +1,3 @@
-import { eq } from 'drizzle-orm';
-
 import {
   asAgentId,
   asOperatorId,
@@ -7,9 +5,11 @@ import {
   type Did,
   type SignatureScheme,
 } from '@praxis/core-types';
+import { eq } from 'drizzle-orm';
+
+import { agents, type AgentInsert, type AgentRow } from '../db/schema.js';
 
 import type { Database } from '../db/client.js';
-import { agents, type AgentInsert, type AgentRow } from '../db/schema.js';
 
 /**
  * Repository abstraction over the `agents` table.
