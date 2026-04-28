@@ -1,7 +1,9 @@
 # DESIGN BRIEF — Schémas Praxis pour Claude Design
 
-> **À copier/coller intégralement dans Claude Design pour qu'il produise les schémas demandés.**
+> **À copier/coller intégralement dans Claude Design pour qu'il produise les schémas demandés (versions vectorielles SVG).**
 > Le brief est self-contained : Claude Design n'a pas besoin de lire d'autres fichiers du repo.
+
+> 💡 **Versions Mermaid déjà disponibles** dans [`diagrams/`](diagrams/) — rendues nativement par GitHub, éditables sans outil. À utiliser pour la doc technique. Le SVG vectoriel reste recommandé pour les supports marketing (slides, site, prints).
 
 ---
 
