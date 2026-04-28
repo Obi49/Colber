@@ -1,0 +1,53 @@
+{
+  "name": "@praxis/observability",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "description": "Praxis observability service — distributed logging + tracing for agent-to-agent (A2A) interactions. ClickHouse-backed ingestion and query, Postgres-backed alert configs. Exposed as REST + gRPC + MCP.",
+  "type": "module",
+  "main": "./dist/server.js",
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rm -rf dist .turbo *.tsbuildinfo coverage",
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "lint": "eslint src test",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/db/migrate.ts",
+    "db:studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "@clickhouse/client": "^1.8.1",
+    "@fastify/cors": "^10.0.1",
+    "@fastify/helmet": "^12.0.1",
+    "@fastify/sensible": "^6.0.1",
+    "@grpc/grpc-js": "^1.12.4",
+    "@grpc/proto-loader": "^0.7.13",
+    "@praxis/core-config": "workspace:*",
+    "@praxis/core-logger": "workspace:*",
+    "@praxis/core-mcp": "workspace:*",
+    "@praxis/core-types": "workspace:*",
+    "drizzle-orm": "^0.36.4",
+    "fastify": "^5.1.0",
+    "fastify-metrics": "^12.1.0",
+    "postgres": "^3.4.5",
+    "uuid": "^11.0.3",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@praxis/eslint-config": "workspace:*",
+    "@praxis/tsconfig": "workspace:*",
+    "@types/node": "^22.9.0",
+    "@types/uuid": "^10.0.0",
+    "@vitest/coverage-v8": "^2.1.5",
+    "drizzle-kit": "^0.28.1",
+    "eslint": "^9.15.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.5"
+  }
+}
