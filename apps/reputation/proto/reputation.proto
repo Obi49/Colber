@@ -1,0 +1,137 @@
+syntax = "proto3";
+
+package praxis.reputation.v1;
+
+// Praxis — Reputation gRPC contract (v1).
+// Mirror of the REST + MCP surfaces. Used for inter-service calls
+// inside the cluster (gRPC over Linkerd / Istio service mesh).
+
+service ReputationService {
+  // Return the agent's signed score envelope.
+  rpc Score(ScoreRequest) returns (SignedScoreEnvelope);
+
+  // Paginated history of transactions and feedbacks for the agent.
+  rpc History(HistoryRequest) returns (HistoryResponse);
+
+  // Verify a signed reputation attestation. Crypto-only, no DB lookup.
+  rpc Verify(VerifyRequest) returns (VerifyResponse);
+
+  // Submit a signed feedback after a transaction.
+  rpc Feedback(FeedbackRequest) returns (FeedbackResponse);
+}
+
+// ---------- score ----------
+
+message ScoreRequest {
+  string agent_did = 1;
+}
+
+message SignedScore {
+  string did = 1;
+  // 0..1000.
+  int32 score = 2;
+  string score_version = 3;
+  // ISO-8601 UTC.
+  string computed_at = 4;
+}
+
+message SignedScoreEnvelope {
+  string did = 1;
+  int32 score = 2;
+  string score_version = 3;
+  string computed_at = 4;
+  // Base64 ed25519 signature over the JCS canonical SignedScore.
+  string attestation = 5;
+}
+
+// ---------- history ----------
+
+message HistoryRequest {
+  string agent_did = 1;
+  // Defaults to 50; capped at 200.
+  uint32 limit = 2;
+  // Optional opaque cursor returned by a previous page. Empty = first page.
+  string cursor = 3;
+}
+
+message TransactionParticipation {
+  string tx_id = 1;
+  string counterparty_did = 2;
+  // "buyer" or "seller".
+  string role = 3;
+  // String-encoded decimal.
+  string amount = 4;
+  string currency = 5;
+  string status = 6;
+  string completed_at = 7;
+}
+
+message ReceivedFeedback {
+  string feedback_id = 1;
+  string from_did = 2;
+  string tx_id = 3;
+  int32 rating = 4;
+  string signed_at = 5;
+  string comment = 6;
+}
+
+message IssuedFeedback {
+  string feedback_id = 1;
+  string from_did = 2;
+  string to_did = 3;
+  string tx_id = 4;
+  int32 rating = 5;
+  string signed_at = 6;
+  string comment = 7;
+}
+
+message HistoryResponse {
+  string did = 1;
+  repeated TransactionParticipation transactions = 2;
+  repeated ReceivedFeedback feedbacks_received = 3;
+  repeated IssuedFeedback feedbacks_issued = 4;
+  // Empty string when there are no more pages.
+  string next_cursor = 5;
+}
+
+// ---------- verify ----------
+
+message VerifyRequest {
+  SignedScore score = 1;
+  string attestation = 2;
+}
+
+message VerifyResponse {
+  bool valid = 1;
+  // Empty string if valid; otherwise machine-readable reason code.
+  string reason = 2;
+}
+
+// ---------- feedback ----------
+
+message FeedbackDimensions {
+  // 1..5 each.
+  int32 delivery = 1;
+  int32 quality = 2;
+  int32 communication = 3;
+}
+
+message FeedbackRequest {
+  string feedback_id = 1; // UUID v4
+  string from_did = 2;
+  string to_did = 3;
+  string tx_id = 4;
+  int32 rating = 5; // 1..5
+  FeedbackDimensions dimensions = 6;
+  // Optional free-text. Empty string = no comment.
+  string comment = 7;
+  string signed_at = 8;
+  // Base64 ed25519 signature over the JCS canonical payload.
+  string signature = 9;
+}
+
+message FeedbackResponse {
+  bool accepted = 1;
+  bool idempotent = 2;
+  string feedback_id = 3;
+}
