@@ -42,6 +42,18 @@ interface ResourceColumns {
   readonly resource_values: string[];
 }
 
+/**
+ * Convert ISO-8601 (`2026-04-28T12:53:36.163Z`) to the format ClickHouse
+ * expects for `DateTime64` columns when ingesting via JSONEachRow:
+ * `2026-04-28 12:53:36.163`. The trailing timezone is dropped — column types
+ * are declared with the explicit `'UTC'` zone, so the value is unambiguous.
+ */
+const toClickHouseTimestamp = (iso: string): string =>
+  iso
+    .replace('T', ' ')
+    .replace(/Z$/, '')
+    .replace(/[+-]\d{2}:?\d{2}$/, '');
+
 const flattenAttributes = (a: Attributes | undefined): AttrColumns => {
   const keys: string[] = [];
   const values: string[] = [];
@@ -120,7 +132,7 @@ const logToRow = (e: LogEvent): Record<string, unknown> => {
   const attr = flattenAttributes(e.attributes);
   const resource = flattenResource(e.resource);
   return {
-    timestamp: e.timestamp,
+    timestamp: toClickHouseTimestamp(e.timestamp),
     trace_id: e.traceId,
     span_id: e.spanId,
     parent_span_id: e.parentSpanId ?? '',
@@ -146,8 +158,8 @@ const spanToRow = (s: SpanEvent): Record<string, unknown> => {
     service: s.service,
     agent_did: s.agentDid ?? '',
     operator_id: s.operatorId ?? '',
-    start_timestamp: s.startTimestamp,
-    end_timestamp: s.endTimestamp,
+    start_timestamp: toClickHouseTimestamp(s.startTimestamp),
+    end_timestamp: toClickHouseTimestamp(s.endTimestamp),
     duration_ms: s.durationMs,
     status: s.status,
     status_message: s.statusMessage ?? '',
