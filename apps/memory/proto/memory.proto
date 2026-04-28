@@ -1,0 +1,146 @@
+syntax = "proto3";
+
+package praxis.memory.v1;
+
+// Praxis — Memory gRPC contract (v1).
+// Mirror of the REST + MCP surfaces. Used for inter-service calls
+// inside the cluster (gRPC over Linkerd / Istio service mesh).
+
+service MemoryService {
+  // Persist a new memory and produce its embedding.
+  rpc Store(StoreRequest) returns (StoreResponse);
+
+  // Semantic search across visible memories.
+  rpc Retrieve(RetrieveRequest) returns (RetrieveResponse);
+
+  // Update text and/or payload of an existing memory.
+  rpc Update(UpdateRequest) returns (UpdateResponse);
+
+  // Grant read access to additional agents.
+  rpc Share(ShareRequest) returns (ShareResponse);
+
+  // Read a single memory by id (auth via caller_did).
+  rpc Get(GetRequest) returns (Memory);
+}
+
+// ---------- shared ----------
+
+// "fact" | "event" | "preference" | "relation"
+message MemoryPermissions {
+  // "private" | "operator" | "shared" | "public"
+  string visibility = 1;
+  repeated string shared_with = 2;
+}
+
+message MemoryEncryption {
+  bool enabled = 1;
+  // "aes-256-gcm" when enabled, otherwise empty.
+  string algorithm = 2;
+  // KMS reference (placeholder).
+  string key_id = 3;
+}
+
+message EmbeddingMeta {
+  string model = 1;
+  int32 dim = 2;
+}
+
+message Memory {
+  string id = 1;
+  string owner_did = 2;
+  string type = 3;
+  string text = 4;
+  // JSON-encoded structured payload (free-form).
+  string payload_json = 5;
+  MemoryPermissions permissions = 6;
+  MemoryEncryption encryption = 7;
+  string created_at = 8;
+  string updated_at = 9;
+  int32 version = 10;
+  EmbeddingMeta embedding = 11;
+}
+
+// ---------- store ----------
+
+message StoreRequest {
+  string owner_did = 1;
+  string type = 2;
+  string text = 3;
+  // Optional. JSON-encoded.
+  string payload_json = 4;
+  MemoryPermissions permissions = 5;
+  MemoryEncryption encryption = 6;
+}
+
+message StoreResponse {
+  string id = 1;
+  EmbeddingMeta embedding = 2;
+}
+
+// ---------- retrieve ----------
+
+message RetrieveFilters {
+  // "" = no filter; otherwise must match Memory.type.
+  string type = 1;
+  string owner_did = 2;
+  // "" = no filter on visibility.
+  string visibility = 3;
+}
+
+message RetrieveRequest {
+  string query_did = 1;
+  string query_text = 2;
+  uint32 top_k = 3;
+  RetrieveFilters filters = 4;
+}
+
+message RetrieveHit {
+  string id = 1;
+  string owner_did = 2;
+  string type = 3;
+  string snippet = 4;
+  float score = 5;
+}
+
+message RetrieveResponse {
+  repeated RetrieveHit hits = 1;
+}
+
+// ---------- update ----------
+
+message UpdateRequest {
+  string id = 1;
+  string caller_did = 2;
+  // Both optional; empty string = unchanged.
+  string text = 3;
+  // JSON-encoded; empty string = unchanged.
+  string payload_json = 4;
+}
+
+message UpdateResponse {
+  string id = 1;
+  int32 version = 2;
+  EmbeddingMeta embedding = 3;
+}
+
+// ---------- share ----------
+
+message ShareRequest {
+  string id = 1;
+  string caller_did = 2;
+  repeated string share_with = 3;
+  // Optional ISO-8601; empty string = no expiry.
+  string expires_at = 4;
+}
+
+message ShareResponse {
+  string id = 1;
+  repeated string shared_with = 2;
+}
+
+// ---------- get ----------
+
+message GetRequest {
+  string id = 1;
+  string caller_did = 2;
+}
