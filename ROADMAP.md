@@ -1,0 +1,372 @@
+# ROADMAP — Praxis (reprise après pause)
+
+**Référence** : `PLAN_DE_DEVELOPPEMENT.md` (plan canonique 18 mois) — ce document est le **plan d'attaque opérationnel pour les sessions suivantes** avec les briefs prêts à coller dans les agents dev.
+
+**Date de la pause** : 2026-04-28
+**État au moment de la pause** : voir [STATUS.md](STATUS.md). 3/5 modules livrés (agent-identity, REPUTATION, MEMORY).
+
+---
+
+## Ordre de bataille recommandé
+
+| Étape  | Module / Lot                                                              | Effort estimé | Dépendances    | Bloquant pour            |
+| ------ | ------------------------------------------------------------------------- | ------------- | -------------- | ------------------------ |
+| **1**  | OBSERVABILITY (sprints 9-11 — ingestion + query + alertes config)         | 1 session     | ClickHouse OK  | rien (livrable autonome) |
+| **2**  | OBSERVABILITY v1.1 (sprints 12-13 — anomalies ML + tiering + export OTel) | 1 session     | étape 1        | rien                     |
+| **3**  | REPUTATION v2 (sprints 11-14 — multi-dim + anti-Sybil + contestation)     | 1-2 sessions  | étape 1 (logs) | INSURANCE pricing v2     |
+| **4**  | Plugins frameworks (LangChain + CrewAI + Autogen)                         | 1 session     | aucune         | adoption marché          |
+| **5**  | Console opérateur web (Next.js 15)                                        | 1-2 sessions  | aucune         | self-service P3          |
+| **6**  | SDK officiels (TS sur npm + Python sur PyPI)                              | 1 session     | aucune         | listage AgenticTrade     |
+| **7**  | INSURANCE (sprints 17-22 — pricing, escrow on-chain, claim)               | 2 sessions    | REPUTATION v2  | NEGOTIATION coverage     |
+| **8**  | NEGOTIATION (sprints 18-23 — auctions, multi-criteria, médiation LLM)     | 2 sessions    | INSURANCE      | GA publique              |
+| **9**  | GA publique (sprint 24 — bug bounty, audit sécu tiers, self-service)      | 1 session     | étapes 7-8     | P4                       |
+| **10** | P4 industrialisation (multi-région, enterprise, standardisation)          | 4-8 sessions  | étape 9        | levée Série A            |
+
+> Une "session" ≈ 1-2 heures de travail intensif avec des agents dev sub-traités.
+
+---
+
+## Étape 1 — OBSERVABILITY (REPRENDRE ICI)
+
+### Contexte
+
+Module **interrompu** lors de la session précédente par le rate limit de l'agent (reset 13:30 Paris). Le brief est prêt à recoller à l'identique dans un agent `backend-development:backend-architect`.
+
+### Brief prêt à l'emploi (à coller dans l'agent dev)
+
+```
+You are implementing the OBSERVABILITY module of the Praxis project — distributed
+logging and tracing for agent-to-agent (A2A) interactions. It's the 4th service
+after agent-identity, reputation, and memory.
+
+Working dir: C:\Users\johan\Nouveau dossier\Invest\Codes\Saas_Agents
+
+REQUIRED READING:
+- README.md, STATUS.md (current state)
+- ARCHITECTURE_BREAKDOWN.md §3.3 (OBSERVABILITY layout), §1.3 (A2A flow), §4.5, §4.6
+- PLAN_DE_DEVELOPPEMENT.md — Lot 2.1 sprints 9-13. Out of scope this session:
+  ML anomaly detection (sprint 12), tiering (sprint 12), OTel exporter (sprint 13).
+- apps/agent-identity, apps/reputation, apps/memory — mirror their structure.
+
+SCOPE: build apps/observability/ exposing 4 MCP tools + REST + gRPC:
+- observability.log → POST /v1/observability/logs (batch ingestion)
+- observability.trace → POST /v1/observability/traces (batch ingestion)
+- observability.query → POST /v1/observability/query (logs OR spans, filters + time)
+- observability.alert → CRUD on /v1/observability/alerts (config storage only,
+  evaluation engine OUT OF SCOPE)
+
+DATA MODEL:
+- LogEvent: { timestamp, traceId(32hex), spanId(16hex), parentSpanId?, service,
+  agentDid?, operatorId?, level, message, attributes?, resource? }
+- Span: { traceId, spanId, parentSpanId?, name, kind, service, agentDid?,
+  operatorId?, startTimestamp, endTimestamp, durationMs, status, attributes?,
+  events? }
+
+STORAGE:
+- ClickHouse: 2 tables (praxis_logs, praxis_spans) created at startup with
+  CREATE TABLE IF NOT EXISTS, partitioned by day, ORDER BY (timestamp, traceId,
+  spanId), TTL 30 days (env var OBSERVABILITY_LOG_TTL_DAYS).
+  Use @clickhouse/client (HTTP). Insert via JSONEachRow. Batch up to
+  OBSERVABILITY_FLUSH_INTERVAL_MS=1000 OR OBSERVABILITY_FLUSH_BATCH=500.
+  attributes/resource columns: pick JSON type or parallel arrays
+  (attributes_keys/values/types) — document the choice.
+- Postgres praxis_observability: alert_rules table via drizzle-orm
+  (id, ownerOperatorId, name, description, enabled, scope, condition jsonb,
+  cooldownSeconds, notification jsonb, createdAt, updatedAt).
+  Migration drizzle/0000_init.sql.
+
+CONDITION DSL (zod-validated):
+{
+  operator: 'and'|'or',
+  filters: Array<{ field, op: 'eq'|'in'|'gt'|...|'matches', value }>,
+  windowSeconds: number,
+  threshold: number,
+}
+
+ENDPOINTS (mirror Fastify v5 patterns from apps/memory):
+- POST /v1/observability/logs    body: { events: LogEvent[] }, max 1000/req
+- POST /v1/observability/traces  body: { spans: Span[] }, max 1000/req
+- POST /v1/observability/query   body: { scope, filters, timeRange, limit, offset }
+- GET/POST/PATCH/DELETE /v1/observability/alerts/...
+- /healthz, /readyz (Postgres+ClickHouse), /metrics
+
+TESTS (mirror memory):
+- Vitest unit + integration via app.inject()
+- InMemoryClickHouseClient + InMemoryAlertRepository fakes
+- 1 placeholder live test gated PRAXIS_LIVE_TESTS=1
+- Coverage ≥ 80% on domain/
+
+PACKAGING: mirror apps/memory exactly. tsconfig strict, ESLint v9 flat,
+Vitest, Husky. Multi-stage Dockerfile.
+
+HARD CONSTRAINTS:
+- Don't touch root configs, other apps/, or packages/core-* (except adding
+  net-new exports).
+- Don't push to git.
+- Don't implement evaluation, anomaly ML, tiering, OTel exporter — out of scope.
+- Don't modify praxis-stack/docker-compose*.yml — human will update those.
+- drizzle-orm only.
+
+VALIDATE: pnpm build, typecheck, test, lint must all be green.
+OUTPUT: list of files, last 5 lines of each pnpm command, deviations + open Qs.
+```
+
+### Workflow post-agent (par le PM)
+
+1. Vérifier la sortie : `pnpm build && pnpm typecheck && pnpm test && pnpm lint`.
+2. Commit + push.
+3. Sur la VM :
+
+   ```bash
+   # Créer la 4e DB
+   docker exec praxis-postgres psql -U praxis -d postgres -c \
+     'CREATE DATABASE praxis_observability OWNER praxis;'
+
+   # Pull, ajouter le service au compose, build
+   git pull --rebase https://x-access-token:${TOKEN}@github.com/Obi49/Praxis.git main
+   ```
+
+4. Mettre à jour `praxis-stack/docker-compose.services.yml` avec le bloc `observability` (ports `14031`/`14032`, env `CLICKHOUSE_URL=http://clickhouse:8123`, `CLICKHOUSE_USER=praxis`, `CLICKHOUSE_PASSWORD=praxis_dev`, `CLICKHOUSE_DATABASE=praxis`, `DATABASE_URL=postgresql://praxis:praxis_dev@postgres:5432/praxis_observability`, depends_on postgres+clickhouse).
+5. Build + up :
+   ```bash
+   docker compose -f docker-compose.yml -f docker-compose.services.yml build observability
+   docker compose -f docker-compose.yml -f docker-compose.services.yml up -d observability
+   ```
+6. Étendre `.tools/e2e_smoke.py` avec : ingest log → query → ingest span → query → CRUD alert.
+7. Push final.
+
+### Acceptation (gate pour passer à l'étape 2)
+
+- [ ] `pnpm test` ≥ 50 nouveaux tests verts pour observability.
+- [ ] Service `praxis-observability` healthy sur la VM.
+- [ ] E2E ingestion log + query → 200 avec données récupérées.
+- [ ] CRUD alert → 200 sur les 4 méthodes.
+
+---
+
+## Étape 2 — OBSERVABILITY v1.1 (sprints 12-13)
+
+### Périmètre
+
+1. **Anomaly detection ML** (sprint 12) : détection de patterns inhabituels (latence p95 > seuil dynamique, taux d'erreur en cascade, dépassement de budget agent).
+2. **Tiering chaud / tiède / froid** (sprint 12) : ClickHouse `MergeTree` part move policy + S3 (ou MinIO local) pour les archives > 30j.
+3. **Export OpenTelemetry** (sprint 13) : OTLP exporter → Datadog / Honeycomb / Jaeger pour intégration aux outils existants des opérateurs.
+
+### Brief résumé (à étoffer en session)
+
+Étendre `apps/observability/`. ML anomalie : commencer simple — IQR + EWMA sur latence par service, Z-score par compteur d'erreurs. Pas de modèle entraîné. Archive policy déclarative dans la config. Export OTel : OTLP gRPC client, route opérateur-controlée par `alert_rules.notification.exportConfig`.
+
+---
+
+## Étape 3 — REPUTATION v2 (sprints 11-14)
+
+### Périmètre
+
+- **Scoring multi-dimensionnel** : utiliser les `dimensions {delivery, quality, communication}` déjà collectées par feedbacks v1 (aujourd'hui ignorées par le calcul).
+- **Anti-Sybil** : graph clustering (algo de Louvain ou Leiden via Neo4j GDS), détection de sous-graphes denses faiblement connectés.
+- **Détection collusion** : analyse temporelle des paires `RATED` (volume/timing/réciprocité).
+- **Contestation feedback** : workflow opérateur via REST + état machine (open → reviewing → resolved/rejected).
+
+### Brief résumé (à étoffer en session)
+
+Mode dégradé compatible v1 : si scoring config = "v2", nouvelle formule pondérée par dimensions ; sinon v1. Migration progressive `scoreVersion`. Anti-Sybil en async worker (sprint 12). Contestation : nouvelle table Postgres `feedback_disputes`, endpoint `POST /v1/reputation/dispute`.
+
+### Dépendance
+
+Étape 1 (OBSERVABILITY) doit être faite — les détecteurs anti-fraude doivent loger leurs décisions dans `praxis_logs`.
+
+---
+
+## Étape 4 — Plugins frameworks d'agents
+
+### Périmètre
+
+3 plugins distribués sur npm sous `@praxis/*-plugin` :
+
+1. **`@praxis/langchain-plugin`** — callback handler observability (logs auto sur `BaseCallbackHandler` events) + `MemoryBackend` adapter.
+2. **`@praxis/crewai-plugin`** — pareil pour CrewAI (Python, package séparé sur PyPI).
+3. **`@praxis/autogen-plugin`** — pareil pour Autogen.
+
+### Brief résumé
+
+Pour chaque framework : un `apps/plugins/<framework>/` avec son propre cycle de release. SDK = thin wrapper sur les API REST + gRPC + MCP. Tests d'intégration mockés. Publier en alpha (`0.0.1-alpha.0`) sur les registries.
+
+---
+
+## Étape 5 — Console opérateur web
+
+### Périmètre
+
+Application Next.js 15 (App Router) pour les opérateurs humains :
+
+- Dashboard usage (par module) avec graphiques Grafana embedded.
+- Gestion des agents : création, révocation, métadonnées, transfert.
+- Billing : factures USDC, exports, configuration paiement.
+- Configuration : alertes, webhooks, tokens API, invite opérateurs.
+- Inspection : logs, traces, scores, mémoires.
+
+### Stack
+
+- Next.js 15 App Router (server components + actions).
+- React 19.
+- Tailwind v4 + design tokens.
+- Auth opérateur via OAuth 2.1 (provider TBD : Auth0, Clerk, ou self-hosted).
+- API consumée via SDK TypeScript (étape 6).
+
+### Brief résumé
+
+Créer `apps/operator-console/` à plat. UX inspirée des consoles Stripe/Vercel (dense, factuel, pas de fioritures). Audit + perf Lighthouse ≥ 95 / 100.
+
+---
+
+## Étape 6 — SDK officiels
+
+### Périmètre
+
+- **`@praxis/sdk` (TypeScript, npm)** : wrapper unifié des 4 modules + helpers crypto (sign payload, verify, gen DID:key).
+- **`praxis-sdk` (Python, PyPI)** : équivalent.
+
+### Brief résumé
+
+SDK = clients HTTP/gRPC typés générés depuis les `.proto` + REST OpenAPI (à exposer côté services via `@fastify/swagger`). Versionner les SDK semver. Documentation Mintlify.
+
+---
+
+## Étape 7 — INSURANCE (sprints 17-22)
+
+### Périmètre
+
+Module avec **smart contracts on-chain**, donc le plus critique côté sécurité.
+
+- Pricing engine : `prime = f(montant, réputation vendeur, type livrable, historique paire)`.
+- Souscription : `POST /v1/insurance/subscribe` → escrow on-chain Base L2.
+- Réclamation : `POST /v1/insurance/claim` + workflow d'arbitrage (oracles).
+- Réserve liquidité on-chain : smart contract en Solidity 0.8.x.
+- Plafond global d'engagement : circuit-breaker pour limiter pertes.
+
+### Stack ajoutée
+
+- **Foundry** (Forge + Cast + Anvil) pour smart contracts.
+- **viem** pour les interactions client TS.
+- **Audit Trail of Bits ou OpenZeppelin AVANT prod** (mandatory).
+
+### Dépendances
+
+- REPUTATION v2 (pricing dépend du scoring multi-dim).
+- OBSERVABILITY v1 (logs sinistres).
+- Wallet platform (Safe multisig + AWS KMS).
+
+### Brief résumé
+
+Phase 1 : pricing + escrow on testnet Base Sepolia, plafonds bas. Phase 2 : claim workflow. Phase 3 : audit + mainnet Base. Pas de souscription mainnet sans audit.
+
+---
+
+## Étape 8 — NEGOTIATION (sprints 18-23)
+
+### Périmètre
+
+- Stratégies : enchères ascendantes/descendantes, multi-critères, vote pondéré.
+- Médiation : LLM spécialisé (Claude ou GPT-4) propose un compromis sur impasse.
+- Signature multi-parties : EIP-712 typed data sur Base.
+- Synergie : `INSURANCE.subscribe(deal)` auto-déclenchée à la signature.
+- Event sourcing pur : event store dédié (Postgres append-only) + projections matérialisées.
+
+### Dépendances
+
+- INSURANCE (couverture du contrat).
+- REPUTATION (alimentation feedback post-deal).
+
+### Brief résumé
+
+Implémentation event-sourced classique : domain events typés, projections rebuilt au démarrage, snapshots tous les N events. LLM call protégé derrière un budget par négociation (cap coût).
+
+---
+
+## Étape 9 — GA publique (sprint 24)
+
+### Sortie de β
+
+- Bug bounty Immunefi (smart contracts) + HackerOne (web/API).
+- Audit sécurité tiers complet (cf. CDC §4.2 et §9.3).
+- Self-service ouvert (registration opérateur sans liste blanche).
+- Documentation publique stable (versions API gelées avec deprecation policy).
+- Statut page (status.praxis.dev ?) avec uptime et incidents.
+
+### Critères go/no-go (cf. PLAN §6 gates)
+
+- Audit sans CVE critique.
+- SLO 99.9% tenu sur 90 jours.
+- DR testé et validé.
+- 5 opérateurs pilotes en production avec NPS ≥ 30.
+
+---
+
+## Étape 10 — P4 industrialisation (M14-M18)
+
+### Multi-région
+
+- Déploiement US (`us-east-1`) puis APAC (`ap-southeast-1`).
+- Réplication multi-région des bases (Postgres + Neo4j + ClickHouse + Qdrant).
+- Sharding par opérateur ou par région.
+
+### Enterprise
+
+- SSO SAML, SCIM provisioning.
+- MSA + DPA dédiés grands comptes.
+- API d'intégration enterprise (webhooks signés, batch ingestion).
+- SLA 99.95% contractualisé.
+
+### Standardisation
+
+- Ouverture du protocole de réputation (RFC public + référence open-source).
+- Adhésion par 3+ plateformes tierces du standard.
+
+### Levée
+
+- Série A si traction confirmée (10 000 MAA, 600 op. payants, ARR 1.8 M€).
+
+---
+
+## Notes pratiques pour la prochaine session
+
+### Premières actions à faire
+
+1. **Vérifier la santé de la VM** : `python .tools/ssh_run.py --sudo "docker compose -p praxis ps"`. Si traefik est encore en boucle ou un autre service en panne, diagnostiquer avant de continuer.
+2. **Vérifier le repo** : `git pull` + `pnpm install` + `pnpm test`.
+3. **Vérifier le PAT GitHub** : si toujours valide, OK ; sinon, demander à l'utilisateur d'en générer un nouveau.
+4. **Lire** : [STATUS.md](STATUS.md) (snapshot) puis ce document.
+
+### Style de collaboration validé
+
+- Posture chef de projet : briefer un agent dev (`backend-development:backend-architect` ou autre selon besoin) avec un prompt **complet, contraint et explicite**.
+- Workflow : agent code → vérification PM (build/test/lint) → commit → push → déploiement VM → tests E2E → push final.
+- Push à chaque grosse étape (consigne utilisateur).
+- Doctrine : **jamais de `--no-verify`**, jamais de bypass des hooks, fixer la cause racine.
+
+### Outils prêts dans `.tools/`
+
+- `ssh_run.py` — exécution SSH sur la VM (avec `--sudo` pour les commandes docker).
+- `ssh_push.py` — SFTP push.
+- `e2e_smoke.py` — tests E2E des 3 services actuels (à étendre avec OBSERVABILITY).
+
+### Secrets
+
+- `.env.local` (local) : `GITHUB_TOKEN`, `GITHUB_REPO`, `GITHUB_USER`. **À régénérer si compromis.**
+- `praxis-stack/services.env` (sur la VM) : clés Ed25519 platform + AES memory. **Fixtures dev.**
+
+### Convention de commits
+
+Conventional Commits + co-author Claude. Exemple :
+
+```
+feat(observability): module OBSERVABILITY v1 — logs, traces, query, alerts
+
+<corps>
+
+Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+```
+
+---
+
+— _Fin de la roadmap. Bon repos._
