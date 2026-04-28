@@ -34,14 +34,14 @@ MEMORY = f"http://{VM}:14021"
 OBSERVABILITY = f"http://{VM}:14031"
 
 
-def http(method: str, url: str, body: dict | None = None) -> tuple[int, dict | str]:
+def http(method: str, url: str, body: dict | None = None, timeout: int = 60) -> tuple[int, dict | str]:
     data = json.dumps(body).encode() if body is not None else None
-    req = urllib.request.Request(
-        url, data=data, method=method,
-        headers={"Content-Type": "application/json", "Accept": "application/json"},
-    )
+    headers = {"Accept": "application/json"}
+    if data is not None:
+        headers["Content-Type"] = "application/json"
+    req = urllib.request.Request(url, data=data, method=method, headers=headers)
     try:
-        with urllib.request.urlopen(req, timeout=20) as resp:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
             payload = resp.read().decode("utf-8", errors="replace")
             try:
                 return resp.status, json.loads(payload)
