@@ -35,26 +35,32 @@ Praxis se positionne comme la couche de **trust, coordination & continuity** au-
 
 ### 5 modules + 1 service support
 
-```
-┌───────────────────────────────────────────────────────────┐
-│                    Agent IA autonome                      │
-└────┬─────────┬─────────┬─────────┬─────────┬──────────────┘
-     │         │         │         │         │
-     ▼         ▼         ▼         ▼         ▼
-┌─────────┐┌────────┐┌────────┐┌────────┐┌───────────┐
-│REPUTATIO││MEMORY  ││OBSERVA-││NEGOTIA-││INSURANCE  │
-│N (oracle││(vector ││BILITY  ││TION    ││(garantie  │
-│de       ││sémanti-││(traces ││(broker ││livrable + │
-│fiabilit ││que)    ││+ logs) ││auctions││escrow)    │
-│é)       ││        ││        ││+ sigs) ││           │
-└────┬────┘└────┬───┘└────┬───┘└────┬───┘└─────┬─────┘
-     │         │         │         │         │
-     └─────────┴─────────┼─────────┴─────────┘
-                         ▼
-              ┌──────────────────────┐
-              │   agent-identity     │
-              │   (DID:key Ed25519)  │
-              └──────────────────────┘
+```mermaid
+flowchart TB
+    classDef identity fill:#F1F5F9,stroke:#475569,stroke-width:3px,color:#0F172A
+    classDef reputation fill:#EFF4FF,stroke:#1E3A8A,stroke-width:2px,color:#1E3A8A
+    classDef memory fill:#F5EFFF,stroke:#7C3AED,stroke-width:2px,color:#7C3AED
+    classDef observability fill:#ECFAFE,stroke:#0891B2,stroke-width:2px,color:#0891B2
+    classDef negotiation fill:#FFF1E6,stroke:#EA580C,stroke-width:2px,color:#EA580C
+    classDef insurance fill:#E8F8F0,stroke:#059669,stroke-width:2px,color:#059669
+
+    AI(("🔐<br/><b>agent-identity</b><br/>Pilier identité<br/><i>DID:key Ed25519</i>")):::identity
+
+    REP["🛡️ <b>REPUTATION</b><br/>score · history · verify · feedback"]:::reputation
+    MEM["🧠 <b>MEMORY</b><br/>store · retrieve · update · share"]:::memory
+    OBS["🔭 <b>OBSERVABILITY</b><br/>log · trace · query · alert"]:::observability
+    NEG["⚖️ <b>NEGOTIATION</b><br/>start · propose · counter · settle"]:::negotiation
+    INS["🛡️ <b>INSURANCE</b><br/>quote · subscribe · claim · status"]:::insurance
+
+    AI ===|delivers DID| REP
+    AI ===|delivers DID| MEM
+    AI ===|delivers DID| OBS
+    AI ===|delivers DID| NEG
+    AI ===|delivers DID| INS
+
+    REP -. "score lookup (pricing v1)" .-> INS
+    NEG -. "auto-subscribe (P3)" .-> INS
+    NEG -. "feedback (v1.1)" .-> REP
 ```
 
 | Module            | Rôle                                                    | Stockage primaire                           |
@@ -65,7 +71,9 @@ Praxis se positionne comme la couche de **trust, coordination & continuity** au-
 | **NEGOTIATION**   | Broker de négociation A2A multi-parties (event-sourced) | Postgres (event store + projection)         |
 | **INSURANCE**     | Garantie de livrable agentique avec escrow              | Postgres (escrow simulé en v1; on-chain P3) |
 
-Détails complets : [docs/ARCHITECTURE_BREAKDOWN.md](docs/ARCHITECTURE_BREAKDOWN.md) (modèle C4 + WBS + SLO).
+**Schémas complémentaires** : [vue plateforme complète](docs/diagrams/praxis-functional.md) · [workflow A2A séquence](docs/diagrams/praxis-workflow-a2a.md) · [workflow par phases](docs/diagrams/praxis-workflow-phases.md) · [tous les schémas](docs/diagrams/).
+
+Détails techniques : [docs/ARCHITECTURE_BREAKDOWN.md](docs/ARCHITECTURE_BREAKDOWN.md) (modèle C4 + WBS + SLO).
 
 ### Effet de plateforme
 
