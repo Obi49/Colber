@@ -2,25 +2,27 @@
 
 **Référence** : `PLAN_DE_DEVELOPPEMENT.md` (plan canonique 18 mois) — ce document est le **plan d'attaque opérationnel pour les sessions suivantes** avec les briefs prêts à coller dans les agents dev.
 
-**Date de la dernière mise à jour** : 2026-04-28 (PM)
-**État courant** : voir [STATUS.md](STATUS.md). **4/5 modules livrés** (agent-identity, REPUTATION, MEMORY, OBSERVABILITY v1). E2E 11/11 verts sur VM β.
+**Date de la dernière mise à jour** : 2026-04-28 (soir)
+**État courant** : voir [STATUS.md](STATUS.md). **4/5 modules livrés** (REPUTATION, MEMORY, OBSERVABILITY, NEGOTIATION) + agent-identity. E2E 17/17 verts sur VM β. **Reste INSURANCE pour la v1 complète.**
 
 ---
 
 ## Ordre de bataille recommandé
 
-| Étape  | Module / Lot                                                              | Effort estimé | Dépendances    | Bloquant pour        |
-| ------ | ------------------------------------------------------------------------- | ------------- | -------------- | -------------------- |
-| ~~1~~  | ✅ ~~OBSERVABILITY (sprints 9-11)~~ — **livré 2026-04-28**, E2E 11/11     | —             | —              | —                    |
-| **2**  | OBSERVABILITY v1.1 (sprints 12-13 — anomalies ML + tiering + export OTel) | 1 session     | étape 1        | rien                 |
-| **3**  | REPUTATION v2 (sprints 11-14 — multi-dim + anti-Sybil + contestation)     | 1-2 sessions  | étape 1 (logs) | INSURANCE pricing v2 |
-| **4**  | Plugins frameworks (LangChain + CrewAI + Autogen)                         | 1 session     | aucune         | adoption marché      |
-| **5**  | Console opérateur web (Next.js 15)                                        | 1-2 sessions  | aucune         | self-service P3      |
-| **6**  | SDK officiels (TS sur npm + Python sur PyPI)                              | 1 session     | aucune         | listage AgenticTrade |
-| **7**  | INSURANCE (sprints 17-22 — pricing, escrow on-chain, claim)               | 2 sessions    | REPUTATION v2  | NEGOTIATION coverage |
-| **8**  | NEGOTIATION (sprints 18-23 — auctions, multi-criteria, médiation LLM)     | 2 sessions    | INSURANCE      | GA publique          |
-| **9**  | GA publique (sprint 24 — bug bounty, audit sécu tiers, self-service)      | 1 session     | étapes 7-8     | P4                   |
-| **10** | P4 industrialisation (multi-région, enterprise, standardisation)          | 4-8 sessions  | étape 9        | levée Série A        |
+| Étape  | Module / Lot                                                                 | Effort estimé | Dépendances            | Bloquant pour        |
+| ------ | ---------------------------------------------------------------------------- | ------------- | ---------------------- | -------------------- |
+| ~~1~~  | ✅ ~~OBSERVABILITY (sprints 9-11)~~ — **livré 2026-04-28**, E2E 11/11        | —             | —                      | —                    |
+| **2**  | OBSERVABILITY v1.1 (sprints 12-13 — anomalies ML + tiering + export OTel)    | 1 session     | étape 1                | rien                 |
+| **3**  | REPUTATION v2 (sprints 11-14 — multi-dim + anti-Sybil + contestation)        | 1-2 sessions  | étape 1 (logs)         | INSURANCE pricing v2 |
+| **4**  | Plugins frameworks (LangChain + CrewAI + Autogen)                            | 1 session     | aucune                 | adoption marché      |
+| **5**  | Console opérateur web (Next.js 15)                                           | 1-2 sessions  | aucune                 | self-service P3      |
+| **6**  | SDK officiels (TS sur npm + Python sur PyPI)                                 | 1 session     | aucune                 | listage AgenticTrade |
+| **7**  | **INSURANCE v1 MVP** (mode simulation, sans on-chain) — _prochaine session_  | 1 session     | aucune                 | **v1 complète 5/5**  |
+| ~~8~~  | ✅ ~~NEGOTIATION (sprints 18-23)~~ — **livré 2026-04-28**, E2E 17/17         | —             | —                      | —                    |
+| **7b** | INSURANCE on-chain réel (Solidity + Foundry + audit Base Sepolia → mainnet)  | 2-3 sessions  | étape 7, REPUTATION v2 | GA publique          |
+| **8b** | NEGOTIATION v1.1 (cancellation + sweeper + LLM mediator + EIP-712 + bridges) | 1-2 sessions  | étape 7b               | rien                 |
+| **9**  | GA publique (sprint 24 — bug bounty, audit sécu tiers, self-service)         | 1 session     | étapes 7b-8b           | P4                   |
+| **10** | P4 industrialisation (multi-région, enterprise, standardisation)             | 4-8 sessions  | étape 9                | levée Série A        |
 
 > Une "session" ≈ 1-2 heures de travail intensif avec des agents dev sub-traités.
 
@@ -240,7 +242,70 @@ SDK = clients HTTP/gRPC typés générés depuis les `.proto` + REST OpenAPI (à
 
 ---
 
-## Étape 7 — INSURANCE (sprints 17-22)
+## Étape 7 — INSURANCE v1 MVP (REPRENDRE ICI — prochaine session)
+
+### Périmètre v1 (validé CdP 2026-04-28 : "pas de réel chain pour le moment")
+
+Le 5ᵉ et dernier module pour atteindre la v1 complète. Mode **simulation pure** : APIs métier réalistes, pricing engine, escrow simulé en Postgres. Pas de Solidity, pas de Foundry, pas de viem, pas de Base Sepolia, pas de KMS. Le but est d'avoir 5/5 modules sur la VM β avec les bonnes formes d'API ; la version on-chain réelle est l'étape 7b.
+
+### Endpoints MCP
+
+- `insurance.quote` → `POST /v1/insurance/quote` — calcul de prime sans engagement.
+- `insurance.subscribe` → `POST /v1/insurance/subscribe` — création police + escrow simulé.
+- `insurance.claim` → `POST /v1/insurance/claims` — déclenchement réclamation + workflow d'arbitrage simulé.
+- `insurance.status` → `GET /v1/insurance/policies/:id` — état police + escrow + sinistres.
+
+### Pricing engine
+
+`prime = base_rate × montant × risk_multiplier(score_réputation, type_livrable, historique)`.
+
+- `base_rate` configurable via env (`INSURANCE_BASE_RATE_BPS=200` → 2%).
+- `risk_multiplier` : table de mapping score → multiplier (700+ → 0.8, 500-700 → 1.0, 300-500 → 1.4, < 300 → 2.0). Lookup réputation via HTTP vers le service `reputation` (cache 60s).
+- Plafond global d'engagement : `INSURANCE_MAX_GLOBAL_EXPOSURE_USDC=100_000`. Refus de souscription si dépassement.
+
+### Escrow simulé
+
+Table `escrow_holdings (id, policy_id, amount_usdc, status, locked_at, released_at, claimed_at)`.
+
+- États : `locked` → `released` | `claimed` | `refunded`.
+- Les transitions sont des opérations Postgres + audit trail dans `escrow_events` (append-only).
+- Endpoint admin/debug (gated env `INSURANCE_ADMIN_ENABLED=false` par défaut) pour forcer une transition en dev.
+- Comment marqué clairement : "TODO P3 : remplacer par smart contract Solidity sur Base Sepolia + viem".
+
+### Storage Postgres `praxis_insurance`
+
+- `policies (id, subscriber_did, beneficiary_did, deal_subject, amount_usdc, premium_usdc, risk_multiplier, sla_terms jsonb, status, created_at, expires_at)`.
+- `escrow_holdings (id, policy_id UNIQUE, amount_usdc, status, locked_at, released_at, claimed_at)`.
+- `escrow_events (seq, holding_id, event_type, payload jsonb, occurred_at)`.
+- `claims (id, policy_id, claimant_did, reason, evidence jsonb, status, decided_at, payout_usdc)`.
+
+### Out of scope v1 (étape 7b)
+
+- Smart contracts Solidity 0.8.x, Foundry, viem.
+- Audit Trail of Bits / OpenZeppelin (mandatory avant mainnet).
+- Safe multisig + AWS KMS pour la wallet platform.
+- Claim arbitrator avec oracles externes.
+- Reinsurer-adapter (CDC §10.4).
+- Circuit-breaker dynamique avancé (juste plafond statique en v1).
+
+### Workflow post-agent (par le PM)
+
+1. Délégation à `backend-architect` (mirror du brief NEGOTIATION).
+2. Vérifier la sortie : `pnpm build && pnpm typecheck && pnpm test && pnpm lint`.
+3. Commit + push.
+4. Sur la VM :
+   ```bash
+   docker exec praxis-postgres psql -U praxis -d postgres -c \
+     'CREATE DATABASE praxis_insurance OWNER praxis;'
+   ```
+5. Ajouter le bloc `insurance` au `praxis-stack/docker-compose.services.yml` (ports `14051`/`14052`, dépendance postgres + reputation pour le lookup réputation).
+6. Build + up.
+7. Étendre `.tools/e2e_smoke.py` : quote → subscribe → claim → status.
+8. Push final + STATUS/ROADMAP update.
+
+### Contexte historique (avant v1 simplifiée)
+
+## Étape 7b — INSURANCE on-chain (sprints 17-22 originaux)
 
 ### Périmètre
 
@@ -270,7 +335,21 @@ Phase 1 : pricing + escrow on testnet Base Sepolia, plafonds bas. Phase 2 : clai
 
 ---
 
-## Étape 8 — NEGOTIATION (sprints 18-23)
+## Étape 8 — NEGOTIATION ✅ LIVRÉE (2026-04-28)
+
+### Résumé livraison
+
+- 5ᵉ service Praxis livré hors-séquence (avant INSURANCE) — pas de bloquant on-chain en v1, donc jouable directement.
+- Délégation à `backend-architect` from scratch (45 fichiers, 61 tests, ≥80% coverage). Mirror reputation pour signatures Ed25519+JCS et observability pour packaging/Dockerfile/tests.
+- Commit `4283555` (module), `6dd93e1` (compose + e2e étendu), `c16cc78` (fix Python int vs float dans la canonicalisation JCS).
+- VM : `praxis-negotiation` healthy, ports `14041`/`14042`, DB `praxis_negotiation` (event store + projection UPSERT en transaction unique).
+- E2E `.tools/e2e_smoke.py` : 17/17 verts (5 healthchecks + lifecycle complet : start, idempotent replay same-id, propose A=100, counter B=150 best=B, settle avec sigs A+B sur JCS{negoId, winId}, history events=4).
+
+### Out of scope v1 → étape 8b
+
+Cancellation/expiration REST endpoints + sweeper deadline, public-key resolution via agent-identity (aujourd'hui inline), LLM mediator, insurance-bridge auto, reputation-bridge auto, snapshots S3, EIP-712 + on-chain anchoring Base Sepolia.
+
+### Contexte historique du brief original (sprints 18-23)
 
 ### Périmètre
 
