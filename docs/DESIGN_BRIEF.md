@@ -106,6 +106,195 @@ DIFFÉRENCIATION (à mettre en bas du schéma, en petit texte) :
 un seul (MoonPay/x402 = paiement, Mem0/Letta/Zep = mémoire,
 Datadog = observability humaine)."
 
+# ⚠️ RÈGLES D'AMÉLIORATION POUR LE SCHÉMA #1 (CRITIQUE)
+
+Le premier rendu du schéma fonctionnel est correct dans la structure
+(3 zones acteurs / plateforme / externes) mais souffre de plusieurs
+problèmes de lisibilité et de mise en valeur. À corriger sur le
+prochain rendu :
+
+## 1. Direction des flux — distinguer INBOUND vs OUTBOUND
+
+Sur le premier rendu, toutes les flèches sont représentées avec le
+même style (pointillé descendant), alors que les flux ont des sens
+sémantiquement différents :
+
+- **Acteurs → Praxis (INBOUND)** : flèche **pleine** descendante,
+  épaisseur 2 px, tête triangle plein, couleur primaire (bleu
+  `#1E3A8A`). Label discret en italique : "consomme via MCP/REST/gRPC".
+- **Praxis → Systèmes externes (OUTBOUND)** : flèche **pleine
+  descendante** également, mais couleur GRIS désaturé (`#94A3B8`),
+  pour signifier "intégration" plutôt que "consommation primaire".
+  Label en italique sous chaque flèche : "intègre" / "exporte vers" /
+  "consomme".
+- **Pas de pointillé sur les liens "actifs"**. Le pointillé est
+  RÉSERVÉ aux liens **non encore actifs en v1** (typiquement les
+  intégrations on-chain prévues en P3) — voir règle #5.
+
+L'œil doit comprendre en 2 secondes : "les acteurs en haut consomment
+Praxis, et Praxis intègre les systèmes en bas". Pas de flèches
+multidirectionnelles : la direction de chaque ligne est sans ambiguïté.
+
+## 2. Pilier `agent-identity` — agrandir et mettre en valeur
+
+Sur le premier rendu, `agent-identity` apparaît comme un petit cercle
+discret au centre, alors qu'il est le pilier transverse qui alimente
+les 5 modules (chaque DID y est délivré). À corriger :
+
+- Cercle d'**au moins le même diamètre** que les boîtes des 5 modules
+  (~140 px de diamètre minimum), centré dans la zone Praxis Platform.
+- Fond gris clair (`#F1F5F9`) avec bordure 2 px gris foncé (`#475569`).
+- Titre `agent-identity` en gras + sous-titre : "Pilier identité —
+  DID:key Ed25519".
+- **Lignes radiales** (rayons) qui partent du cercle vers chacun des
+  5 modules : trait fin (1 px) gris (`#CBD5E1`), label `delivers DID`
+  ou simplement un picto clé. Ces rayons signalent visuellement que
+  TOUS les modules dépendent d'`agent-identity`.
+
+## 3. Synergies inter-modules — petites flèches courbes
+
+Sur le premier rendu, les 5 modules sont des îles isolées. Pour
+matérialiser l'effet de plateforme, ajouter **3-4 flèches courbes
+fines** (1.5 px) entre modules, chacune labellisée :
+
+- **REPUTATION → INSURANCE** : `score lookup (pricing)` — call HTTP
+  interne déjà actif en v1.
+- **NEGOTIATION → INSURANCE** : `auto-subscribe deal (P3)` — futur,
+  marqué P3 en pointillé.
+- **NEGOTIATION → REPUTATION** : `feedback post-deal (v1.1)` —
+  futur, marqué v1.1 en pointillé.
+- **OBSERVABILITY ← tous** : `traces continues` — symbolisé par une
+  fine bande horizontale qui passe DERRIÈRE les 5 modules (au plan
+  arrière), couleur cyan transparente 10% opacité.
+
+Ces flèches sont **fines et discrètes** : elles enrichissent sans
+encombrer. Si une seule devait être gardée pour un rendu minimaliste,
+prioriser `REPUTATION → INSURANCE` (la seule active en v1).
+
+## 4. Code couleur cohérent avec le schéma #2
+
+Chaque module a une **couleur d'identité unique** qui doit être
+identique dans tous les schémas de la documentation Praxis :
+
+| Module          | Couleur primaire | Hex       |
+| --------------- | ---------------- | --------- |
+| REPUTATION      | Bleu             | `#1E3A8A` |
+| MEMORY          | Violet           | `#7C3AED` |
+| OBSERVABILITY   | Cyan             | `#0891B2` |
+| NEGOTIATION     | Orange           | `#EA580C` |
+| INSURANCE       | Vert             | `#059669` |
+| `agent-identity`| Gris (neutre)    | `#475569` |
+
+Sur le schéma fonctionnel : la **bordure gauche colorée** (déjà
+présente sur le premier rendu) est OK. Ajouter en plus :
+
+- Le **nom du module** en gras dans la couleur primaire du module.
+- Le **picto** (icône) tinté dans la même couleur.
+- Une **petite légende couleurs** en pied du schéma, juste avant la
+  bande "Effet de plateforme" : "Couleur = identité du module
+  dans toute la documentation Praxis".
+
+## 5. Marqueurs `v1` / `P3` explicites — pas seulement discrets
+
+Sur le premier rendu, le marqueur "P3" sur Base/Optimism/Arbitrum est
+quasi invisible. À renforcer :
+
+- **Badge `P3` ambré** (`#D97706` fond, blanc texte, pill ~22 px) en
+  coin supérieur droit de chaque case "système externe non encore
+  actif" : Base · Optimism · Arbitrum (escrow on-chain), x402+USDC
+  (paiement A2A non implémenté en v1).
+- **Badge `v1`** vert (`#059669`) en coin supérieur droit des cases
+  ACTIVES en v1 : LLM providers (Claude/GPT/Mistral via futurs
+  appels MEDIATOR — toujours v1.1, donc plutôt P3 ici), Embeddings
+  (Ollama nomic-embed-text, ACTIF v1), Datadog/Honeycomb/Jaeger
+  (export OTel = v1.1, donc P2). Adapter au cas par cas.
+- **Bande de séparation** entre la zone Praxis Platform et la zone
+  Systèmes externes avec le label : "Intégrations actives en v1 |
+  prévues en P2/P3" — pour que le lecteur comprenne d'un coup d'œil.
+
+## 6. Densité de texte — alléger sous les acteurs
+
+Sur le premier rendu, sous chaque carte d'acteur on lit :
+
+- Agents IA autonomes : "Utilisateurs primaires · DID:key Ed25519 ·
+  MCP clients"
+- Opérateurs humains : "Utilisateurs secondaires · Console ·
+  supervision · admin"
+- Développeurs tiers : "Intégrateurs · SDK · REST · gRPC"
+
+Or "DID:key Ed25519" et "MCP clients" et "REST · gRPC" sont déjà dans
+la bande "Protocoles d'accès" juste en dessous. Réduire à :
+
+- Agents IA autonomes : "Utilisateurs primaires"
+- Opérateurs humains : "Utilisateurs secondaires"
+- Développeurs tiers : "Intégrateurs / SDK"
+
+C'est le moment de faire confiance au lecteur. Le whitespace gagné
+sert la lisibilité.
+
+## 7. Bandeau `MCP-native` — intégrer dans la bande protocoles
+
+Sur le premier rendu, le badge "MCP-native" est isolé en haut à
+droite et on ne sait pas exactement à quoi il se rattache. L'intégrer
+DANS la bande "Protocoles d'accès" comme premier élément, par exemple :
+
+  ┌──────────────────────────────────────────────────────────────┐
+  │  PROTOCOLES D'ACCÈS  │  [MCP-native]  MCP · REST · gRPC      │
+  │                      │  Auth: DID:key Ed25519 + JCS RFC 8785 │
+  └──────────────────────────────────────────────────────────────┘
+
+Le badge n'est plus un orphelin — il qualifie clairement la nature
+du protocole MCP comme étant la voie native de Praxis (vs REST/gRPC
+qui sont des transports complémentaires).
+
+## 8. Effet de plateforme — visualisation comparative
+
+Sur le premier rendu, l'effet de plateforme est uniquement une phrase
+en bas. Le RENFORCER avec une petite visualisation comparative à
+gauche de la bande noire :
+
+  ┌─────────────────────┐  ┌──────────────────────────────────┐
+  │ CONCURRENT          │  │ PRAXIS                           │
+  │ ┌────┐              │  │ ┌──┐ ┌──┐ ┌──┐ ┌──┐ ┌──┐         │
+  │ │ X  │ (1 silo,     │  │ │R │ │M │ │O │ │N │ │I │         │
+  │ └────┘  monolithe)  │  │ └─┬┘ └─┬┘ └─┬┘ └─┬┘ └─┬┘         │
+  │                     │  │   └────┴────┴────┴────┘          │
+  │                     │  │   (5 modules connectés)          │
+  └─────────────────────┘  └──────────────────────────────────┘
+
+Texte en pied : "5 modules intégrés gagnent en valeur composée à
+chaque ajout. Chaque module reste autonome et commercialisable
+séparément."
+
+## 9. Format final recommandé
+
+- **Format paysage 16:9, 1920×1080 minimum** (déjà dans le brief
+  d'origine) — préserver pour les slides hero.
+- **Marges intérieures généreuses** : 60 px haut/bas, 80 px
+  gauche/droite. La zone Praxis Platform doit utiliser 70-80% de la
+  largeur visible (vs ~60% sur le premier rendu).
+- Test de lisibilité à **50% d'échelle** : tous les libellés des
+  modules et leurs endpoints doivent rester déchiffrables. Si non,
+  augmenter la taille du texte (pas la peine d'avoir 4 endpoints
+  par module si on ne peut pas les lire — préférer 3 endpoints en
+  taille suffisante).
+
+## Variante "Schéma #1-bis — hub & spoke radial"
+
+Si le layout grille 2×3 du premier rendu reste plat, produire en
+plus une variante **hub & spoke** :
+
+- `agent-identity` au centre dans un grand cercle (pilier).
+- Les 5 modules en pétales radiaux autour, chacun à 72° d'écart
+  (cercle complet 360° / 5).
+- Connexions visibles entre `agent-identity` et chaque module.
+- Synergies inter-modules visibles en arcs de cercle légers entre
+  pétales adjacents.
+
+C'est la variante la plus "marketable" — idéale pour la slide hero
+d'un pitch deck. Le layout grille reste meilleur pour la doc
+technique car il aligne les endpoints proprement.
+
 # ───────── SCHÉMA #2 : SCHÉMA DE WORKFLOW (Diagramme de séquence A2A) ─────────
 
 OBJECTIF : montrer concrètement comment les 5 modules collaborent dans
