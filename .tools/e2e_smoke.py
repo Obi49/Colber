@@ -14,6 +14,8 @@ negotiation, insurance) by:
 9. Running a full negotiation lifecycle (start → propose → counter → settle).
 10. Running an insurance lifecycle (quote → subscribe → claim → admin transition →
     status), including idempotency replays.
+11. Smoke-checking that each service exposes a valid OpenAPI 3.x doc at
+    /openapi.json (sub-step 6.A — prerequisite for SDK generation 6.B/6.C).
 
 All HTTP requests go through the VM's exposed ports.
 """
@@ -59,6 +61,28 @@ def http(method: str, url: str, body: dict | None = None, timeout: int = 60) -> 
             return e.code, json.loads(body)
         except json.JSONDecodeError:
             return e.code, body
+
+
+def check_openapi(name: str, base: str) -> bool:
+    """Smoke-check that a service exposes a valid OpenAPI 3.x spec at /openapi.json.
+
+    Returns True on success. Logs a one-line summary either way.
+    """
+    code, body = http("GET", f"{base}/openapi.json")
+    if code != 200:
+        print(f"  ✗ {name:<16} /openapi.json -> {code}")
+        return False
+    if not isinstance(body, dict):
+        print(f"  ✗ {name:<16} /openapi.json -> {code} non-JSON body")
+        return False
+    version = body.get("openapi")
+    if not isinstance(version, str) or not version.startswith("3."):
+        print(f"  ✗ {name:<16} /openapi.json -> {code} bad openapi version: {version!r}")
+        return False
+    paths = body.get("paths") or {}
+    title = (body.get("info") or {}).get("title", "?")
+    print(f"  ✓ {name:<16} /openapi.json -> {code} v={version} title='{title}' paths={len(paths)}")
+    return True
 
 
 def gen_ed25519_keypair() -> tuple[bytes, bytes]:
@@ -118,6 +142,19 @@ def main() -> int:
         print(f"  {name:<16} /healthz  -> {code} {'OK' if ok else 'FAIL'}")
         if not ok:
             failed.append(f"{name} healthz")
+
+    # ---- 1b. OpenAPI specs (sub-step 6.A) ----
+    step("OpenAPI specs")
+    for name, base in [
+        ("agent-identity", IDENTITY),
+        ("reputation", REPUTATION),
+        ("memory", MEMORY),
+        ("observability", OBSERVABILITY),
+        ("negotiation", NEGOTIATION),
+        ("insurance", INSURANCE),
+    ]:
+        if not check_openapi(name, base):
+            failed.append(f"{name} openapi")
 
     # ---- 2. Register two agents ----
     step("Register agent A and B")
