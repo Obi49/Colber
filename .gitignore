@@ -60,3 +60,6 @@ coverage/
 # --- Misc ---
 *.bak
 *.orig
+
+# --- Next.js ---
+next-env.d.ts
