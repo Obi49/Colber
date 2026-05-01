@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Question or discussion
+    url: https://github.com/Obi49/Colber/discussions
+    about: Ask a question or propose an idea before filing an issue.
+  - name: 🔒 Security finding
+    url: https://github.com/Obi49/Colber/security/advisories/new
+    about: Report a vulnerability privately. Please do NOT use the public issue tracker for security issues.
+  - name: 📚 Documentation site
+    url: https://colber.dev
+    about: Read the docs and quickstart at colber.dev (coming soon).

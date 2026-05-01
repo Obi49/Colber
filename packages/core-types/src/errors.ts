@@ -1,5 +1,5 @@
 /**
- * Stable error codes used across Praxis services.
+ * Stable error codes used across Colber services.
  * Keep this list curated: any new code should be added here first,
  * then referenced by services. Codes are SCREAMING_SNAKE_CASE.
  */
@@ -27,7 +27,7 @@ export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
  * Domain error thrown by services. Caught by the HTTP layer and mapped
  * to a structured `ApiError` envelope (see `envelope.ts`).
  */
-export class PraxisError extends Error {
+export class ColberError extends Error {
   public readonly code: ErrorCode;
   public readonly statusCode: number;
   public readonly details: Record<string, unknown> | undefined;
@@ -39,7 +39,7 @@ export class PraxisError extends Error {
     details?: Record<string, unknown>,
   ) {
     super(message);
-    this.name = 'PraxisError';
+    this.name = 'ColberError';
     this.code = code;
     this.statusCode = statusCode;
     this.details = details;

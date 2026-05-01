@@ -1,14 +1,14 @@
 /**
- * `@praxis/sdk` — public surface.
+ * `@colber/sdk` — public surface.
  *
- * Crypto helpers (DID:key, signing, JCS) are exported from `@praxis/sdk/crypto`
+ * Crypto helpers (DID:key, signing, JCS) are exported from `@colber/sdk/crypto`
  * (see `src/crypto/index.ts`). This entry point covers the typed REST client.
  */
 
 // Client + factories
 export {
-  PraxisClient,
-  type PraxisClientOptions,
+  ColberClient,
+  type ColberClientOptions,
   DEFAULT_LOCAL_PORTS,
   DEFAULT_INGRESS_PATHS,
 } from './client.js';
@@ -21,13 +21,13 @@ export type { FetchLike, HttpClientOptions, RetryConfig } from './http.js';
 
 // Errors
 export {
-  PraxisError,
-  PraxisApiError,
-  PraxisNetworkError,
-  PraxisValidationError,
-  type PraxisApiErrorInit,
-  type PraxisNetworkErrorCode,
-  type PraxisNetworkErrorInit,
+  ColberError,
+  ColberApiError,
+  ColberNetworkError,
+  ColberValidationError,
+  type ColberApiErrorInit,
+  type ColberNetworkErrorCode,
+  type ColberNetworkErrorInit,
 } from './errors.js';
 
 // Envelope (advanced — useful for callers that proxy responses)

@@ -8,14 +8,14 @@ from collections.abc import Callable
 import pytest
 import respx
 
-from praxis_sdk import PraxisClient
+from colber_sdk import ColberClient
 
 from .._helpers import TEST_BASE_URLS
 
 
 class TestRegister:
     def test_posts_to_register_and_returns_unwrapped_data(
-        self, make_client: Callable[..., PraxisClient]
+        self, make_client: Callable[..., ColberClient]
     ) -> None:
         with respx.mock:
             route = respx.post(f"{TEST_BASE_URLS['identity']}/v1/identity/register").respond(
@@ -41,7 +41,7 @@ class TestRegister:
 
 class TestResolve:
     def test_gets_identity_did_with_url_encoded_did(
-        self, make_client: Callable[..., PraxisClient]
+        self, make_client: Callable[..., ColberClient]
     ) -> None:
         with respx.mock:
             route = respx.get(f"{TEST_BASE_URLS['identity']}/v1/identity/did%3Akey%3Azfoo").respond(
@@ -67,7 +67,7 @@ class TestResolve:
 
 class TestVerify:
     def test_posts_to_verify_and_returns_typed_result(
-        self, make_client: Callable[..., PraxisClient]
+        self, make_client: Callable[..., ColberClient]
     ) -> None:
         with respx.mock:
             respx.post(f"{TEST_BASE_URLS['identity']}/v1/identity/verify").respond(
@@ -78,7 +78,7 @@ class TestVerify:
             assert r.valid is True
 
     def test_forwards_400_level_error_envelopes_verbatim(
-        self, make_client: Callable[..., PraxisClient]
+        self, make_client: Callable[..., ColberClient]
     ) -> None:
         with respx.mock:
             respx.post(f"{TEST_BASE_URLS['identity']}/v1/identity/verify").respond(
@@ -89,9 +89,9 @@ class TestVerify:
                 },
             )
             client = make_client()
-            from praxis_sdk import PraxisApiError
+            from colber_sdk import ColberApiError
 
-            with pytest.raises(PraxisApiError) as exc_info:
+            with pytest.raises(ColberApiError) as exc_info:
                 client.identity.verify(did="did:key:zfoo", message="", signature="")
             assert exc_info.value.code == "VALIDATION_FAILED"
             assert exc_info.value.status == 400

@@ -1,9 +1,9 @@
 {
-  "name": "@praxis/core-types",
+  "name": "@colber/core-types",
   "version": "0.1.0",
   "private": true,
-  "license": "UNLICENSED",
-  "description": "Shared TypeScript types for the Praxis platform (DID, AgentId, signatures, common envelopes).",
+  "license": "Apache-2.0",
+  "description": "Shared TypeScript types for the Colber platform (DID, AgentId, signatures, common envelopes).",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -26,8 +26,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "devDependencies": {
-    "@praxis/eslint-config": "workspace:*",
-    "@praxis/tsconfig": "workspace:*",
+    "@colber/eslint-config": "workspace:*",
+    "@colber/tsconfig": "workspace:*",
     "@types/node": "^22.9.0",
     "@vitest/coverage-v8": "^2.1.5",
     "eslint": "^9.15.0",

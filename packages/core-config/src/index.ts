@@ -1,5 +1,5 @@
 /**
- * @praxis/core-config — env loading + schema validation.
+ * @colber/core-config — env loading + schema validation.
  *
  * Pattern: each service defines a Zod schema describing the env it needs,
  * passes it to `loadConfig`, and gets back a fully-typed, validated config

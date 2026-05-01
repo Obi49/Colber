@@ -1,5 +1,5 @@
 /**
- * `@praxis/sdk/crypto` — public crypto surface.
+ * `@colber/sdk/crypto` — public crypto surface.
  *
  * - DID:key Ed25519 generation + parsing
  * - Sign / verify on base64-encoded payloads

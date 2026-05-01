@@ -1,7 +1,7 @@
 /**
  * Ed25519 sign / verify helpers operating on base64-encoded keys + signatures.
  *
- * Mirrors the on-the-wire convention used by every Praxis service:
+ * Mirrors the on-the-wire convention used by every Colber service:
  *   - 32-byte raw secret key, base64-encoded
  *   - 32-byte raw public key, base64-encoded
  *   - 64-byte signature, base64-encoded

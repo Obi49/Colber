@@ -1,7 +1,7 @@
 """Per-service typed clients.
 
 Each module exposes a single class plus its request/response dataclasses.
-Public re-exports happen at the package root (``praxis_sdk``).
+Public re-exports happen at the package root (``colber_sdk``).
 """
 
 from __future__ import annotations

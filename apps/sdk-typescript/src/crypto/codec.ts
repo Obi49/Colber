@@ -1,5 +1,5 @@
 /**
- * Encoding helpers — pure, no crypto. Inlined from `@praxis/core-crypto` so
+ * Encoding helpers — pure, no crypto. Inlined from `@colber/core-crypto` so
  * the SDK has no runtime workspace dependency.
  *
  * The base58btc encoder is the one required by the W3C `did:key` spec

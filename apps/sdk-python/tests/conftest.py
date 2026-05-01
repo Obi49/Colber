@@ -5,7 +5,7 @@ httpx requests. Each test registers handlers via ``respx_mock.post(...)``
 or similar; the ``conftest`` hooks below give every test:
 
   - ``base_urls``: the static test base-URL map.
-  - ``make_client``: factory returning a :class:`PraxisClient` wired to a
+  - ``make_client``: factory returning a :class:`ColberClient` wired to a
     no-op sleep and zero retries by default. Tests that exercise retry
     semantics override these explicitly.
 """
@@ -18,8 +18,8 @@ from typing import Any
 import httpx
 import pytest
 
-from praxis_sdk import PraxisClient
-from praxis_sdk.types import BaseUrls
+from colber_sdk import ColberClient
+from colber_sdk.types import BaseUrls
 
 from ._helpers import TEST_BASE_URLS
 
@@ -31,8 +31,8 @@ def base_urls() -> BaseUrls:
 
 
 @pytest.fixture
-def make_client() -> Callable[..., PraxisClient]:
-    """Factory returning a :class:`PraxisClient` with test-friendly defaults.
+def make_client() -> Callable[..., ColberClient]:
+    """Factory returning a :class:`ColberClient` with test-friendly defaults.
 
     Defaults:
       - ``timeout_s=1.0``
@@ -42,29 +42,29 @@ def make_client() -> Callable[..., PraxisClient]:
     Override any of these via keyword arguments.
     """
 
-    def _make(**overrides: Any) -> PraxisClient:
+    def _make(**overrides: Any) -> ColberClient:
         kwargs: dict[str, Any] = {
             "timeout_s": 1.0,
             "retries": {"count": 0, "backoff_ms": 1},
             "sleep": lambda _ms: None,
         }
         kwargs.update(overrides)
-        return PraxisClient(TEST_BASE_URLS, **kwargs)
+        return ColberClient(TEST_BASE_URLS, **kwargs)
 
     return _make
 
 
 @pytest.fixture
-def make_respx_client() -> Callable[..., PraxisClient]:
+def make_respx_client() -> Callable[..., ColberClient]:
     """Factory that injects an ``httpx.Client`` whose ``request`` is a callable.
 
     respx works on the global httpx transport when used as a context
-    manager (``respx.mock``), so the default :class:`PraxisClient` (which
+    manager (``respx.mock``), so the default :class:`ColberClient` (which
     creates its own ``httpx.Client``) intercepts naturally. This fixture
     exists for tests that want to inspect the raw httpx invocations.
     """
 
-    def _make(**overrides: Any) -> PraxisClient:
+    def _make(**overrides: Any) -> ColberClient:
         kwargs: dict[str, Any] = {
             "timeout_s": 1.0,
             "retries": {"count": 0, "backoff_ms": 1},
@@ -72,6 +72,6 @@ def make_respx_client() -> Callable[..., PraxisClient]:
             "fetch": httpx.Client().request,
         }
         kwargs.update(overrides)
-        return PraxisClient(TEST_BASE_URLS, **kwargs)
+        return ColberClient(TEST_BASE_URLS, **kwargs)
 
     return _make

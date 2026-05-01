@@ -10,7 +10,7 @@ import math
 
 import pytest
 
-from praxis_sdk.crypto import canonicalize_jcs, canonicalize_jcs_bytes
+from colber_sdk.crypto import canonicalize_jcs, canonicalize_jcs_bytes
 
 
 def test_serialises_primitives_like_json_stringify() -> None:

@@ -10,13 +10,13 @@
  *   - Retry with exponential backoff on 5xx and fetch-level failures
  *
  * The wrapper is intentionally small and dependency-free. Tests inject a
- * stubbed `fetch` (typically MSW's interceptor) via the `PraxisClient`
+ * stubbed `fetch` (typically MSW's interceptor) via the `ColberClient`
  * constructor so this module is exercised in lockstep with the service
  * clients.
  */
 
 import { isErrorEnvelope, isOkEnvelope } from './envelope.js';
-import { PraxisApiError, PraxisNetworkError } from './errors.js';
+import { ColberApiError, ColberNetworkError } from './errors.js';
 
 export type FetchLike = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
 
@@ -88,8 +88,8 @@ const isRetriableStatus = (status: number): boolean => status >= 500 && status <
 
 /**
  * Run a single HTTP attempt, including timeout. Resolves with the parsed body
- * (already envelope-checked) on 2xx, or throws `PraxisApiError` on a 4xx/5xx
- * with a parseable error envelope. Throws `PraxisNetworkError` on transport
+ * (already envelope-checked) on 2xx, or throws `ColberApiError` on a 4xx/5xx
+ * with a parseable error envelope. Throws `ColberNetworkError` on transport
  * failures; the caller decides whether to retry.
  */
 const runOnce = async <T>(
@@ -121,13 +121,13 @@ const runOnce = async <T>(
     });
   } catch (cause) {
     if (cause instanceof Error && cause.name === 'AbortError') {
-      throw new PraxisNetworkError({
+      throw new ColberNetworkError({
         code: 'TIMEOUT',
         message: `Request timed out after ${options.timeoutMs}ms: ${params.method} ${url}`,
         cause,
       });
     }
-    throw new PraxisNetworkError({
+    throw new ColberNetworkError({
       code: 'FETCH_FAILED',
       message: `fetch failed: ${params.method} ${url}`,
       cause,
@@ -140,7 +140,7 @@ const runOnce = async <T>(
   if (params.expectNoBody === true || response.status === 204) {
     if (!response.ok) {
       // 4xx with no body shouldn't happen from our services, but be defensive.
-      throw new PraxisApiError({
+      throw new ColberApiError({
         code: 'HTTP_ERROR',
         message: `HTTP ${response.status} ${response.statusText}`,
         status: response.status,
@@ -153,7 +153,7 @@ const runOnce = async <T>(
   try {
     parsed = await response.json();
   } catch (cause) {
-    throw new PraxisNetworkError({
+    throw new ColberNetworkError({
       code: 'INVALID_JSON',
       message: `failed to parse JSON response: ${params.method} ${url}`,
       cause,
@@ -162,7 +162,7 @@ const runOnce = async <T>(
 
   if (response.ok) {
     if (!isOkEnvelope<T>(parsed)) {
-      throw new PraxisNetworkError({
+      throw new ColberNetworkError({
         code: 'INVALID_RESPONSE',
         message: `unexpected response shape (missing ok/data): ${params.method} ${url}`,
       });
@@ -171,10 +171,10 @@ const runOnce = async <T>(
   }
 
   if (isErrorEnvelope(parsed)) {
-    throw PraxisApiError.fromBody(response.status, parsed.error);
+    throw ColberApiError.fromBody(response.status, parsed.error);
   }
 
-  throw new PraxisApiError({
+  throw new ColberApiError({
     code: 'HTTP_ERROR',
     message: `HTTP ${response.status} ${response.statusText}`,
     status: response.status,
@@ -183,7 +183,7 @@ const runOnce = async <T>(
 
 /**
  * Outer driver — runs `runOnce` up to `retries.count + 1` times, retrying on
- * 5xx `PraxisApiError` and on `PraxisNetworkError` (except TIMEOUT, which
+ * 5xx `ColberApiError` and on `ColberNetworkError` (except TIMEOUT, which
  * indicates the user budget is exhausted on this call). Backoff is
  * exponential: `backoffMs * 2^attempt`.
  */
@@ -208,15 +208,15 @@ export const request = async <T>(
       }
 
       // Decide whether to retry. We retry on:
-      //   - PraxisNetworkError with code FETCH_FAILED or INVALID_JSON / INVALID_RESPONSE
-      //   - PraxisApiError with HTTP 5xx
+      //   - ColberNetworkError with code FETCH_FAILED or INVALID_JSON / INVALID_RESPONSE
+      //   - ColberApiError with HTTP 5xx
       // We do NOT retry on:
       //   - TIMEOUT (user budget already exhausted)
       //   - 4xx (client error — replaying won't help)
       let retriable = false;
-      if (err instanceof PraxisNetworkError) {
+      if (err instanceof ColberNetworkError) {
         retriable = err.code !== 'TIMEOUT';
-      } else if (err instanceof PraxisApiError) {
+      } else if (err instanceof ColberApiError) {
         retriable = isRetriableStatus(err.status);
       }
       if (!retriable) {

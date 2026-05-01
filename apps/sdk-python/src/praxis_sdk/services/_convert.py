@@ -1,6 +1,6 @@
 """Internal helpers for camelCase <-> snake_case conversion.
 
-The Praxis services speak camelCase on the wire (matching the TS SDK).
+The Colber services speak camelCase on the wire (matching the TS SDK).
 The Python SDK exposes snake_case on the public API, so this module
 converts in both directions:
 

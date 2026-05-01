@@ -1,9 +1,9 @@
 {
-  "name": "@praxis/core-logger",
+  "name": "@colber/core-logger",
   "version": "0.1.0",
   "private": true,
-  "license": "UNLICENSED",
-  "description": "pino-based structured logger factory for Praxis services. Adds correlation, redaction defaults, and pretty mode in dev.",
+  "license": "Apache-2.0",
+  "description": "pino-based structured logger factory for Colber services. Adds correlation, redaction defaults, and pretty mode in dev.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -30,8 +30,8 @@
     "pino-pretty": "^11.3.0"
   },
   "devDependencies": {
-    "@praxis/eslint-config": "workspace:*",
-    "@praxis/tsconfig": "workspace:*",
+    "@colber/eslint-config": "workspace:*",
+    "@colber/tsconfig": "workspace:*",
     "@types/node": "^22.9.0",
     "@vitest/coverage-v8": "^2.1.5",
     "eslint": "^9.15.0",

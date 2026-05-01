@@ -2,14 +2,14 @@
 
 Three concrete subclasses, mutually exclusive at the ``isinstance`` level:
 
-- :class:`PraxisApiError` — service responded with ``{"ok": false, "error"}``
+- :class:`ColberApiError` — service responded with ``{"ok": false, "error"}``
   or a non-2xx the SDK couldn't parse as an envelope.
-- :class:`PraxisNetworkError` — transport failed (httpx error, timeout,
+- :class:`ColberNetworkError` — transport failed (httpx error, timeout,
   malformed body).
-- :class:`PraxisValidationError` — local SDK rejected the call before
+- :class:`ColberValidationError` — local SDK rejected the call before
   sending. Currently unused, reserved.
 
-All three extend :class:`PraxisError` so callers can do a single base catch.
+All three extend :class:`ColberError` so callers can do a single base catch.
 
 Mirror of ``apps/sdk-typescript/src/errors.ts`` (snake_case).
 """
@@ -19,13 +19,13 @@ from __future__ import annotations
 from typing import Any, Literal
 
 
-class PraxisError(Exception):
+class ColberError(Exception):
     """Base class for every SDK error."""
 
-    name: str = "PraxisError"
+    name: str = "ColberError"
 
 
-class PraxisApiError(PraxisError):
+class ColberApiError(ColberError):
     """Raised when a service returns a structured error envelope or a
     non-2xx response.
 
@@ -33,7 +33,7 @@ class PraxisApiError(PraxisError):
     (e.g. ``VALIDATION_FAILED``, ``NOT_FOUND``, ``IDEMPOTENCY_REPLAY``).
     """
 
-    name: str = "PraxisApiError"
+    name: str = "ColberApiError"
 
     def __init__(
         self,
@@ -52,7 +52,7 @@ class PraxisApiError(PraxisError):
         self.trace_id = trace_id
 
     @classmethod
-    def from_body(cls, status: int, body: dict[str, Any]) -> PraxisApiError:
+    def from_body(cls, status: int, body: dict[str, Any]) -> ColberApiError:
         """Construct from a parsed ``{"ok": false, "error": ...}`` envelope.
 
         ``body`` is the inner ``error`` object. Accepts the wire field names
@@ -83,10 +83,10 @@ class PraxisApiError(PraxisError):
         return out
 
 
-PraxisNetworkErrorCode = Literal["TIMEOUT", "FETCH_FAILED", "INVALID_RESPONSE", "INVALID_JSON"]
+ColberNetworkErrorCode = Literal["TIMEOUT", "FETCH_FAILED", "INVALID_RESPONSE", "INVALID_JSON"]
 
 
-class PraxisNetworkError(PraxisError):
+class ColberNetworkError(ColberError):
     """Raised for transport-level failures.
 
     ``code`` is one of:
@@ -97,17 +97,17 @@ class PraxisNetworkError(PraxisError):
     - ``INVALID_JSON`` — body wasn't valid JSON.
     """
 
-    name: str = "PraxisNetworkError"
+    name: str = "ColberNetworkError"
 
     def __init__(
         self,
         *,
-        code: PraxisNetworkErrorCode,
+        code: ColberNetworkErrorCode,
         message: str,
         cause: BaseException | None = None,
     ) -> None:
         super().__init__(message)
-        self.code: PraxisNetworkErrorCode = code
+        self.code: ColberNetworkErrorCode = code
         self.message = message
         if cause is not None:
             # Mirror the TS `cause` option — preserves the original exception
@@ -115,10 +115,10 @@ class PraxisNetworkError(PraxisError):
             self.__cause__ = cause
 
 
-class PraxisValidationError(PraxisError):
+class ColberValidationError(ColberError):
     """Raised when the SDK rejects the call locally (currently unused; reserved)."""
 
-    name: str = "PraxisValidationError"
+    name: str = "ColberValidationError"
 
     def __init__(self, message: str, path: str | None = None) -> None:
         super().__init__(message)

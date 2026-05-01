@@ -1,5 +1,5 @@
 /**
- * `PraxisClient` — the main entry point of the SDK.
+ * `ColberClient` — the main entry point of the SDK.
  *
  * Bundles one typed client per service, sharing a single fetch wrapper
  * configured with timeout / retry / auth. Constructor accepts a fully
@@ -40,7 +40,7 @@ export const DEFAULT_INGRESS_PATHS: Readonly<Record<ServiceName, string>> = {
   insurance: '/insurance',
 };
 
-export interface PraxisClientOptions {
+export interface ColberClientOptions {
   readonly baseUrls: BaseUrls;
   /**
    * Custom fetch implementation. Defaults to `globalThis.fetch` (Node 20+,
@@ -65,7 +65,7 @@ export interface PraxisClientOptions {
   readonly sleep?: (ms: number) => Promise<void>;
 }
 
-export class PraxisClient {
+export class ColberClient {
   public readonly identity: IdentityService;
   public readonly reputation: ReputationService;
   public readonly memory: MemoryService;
@@ -73,8 +73,8 @@ export class PraxisClient {
   public readonly negotiation: NegotiationService;
   public readonly insurance: InsuranceService;
 
-  constructor(options: PraxisClientOptions) {
-    const fetchImpl = options.fetch ?? PraxisClient.resolveDefaultFetch();
+  constructor(options: ColberClientOptions) {
+    const fetchImpl = options.fetch ?? ColberClient.resolveDefaultFetch();
 
     const httpOpts: HttpClientOptions = {
       fetch: fetchImpl,
@@ -94,9 +94,9 @@ export class PraxisClient {
 
   /**
    * Returns a client wired to the default β-VM ports on `localhost`. Handy
-   * for local dev against `praxis-stack/docker-compose.services.yml`.
+   * for local dev against `colber-stack/docker-compose.services.yml`.
    */
-  public static local(overrides?: Omit<PraxisClientOptions, 'baseUrls'>): PraxisClient {
+  public static local(overrides?: Omit<ColberClientOptions, 'baseUrls'>): ColberClient {
     const baseUrls: BaseUrls = {
       identity: `http://localhost:${DEFAULT_LOCAL_PORTS.identity}`,
       reputation: `http://localhost:${DEFAULT_LOCAL_PORTS.reputation}`,
@@ -105,13 +105,13 @@ export class PraxisClient {
       negotiation: `http://localhost:${DEFAULT_LOCAL_PORTS.negotiation}`,
       insurance: `http://localhost:${DEFAULT_LOCAL_PORTS.insurance}`,
     };
-    return new PraxisClient({ baseUrls, ...(overrides ?? {}) });
+    return new ColberClient({ baseUrls, ...(overrides ?? {}) });
   }
 
   /**
    * Returns a client where every service is reached via path-based routing
-   * under a single base (e.g. `https://api.praxis.dev/identity`,
-   * `https://api.praxis.dev/reputation`).
+   * under a single base (e.g. `https://api.colber.dev/identity`,
+   * `https://api.colber.dev/reputation`).
    *
    * **PROVISIONAL** — assumes a future ingress configuration. The v1
    * deployment exposes each service on a dedicated port; use the explicit
@@ -119,8 +119,8 @@ export class PraxisClient {
    */
   public static fromBaseUrl(
     base: string,
-    overrides?: Omit<PraxisClientOptions, 'baseUrls'>,
-  ): PraxisClient {
+    overrides?: Omit<ColberClientOptions, 'baseUrls'>,
+  ): ColberClient {
     const trimmed = base.replace(/\/+$/, '');
     const baseUrls: BaseUrls = {
       identity: `${trimmed}${DEFAULT_INGRESS_PATHS.identity}`,
@@ -130,7 +130,7 @@ export class PraxisClient {
       negotiation: `${trimmed}${DEFAULT_INGRESS_PATHS.negotiation}`,
       insurance: `${trimmed}${DEFAULT_INGRESS_PATHS.insurance}`,
     };
-    return new PraxisClient({ baseUrls, ...(overrides ?? {}) });
+    return new ColberClient({ baseUrls, ...(overrides ?? {}) });
   }
 
   /**
@@ -143,7 +143,7 @@ export class PraxisClient {
     const f = (globalThis as { fetch?: FetchLike }).fetch;
     if (typeof f !== 'function') {
       throw new Error(
-        'PraxisClient: no global fetch found. Pass `options.fetch` (Node <18, custom runtime) or upgrade to Node 20+.',
+        'ColberClient: no global fetch found. Pass `options.fetch` (Node <18, custom runtime) or upgrade to Node 20+.',
       );
     }
     return f.bind(globalThis);

@@ -1,9 +1,9 @@
 {
-  "name": "@praxis/core-crypto",
+  "name": "@colber/core-crypto",
   "version": "0.1.0",
   "private": true,
-  "license": "UNLICENSED",
-  "description": "Crypto primitives for Praxis: Ed25519 keypair, signature, did:key encoding/decoding. Pluggable scheme abstraction for future Secp256k1.",
+  "license": "Apache-2.0",
+  "description": "Crypto primitives for Colber: Ed25519 keypair, signature, did:key encoding/decoding. Pluggable scheme abstraction for future Secp256k1.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -28,11 +28,11 @@
   "dependencies": {
     "@noble/ed25519": "^2.2.3",
     "@noble/hashes": "^1.5.0",
-    "@praxis/core-types": "workspace:*"
+    "@colber/core-types": "workspace:*"
   },
   "devDependencies": {
-    "@praxis/eslint-config": "workspace:*",
-    "@praxis/tsconfig": "workspace:*",
+    "@colber/eslint-config": "workspace:*",
+    "@colber/tsconfig": "workspace:*",
     "@types/node": "^22.9.0",
     "@vitest/coverage-v8": "^2.1.5",
     "eslint": "^9.15.0",

@@ -2,7 +2,7 @@ import * as ed from '@noble/ed25519';
 import { sha512 } from '@noble/hashes/sha2';
 
 import type { SignatureProvider } from './provider.js';
-import type { KeyPair, SignatureScheme, VerificationResult } from '@praxis/core-types';
+import type { KeyPair, SignatureScheme, VerificationResult } from '@colber/core-types';
 
 // `@noble/ed25519` v2 is hash-pluggable but ships without a default hash to
 // stay zero-dep. We wire it to `@noble/hashes/sha2` once at module load.

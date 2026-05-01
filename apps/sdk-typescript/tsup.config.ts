@@ -1,11 +1,11 @@
 import { defineConfig } from 'tsup';
 
 /**
- * Build config for `@praxis/sdk`.
+ * Build config for `@colber/sdk`.
  *
  * Emits both ESM and CJS in one shot, plus `.d.ts` for each entry point.
  * Two entry points correspond to the package's two `exports`:
- *   - `.`        → src/index.ts          (PraxisClient + service surface)
+ *   - `.`        → src/index.ts          (ColberClient + service surface)
  *   - `./crypto` → src/crypto/index.ts   (DID:key, signing, JCS)
  */
 export default defineConfig({

@@ -8,7 +8,7 @@ from urllib.parse import parse_qs, urlparse
 
 import respx
 
-from praxis_sdk import PraxisClient
+from colber_sdk import ColberClient
 
 from .._helpers import TEST_BASE_URLS
 
@@ -65,7 +65,7 @@ SAMPLE_CLAIM = {
 
 
 def test_quote_posts_quote_returns_priced_view(
-    make_client: Callable[..., PraxisClient],
+    make_client: Callable[..., ColberClient],
 ) -> None:
     with respx.mock:
         respx.post(f"{TEST_BASE_URLS['insurance']}/v1/insurance/quote").respond(
@@ -84,7 +84,7 @@ def test_quote_posts_quote_returns_priced_view(
 
 class TestSubscribe:
     def test_posts_subscribe_forwards_idempotency_key(
-        self, make_client: Callable[..., PraxisClient]
+        self, make_client: Callable[..., ColberClient]
     ) -> None:
         with respx.mock:
             route = respx.post(f"{TEST_BASE_URLS['insurance']}/v1/insurance/subscribe").respond(
@@ -106,7 +106,7 @@ class TestSubscribe:
             assert r.policy.id == POLICY_ID
 
     def test_treats_a_200_idempotent_replay_as_success(
-        self, make_client: Callable[..., PraxisClient]
+        self, make_client: Callable[..., ColberClient]
     ) -> None:
         with respx.mock:
             respx.post(f"{TEST_BASE_URLS['insurance']}/v1/insurance/subscribe").respond(
@@ -125,7 +125,7 @@ class TestSubscribe:
 
 
 def test_claim_posts_claims_forwards_idempotency_key(
-    make_client: Callable[..., PraxisClient],
+    make_client: Callable[..., ColberClient],
 ) -> None:
     with respx.mock:
         route = respx.post(f"{TEST_BASE_URLS['insurance']}/v1/insurance/claims").respond(
@@ -146,7 +146,7 @@ def test_claim_posts_claims_forwards_idempotency_key(
 
 
 def test_status_gets_policies_id(
-    make_client: Callable[..., PraxisClient],
+    make_client: Callable[..., ColberClient],
 ) -> None:
     with respx.mock:
         route = respx.get(
@@ -160,7 +160,7 @@ def test_status_gets_policies_id(
 
 
 def test_list_gets_policies_with_subscriber_did_and_pagination(
-    make_client: Callable[..., PraxisClient],
+    make_client: Callable[..., ColberClient],
 ) -> None:
     with respx.mock:
         route = respx.get(f"{TEST_BASE_URLS['insurance']}/v1/insurance/policies").respond(

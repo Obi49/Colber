@@ -1,12 +1,12 @@
 """Ed25519 sign / verify helpers operating on base64-encoded keys + signatures.
 
-Mirrors the on-the-wire convention used by every Praxis service:
+Mirrors the on-the-wire convention used by every Colber service:
 
   - 32-byte raw secret key, base64-encoded
   - 32-byte raw public key, base64-encoded
   - 64-byte signature, base64-encoded
   - message: ``bytes`` of UTF-8 (typically the JCS canonical form of a
-    payload — see :func:`praxis_sdk.crypto.jcs.canonicalize_jcs_bytes`).
+    payload — see :func:`colber_sdk.crypto.jcs.canonicalize_jcs_bytes`).
 
 Both functions accept the message either as ``bytes`` or as a ``str``
 (UTF-8 encoded internally) for caller convenience.
@@ -39,7 +39,7 @@ def sign_message(secret_key_b64: str, message: bytes | str) -> str:
     """Sign ``message`` with ``secret_key_b64`` and return the signature as base64.
 
     The secret key MUST be a 32-byte raw Ed25519 secret key (the kind
-    produced by :func:`praxis_sdk.crypto.generate_did_key`).
+    produced by :func:`colber_sdk.crypto.generate_did_key`).
 
     Raises:
         ValueError: if the decoded key length is wrong.

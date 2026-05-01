@@ -1,18 +1,18 @@
-# praxis-sdk
+# colber-sdk
 
-Official Python SDK for the [Praxis](https://github.com/Obi49/Praxis) platform — typed clients for the six v1 services (`identity`, `reputation`, `memory`, `observability`, `negotiation`, `insurance`) plus the platform crypto primitives (`did:key` Ed25519, RFC 8785 JCS canonicalization, signing helpers).
+Official Python SDK for the [Colber](https://github.com/Obi49/Colber) platform — typed clients for the six v1 services (`identity`, `reputation`, `memory`, `observability`, `negotiation`, `insurance`) plus the platform crypto primitives (`did:key` Ed25519, RFC 8785 JCS canonicalization, signing helpers).
 
-Mirror of the [TypeScript SDK](../sdk-typescript/) (`@praxis/sdk@0.1.0`). Same surface, same wire format, signatures produced here verify against payloads signed by the TS SDK and vice versa.
+Mirror of the [TypeScript SDK](../sdk-typescript/) (`@colber/sdk@0.1.0`). Same surface, same wire format, signatures produced here verify against payloads signed by the TS SDK and vice versa.
 
 Runtime dependencies: `httpx` (sync) + `cryptography` (Ed25519 + sha512). No `pydantic`, no `requests`, no `pynacl`.
 
 ## Install
 
 ```bash
-pip install praxis-sdk
+pip install colber-sdk
 ```
 
-The package is **PyPI-publishable as `praxis-sdk`**, but is not yet released. Use editable install from this repo while in v0.1.0:
+The package is **PyPI-publishable as `colber-sdk`**, but is not yet released. Use editable install from this repo while in v0.1.0:
 
 ```bash
 pip install -e apps/sdk-python
@@ -21,14 +21,14 @@ pip install -e apps/sdk-python
 ## Quick start
 
 ```python
-from praxis_sdk import PraxisClient
-from praxis_sdk.crypto import generate_did_key, sign_message, canonicalize_jcs
+from colber_sdk import ColberClient
+from colber_sdk.crypto import generate_did_key, sign_message, canonicalize_jcs
 
 # 1) Mint a fresh DID + Ed25519 keypair (did:key method, multibase z6Mk...).
 keys = generate_did_key()
 
 # 2) Point the client at your services. local() targets the β-VM ports.
-client = PraxisClient.local()
+client = ColberClient.local()
 
 # 3) Register the agent and read its score.
 agent = client.identity.register(public_key=keys.public_key_b64, owner_operator_id="op-demo")
@@ -45,17 +45,17 @@ sig = sign_message(
 ## Convenience constructors
 
 ```python
-PraxisClient.local()                                # localhost ports 14001..14051
-PraxisClient.from_base_url("https://api.praxis.dev") # future ingress; PROVISIONAL
+ColberClient.local()                                # localhost ports 14001..14051
+ColberClient.from_base_url("https://api.colber.dev") # future ingress; PROVISIONAL
 ```
 
 ## Errors
 
-- `PraxisApiError` — service returned `{ ok: false, error: { code, message, details? } }` (4xx/5xx).
-- `PraxisNetworkError` — request failed at the transport layer (timeout, fetch error, malformed body).
-- `PraxisValidationError` — local SDK rejected the call before sending. Currently unused, reserved for v0.2.
+- `ColberApiError` — service returned `{ ok: false, error: { code, message, details? } }` (4xx/5xx).
+- `ColberNetworkError` — request failed at the transport layer (timeout, fetch error, malformed body).
+- `ColberValidationError` — local SDK rejected the call before sending. Currently unused, reserved for v0.2.
 
-All three extend `PraxisError` so callers can do a single base catch.
+All three extend `ColberError` so callers can do a single base catch.
 
 ## Idempotency
 
@@ -71,7 +71,7 @@ client.negotiation.start(
 
 ## Async support
 
-**Synchronous-only in v0.1.0.** Async support (`AsyncPraxisClient` backed by `httpx.AsyncClient`) is planned for v0.2 — the public method names will mirror the sync surface with the `async`/`await` keywords added.
+**Synchronous-only in v0.1.0.** Async support (`AsyncColberClient` backed by `httpx.AsyncClient`) is planned for v0.2 — the public method names will mirror the sync surface with the `async`/`await` keywords added.
 
 ## License
 

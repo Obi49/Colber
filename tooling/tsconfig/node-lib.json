@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "Praxis — Node.js library (publishable package)",
+  "display": "Colber — Node.js library (publishable package)",
   "extends": "./base.json",
   "compilerOptions": {
     "composite": true,

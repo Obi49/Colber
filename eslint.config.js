@@ -1,5 +1,5 @@
 // @ts-check
-import { buildNodeConfig } from '@praxis/eslint-config/node';
+import { buildNodeConfig } from '@colber/eslint-config/node';
 
 /**
  * Root ESLint flat config. Pins `tsconfigRootDir` to this file's directory so

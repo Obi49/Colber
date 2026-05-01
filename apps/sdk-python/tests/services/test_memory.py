@@ -8,7 +8,7 @@ from urllib.parse import parse_qs, urlparse
 
 import respx
 
-from praxis_sdk import PraxisClient
+from colber_sdk import ColberClient
 
 from .._helpers import TEST_BASE_URLS
 
@@ -17,7 +17,7 @@ OWNER = "did:key:zfoo"
 
 
 def test_store_posts_to_memory_returns_id_embedding(
-    make_client: Callable[..., PraxisClient],
+    make_client: Callable[..., ColberClient],
 ) -> None:
     with respx.mock:
         respx.post(f"{TEST_BASE_URLS['memory']}/v1/memory").respond(
@@ -39,7 +39,7 @@ def test_store_posts_to_memory_returns_id_embedding(
 
 
 def test_search_posts_to_memory_search_returns_hit_list(
-    make_client: Callable[..., PraxisClient],
+    make_client: Callable[..., ColberClient],
 ) -> None:
     with respx.mock:
         route = respx.post(f"{TEST_BASE_URLS['memory']}/v1/memory/search").respond(
@@ -70,7 +70,7 @@ def test_search_posts_to_memory_search_returns_hit_list(
 
 
 def test_retrieve_gets_memory_id_with_caller_did(
-    make_client: Callable[..., PraxisClient],
+    make_client: Callable[..., ColberClient],
 ) -> None:
     with respx.mock:
         route = respx.get(f"{TEST_BASE_URLS['memory']}/v1/memory/{ID}").respond(
@@ -99,7 +99,7 @@ def test_retrieve_gets_memory_id_with_caller_did(
 
 
 def test_update_patches_memory_id_with_partial_body(
-    make_client: Callable[..., PraxisClient],
+    make_client: Callable[..., ColberClient],
 ) -> None:
     with respx.mock:
         route = respx.patch(f"{TEST_BASE_URLS['memory']}/v1/memory/{ID}").respond(
@@ -120,7 +120,7 @@ def test_update_patches_memory_id_with_partial_body(
 
 
 def test_share_posts_to_memory_id_share_with_share_list(
-    make_client: Callable[..., PraxisClient],
+    make_client: Callable[..., ColberClient],
 ) -> None:
     with respx.mock:
         route = respx.post(f"{TEST_BASE_URLS['memory']}/v1/memory/{ID}/share").respond(

@@ -1,11 +1,11 @@
 /**
- * Wire envelope used by every Praxis service.
+ * Wire envelope used by every Colber service.
  *
  * Success: `{ ok: true, data: T }`
  * Failure: `{ ok: false, error: { code, message, details?, traceId? } }`
  *
  * The SDK unwraps the envelope and surfaces `data` directly to callers, or
- * throws `PraxisApiError` carrying the structured error fields.
+ * throws `ColberApiError` carrying the structured error fields.
  */
 
 export interface ApiErrorBody {

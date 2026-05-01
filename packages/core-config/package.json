@@ -1,9 +1,9 @@
 {
-  "name": "@praxis/core-config",
+  "name": "@colber/core-config",
   "version": "0.1.0",
   "private": true,
-  "license": "UNLICENSED",
-  "description": "Environment loading + validation (zod-based) for Praxis services.",
+  "license": "Apache-2.0",
+  "description": "Environment loading + validation (zod-based) for Colber services.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -30,8 +30,8 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@praxis/eslint-config": "workspace:*",
-    "@praxis/tsconfig": "workspace:*",
+    "@colber/eslint-config": "workspace:*",
+    "@colber/tsconfig": "workspace:*",
     "@types/node": "^22.9.0",
     "@vitest/coverage-v8": "^2.1.5",
     "eslint": "^9.15.0",

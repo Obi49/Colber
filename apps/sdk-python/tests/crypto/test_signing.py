@@ -14,18 +14,18 @@ import base64
 
 import pytest
 
-from praxis_sdk.crypto import (
+from colber_sdk.crypto import (
     canonicalize_jcs,
     generate_did_key,
     sign_message,
     verify_signature,
 )
-from praxis_sdk.crypto._codec import to_base64
+from colber_sdk.crypto._codec import to_base64
 
 
 def test_round_trip_sign_then_verify_succeeds() -> None:
     g = generate_did_key()
-    message = b"hello praxis"
+    message = b"hello colber"
     sig = sign_message(g.secret_key_b64, message)
     assert verify_signature(g.public_key_b64, message, sig) is True
 
@@ -38,8 +38,8 @@ def test_signs_over_a_string_transparently_utf8_encoded() -> None:
 
 def test_returns_false_on_a_tampered_message() -> None:
     g = generate_did_key()
-    sig = sign_message(g.secret_key_b64, "hello praxis")
-    assert verify_signature(g.public_key_b64, "hello praxis!", sig) is False
+    sig = sign_message(g.secret_key_b64, "hello colber")
+    assert verify_signature(g.public_key_b64, "hello colber!", sig) is False
 
 
 def test_returns_false_on_a_wrong_public_key() -> None:

@@ -3,9 +3,9 @@
  * service tests. Keeping URLs stable lets MSW handlers be defined ergonomically.
  */
 
-import { PraxisClient } from '../src/client.js';
+import { ColberClient } from '../src/client.js';
 
-import type { PraxisClientOptions } from '../src/client.js';
+import type { ColberClientOptions } from '../src/client.js';
 import type { BaseUrls } from '../src/types.js';
 
 export const TEST_BASE_URLS: BaseUrls = {
@@ -24,8 +24,8 @@ export const TEST_BASE_URLS: BaseUrls = {
  *
  * `sleep` is a no-op so retry-tests don't pause the suite.
  */
-export const makeClient = (overrides: Partial<PraxisClientOptions> = {}): PraxisClient =>
-  new PraxisClient({
+export const makeClient = (overrides: Partial<ColberClientOptions> = {}): ColberClient =>
+  new ColberClient({
     baseUrls: TEST_BASE_URLS,
     timeoutMs: 1_000,
     retries: { count: 0, backoffMs: 1 },

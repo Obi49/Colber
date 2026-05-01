@@ -8,7 +8,7 @@ from urllib.parse import parse_qs, urlparse
 
 import respx
 
-from praxis_sdk import PraxisClient
+from colber_sdk import ColberClient
 
 from .._helpers import TEST_BASE_URLS
 
@@ -35,7 +35,7 @@ SAMPLE_ALERT_RESPONSE = {
 
 
 def test_ingest_logs_posts_logs_returns_accept_count(
-    make_client: Callable[..., PraxisClient],
+    make_client: Callable[..., ColberClient],
 ) -> None:
     with respx.mock:
         respx.post(f"{TEST_BASE_URLS['observability']}/v1/observability/logs").respond(
@@ -46,7 +46,7 @@ def test_ingest_logs_posts_logs_returns_accept_count(
         assert r.accepted == 2
 
 
-def test_ingest_spans_posts_traces(make_client: Callable[..., PraxisClient]) -> None:
+def test_ingest_spans_posts_traces(make_client: Callable[..., ColberClient]) -> None:
     with respx.mock:
         route = respx.post(f"{TEST_BASE_URLS['observability']}/v1/observability/traces").respond(
             status_code=202, json={"ok": True, "data": {"accepted": 1, "rejected": []}}
@@ -58,7 +58,7 @@ def test_ingest_spans_posts_traces(make_client: Callable[..., PraxisClient]) -> 
 
 
 def test_query_posts_query_with_structured_filters(
-    make_client: Callable[..., PraxisClient],
+    make_client: Callable[..., ColberClient],
 ) -> None:
     with respx.mock:
         respx.post(f"{TEST_BASE_URLS['observability']}/v1/observability/query").respond(
@@ -75,7 +75,7 @@ def test_query_posts_query_with_structured_filters(
 
 
 def test_list_alerts_gets_alerts_with_operator_id(
-    make_client: Callable[..., PraxisClient],
+    make_client: Callable[..., ColberClient],
 ) -> None:
     with respx.mock:
         route = respx.get(f"{TEST_BASE_URLS['observability']}/v1/observability/alerts").respond(
@@ -89,7 +89,7 @@ def test_list_alerts_gets_alerts_with_operator_id(
 
 
 def test_create_alert_posts_alerts_returns_rule(
-    make_client: Callable[..., PraxisClient],
+    make_client: Callable[..., ColberClient],
 ) -> None:
     with respx.mock:
         respx.post(f"{TEST_BASE_URLS['observability']}/v1/observability/alerts").respond(
@@ -106,7 +106,7 @@ def test_create_alert_posts_alerts_returns_rule(
         assert r.owner_operator_id == "op-1"
 
 
-def test_get_alert_gets_alerts_id(make_client: Callable[..., PraxisClient]) -> None:
+def test_get_alert_gets_alerts_id(make_client: Callable[..., ColberClient]) -> None:
     with respx.mock:
         route = respx.get(
             f"{TEST_BASE_URLS['observability']}/v1/observability/alerts/{ALERT_ID}"
@@ -119,7 +119,7 @@ def test_get_alert_gets_alerts_id(make_client: Callable[..., PraxisClient]) -> N
 
 
 def test_patch_alert_patches_alerts_id(
-    make_client: Callable[..., PraxisClient],
+    make_client: Callable[..., ColberClient],
 ) -> None:
     with respx.mock:
         route = respx.patch(
@@ -133,7 +133,7 @@ def test_patch_alert_patches_alerts_id(
 
 
 def test_delete_alert_deletes_alerts_id_resolves_on_204(
-    make_client: Callable[..., PraxisClient],
+    make_client: Callable[..., ColberClient],
 ) -> None:
     with respx.mock:
         route = respx.delete(

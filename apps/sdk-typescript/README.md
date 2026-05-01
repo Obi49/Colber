@@ -1,28 +1,28 @@
-# @praxis/sdk
+# @colber/sdk
 
-Official TypeScript SDK for the [Praxis](https://github.com/Obi49/Praxis) platform — typed clients for the six v1 services (`identity`, `reputation`, `memory`, `observability`, `negotiation`, `insurance`) plus the platform crypto primitives (`did:key` Ed25519, RFC 8785 JCS canonicalization, signing helpers).
+Official TypeScript SDK for the [Colber](https://github.com/Obi49/Colber) platform — typed clients for the six v1 services (`identity`, `reputation`, `memory`, `observability`, `negotiation`, `insurance`) plus the platform crypto primitives (`did:key` Ed25519, RFC 8785 JCS canonicalization, signing helpers).
 
 Zero-runtime-dep beyond `@noble/ed25519`. Native `fetch` (Node 20+, Bun, Deno, browsers). ESM + CJS dual-export.
 
 ## Install
 
 ```bash
-pnpm add @praxis/sdk
+pnpm add @colber/sdk
 # or
-npm install @praxis/sdk
+npm install @colber/sdk
 ```
 
 ## Quick start
 
 ```ts
-import { PraxisClient } from '@praxis/sdk';
-import { generateDidKey, signMessage, canonicalizeJcs } from '@praxis/sdk/crypto';
+import { ColberClient } from '@colber/sdk';
+import { generateDidKey, signMessage, canonicalizeJcs } from '@colber/sdk/crypto';
 
 // 1) Mint a fresh DID + keypair (Ed25519, did:key method).
 const { did, publicKeyBase64, secretKeyBase64 } = await generateDidKey();
 
 // 2) Point the client at your services.
-const client = new PraxisClient({
+const client = new ColberClient({
   baseUrls: {
     identity: 'http://localhost:14001',
     reputation: 'http://localhost:14011',
@@ -45,15 +45,15 @@ const sig = await signMessage(secretKeyBase64, canonicalizeJcs({ did, score: sco
 ## Convenience constructors
 
 ```ts
-PraxisClient.local(); // localhost ports 14001..14051
-PraxisClient.fromBaseUrl('https://api.praxis.dev'); // future ingress; PROVISIONAL
+ColberClient.local(); // localhost ports 14001..14051
+ColberClient.fromBaseUrl('https://api.colber.dev'); // future ingress; PROVISIONAL
 ```
 
 ## Errors
 
-- `PraxisApiError` — service returned `{ ok: false, error: { code, message, details? } }` (4xx/5xx).
-- `PraxisNetworkError` — fetch threw, response was not JSON, or the request timed out (`code: 'TIMEOUT'`).
-- `PraxisValidationError` — local request shape couldn't be sent (rare; reserved for future client-side checks).
+- `ColberApiError` — service returned `{ ok: false, error: { code, message, details? } }` (4xx/5xx).
+- `ColberNetworkError` — fetch threw, response was not JSON, or the request timed out (`code: 'TIMEOUT'`).
+- `ColberValidationError` — local request shape couldn't be sent (rare; reserved for future client-side checks).
 
 ## Idempotency
 

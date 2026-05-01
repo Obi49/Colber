@@ -2,18 +2,18 @@
  * Error classes thrown by the SDK.
  *
  * Three layers, mutually exclusive at the `instanceof` level:
- *   - `PraxisApiError`         — service responded with `{ ok: false, error }`
+ *   - `ColberApiError`         — service responded with `{ ok: false, error }`
  *                                 or a non-2xx the SDK couldn't parse as JSON.
- *   - `PraxisNetworkError`     — fetch threw, body parse failed, or timeout.
- *   - `PraxisValidationError`  — local SDK rejected the call before sending.
+ *   - `ColberNetworkError`     — fetch threw, body parse failed, or timeout.
+ *   - `ColberValidationError`  — local SDK rejected the call before sending.
  *
- * All three extend `PraxisError` so callers can do a single base catch.
+ * All three extend `ColberError` so callers can do a single base catch.
  */
 
 import type { ApiErrorBody } from './envelope.js';
 
-export class PraxisError extends Error {
-  public override readonly name: string = 'PraxisError';
+export class ColberError extends Error {
+  public override readonly name: string = 'ColberError';
 
   constructor(message: string, options?: ErrorOptions) {
     super(message, options);
@@ -21,7 +21,7 @@ export class PraxisError extends Error {
   }
 }
 
-export interface PraxisApiErrorInit {
+export interface ColberApiErrorInit {
   readonly code: string;
   readonly message: string;
   readonly status: number;
@@ -34,14 +34,14 @@ export interface PraxisApiErrorInit {
  * response. Carries the wire fields verbatim so callers can branch on
  * `code` (e.g. `VALIDATION_FAILED`, `NOT_FOUND`, `IDEMPOTENCY_REPLAY`).
  */
-export class PraxisApiError extends PraxisError {
-  public override readonly name = 'PraxisApiError';
+export class ColberApiError extends ColberError {
+  public override readonly name = 'ColberApiError';
   public readonly code: string;
   public readonly status: number;
   public readonly details?: Readonly<Record<string, unknown>>;
   public readonly traceId?: string;
 
-  constructor(init: PraxisApiErrorInit) {
+  constructor(init: ColberApiErrorInit) {
     super(init.message);
     this.code = init.code;
     this.status = init.status;
@@ -54,8 +54,8 @@ export class PraxisApiError extends PraxisError {
   }
 
   /** Construct from a parsed `{ ok: false, error: ... }` envelope. */
-  public static fromBody(status: number, body: ApiErrorBody): PraxisApiError {
-    return new PraxisApiError({
+  public static fromBody(status: number, body: ApiErrorBody): ColberApiError {
+    return new ColberApiError({
       code: body.code,
       message: body.message,
       status,
@@ -77,32 +77,32 @@ export class PraxisApiError extends PraxisError {
   }
 }
 
-export type PraxisNetworkErrorCode =
+export type ColberNetworkErrorCode =
   | 'TIMEOUT'
   | 'FETCH_FAILED'
   | 'INVALID_RESPONSE'
   | 'INVALID_JSON';
 
-export interface PraxisNetworkErrorInit {
-  readonly code: PraxisNetworkErrorCode;
+export interface ColberNetworkErrorInit {
+  readonly code: ColberNetworkErrorCode;
   readonly message: string;
   readonly cause?: unknown;
 }
 
 /** Thrown for transport-level failures: fetch threw, timeout, malformed body. */
-export class PraxisNetworkError extends PraxisError {
-  public override readonly name = 'PraxisNetworkError';
-  public readonly code: PraxisNetworkErrorCode;
+export class ColberNetworkError extends ColberError {
+  public override readonly name = 'ColberNetworkError';
+  public readonly code: ColberNetworkErrorCode;
 
-  constructor(init: PraxisNetworkErrorInit) {
+  constructor(init: ColberNetworkErrorInit) {
     super(init.message, init.cause !== undefined ? { cause: init.cause } : undefined);
     this.code = init.code;
   }
 }
 
 /** Thrown when the SDK rejects the call locally (currently unused; reserved). */
-export class PraxisValidationError extends PraxisError {
-  public override readonly name = 'PraxisValidationError';
+export class ColberValidationError extends ColberError {
+  public override readonly name = 'ColberValidationError';
   public readonly path?: string;
 
   constructor(message: string, path?: string) {

@@ -5,9 +5,7 @@ import { z } from 'zod';
  * Services compose these into their own schema (see e.g. `apps/agent-identity/src/config.ts`).
  */
 
-export const NodeEnvSchema = z
-  .enum(['development', 'test', 'production'])
-  .default('development');
+export const NodeEnvSchema = z.enum(['development', 'test', 'production']).default('development');
 
 export const LogLevelSchema = z
   .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
@@ -24,7 +22,7 @@ export const PostgresUrlSchema = z
     message: 'Must be a postgres:// or postgresql:// URL',
   });
 
-/** Common base every Praxis service shares. */
+/** Common base every Colber service shares. */
 export const BaseServiceEnvSchema = z.object({
   NODE_ENV: NodeEnvSchema,
   LOG_LEVEL: LogLevelSchema,

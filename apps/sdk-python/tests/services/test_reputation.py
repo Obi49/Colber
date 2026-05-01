@@ -8,8 +8,8 @@ from urllib.parse import parse_qs, urlparse
 
 import respx
 
-from praxis_sdk import PraxisClient
-from praxis_sdk.services.reputation import FeedbackDimensions
+from colber_sdk import ColberClient
+from colber_sdk.services.reputation import FeedbackDimensions
 
 from .._helpers import TEST_BASE_URLS
 
@@ -18,7 +18,7 @@ DID = "did:key:zbar"
 
 class TestScore:
     def test_gets_score_did_and_returns_signed_envelope(
-        self, make_client: Callable[..., PraxisClient]
+        self, make_client: Callable[..., ColberClient]
     ) -> None:
         with respx.mock:
             respx.get(
@@ -44,7 +44,7 @@ class TestScore:
 
 class TestHistory:
     def test_gets_history_did_with_optional_query_params(
-        self, make_client: Callable[..., PraxisClient]
+        self, make_client: Callable[..., ColberClient]
     ) -> None:
         with respx.mock:
             route = respx.get(
@@ -67,7 +67,7 @@ class TestHistory:
             assert qs["limit"] == ["25"]
             assert qs["cursor"] == ["abc"]
 
-    def test_omits_absent_optional_params(self, make_client: Callable[..., PraxisClient]) -> None:
+    def test_omits_absent_optional_params(self, make_client: Callable[..., ColberClient]) -> None:
         with respx.mock:
             route = respx.get(
                 f"{TEST_BASE_URLS['reputation']}/v1/reputation/history/{DID.replace(':', '%3A')}"
@@ -90,7 +90,7 @@ class TestHistory:
 
 class TestVerify:
     def test_posts_score_attestation_pair_to_verify(
-        self, make_client: Callable[..., PraxisClient]
+        self, make_client: Callable[..., ColberClient]
     ) -> None:
         with respx.mock:
             route = respx.post(f"{TEST_BASE_URLS['reputation']}/v1/reputation/verify").respond(
@@ -119,7 +119,7 @@ class TestVerify:
 
 
 class TestSubmitFeedback:
-    def test_posts_signed_feedback_envelope(self, make_client: Callable[..., PraxisClient]) -> None:
+    def test_posts_signed_feedback_envelope(self, make_client: Callable[..., ColberClient]) -> None:
         with respx.mock:
             route = respx.post(f"{TEST_BASE_URLS['reputation']}/v1/reputation/feedback").respond(
                 status_code=201,
@@ -149,7 +149,7 @@ class TestSubmitFeedback:
             assert r.accepted is True
             assert r.feedback_id == "00000000-0000-0000-0000-000000000001"
 
-    def test_forwards_optional_comment(self, make_client: Callable[..., PraxisClient]) -> None:
+    def test_forwards_optional_comment(self, make_client: Callable[..., ColberClient]) -> None:
         with respx.mock:
             route = respx.post(f"{TEST_BASE_URLS['reputation']}/v1/reputation/feedback").respond(
                 status_code=201,

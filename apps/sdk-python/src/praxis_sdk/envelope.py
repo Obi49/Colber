@@ -1,10 +1,10 @@
-"""Wire envelope used by every Praxis service.
+"""Wire envelope used by every Colber service.
 
 Success: ``{"ok": true, "data": <T>}``
 Failure: ``{"ok": false, "error": {"code", "message", "details"?, "traceId"?}}``
 
 The SDK unwraps the envelope and surfaces ``data`` directly to callers, or
-raises :class:`praxis_sdk.errors.PraxisApiError` carrying the structured
+raises :class:`colber_sdk.errors.ColberApiError` carrying the structured
 error fields.
 
 This module mirrors ``apps/sdk-typescript/src/envelope.ts`` byte-for-byte

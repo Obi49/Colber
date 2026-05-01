@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from praxis_sdk.envelope import is_error_envelope, is_ok_envelope
+from colber_sdk.envelope import is_error_envelope, is_ok_envelope
 
 
 class TestIsOkEnvelope:

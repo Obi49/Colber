@@ -8,7 +8,7 @@ from urllib.parse import parse_qs, urlparse
 
 import respx
 
-from praxis_sdk import PraxisClient
+from colber_sdk import ColberClient
 
 from .._helpers import TEST_BASE_URLS
 
@@ -35,7 +35,7 @@ SAMPLE_VIEW = {
 
 class TestStart:
     def test_posts_to_negotiation_with_idempotency_key_in_body(
-        self, make_client: Callable[..., PraxisClient]
+        self, make_client: Callable[..., ColberClient]
     ) -> None:
         with respx.mock:
             route = respx.post(f"{TEST_BASE_URLS['negotiation']}/v1/negotiation").respond(
@@ -58,7 +58,7 @@ class TestStart:
             assert body["terms"]["partyDids"] == ["did:key:zA", "did:key:zB"]
 
     def test_returns_same_view_on_idempotent_replay(
-        self, make_client: Callable[..., PraxisClient]
+        self, make_client: Callable[..., ColberClient]
     ) -> None:
         with respx.mock:
             respx.post(f"{TEST_BASE_URLS['negotiation']}/v1/negotiation").respond(
@@ -79,7 +79,7 @@ class TestStart:
 
 
 def test_get_gets_negotiation_id(
-    make_client: Callable[..., PraxisClient],
+    make_client: Callable[..., ColberClient],
 ) -> None:
     with respx.mock:
         respx.get(f"{TEST_BASE_URLS['negotiation']}/v1/negotiation/{NID}").respond(
@@ -91,7 +91,7 @@ def test_get_gets_negotiation_id(
 
 
 def test_history_gets_history_with_cursor_limit(
-    make_client: Callable[..., PraxisClient],
+    make_client: Callable[..., ColberClient],
 ) -> None:
     with respx.mock:
         route = respx.get(f"{TEST_BASE_URLS['negotiation']}/v1/negotiation/{NID}/history").respond(
@@ -106,7 +106,7 @@ def test_history_gets_history_with_cursor_limit(
 
 
 def test_propose_posts_propose_with_proposal_and_public_key(
-    make_client: Callable[..., PraxisClient],
+    make_client: Callable[..., ColberClient],
 ) -> None:
     with respx.mock:
         route = respx.post(f"{TEST_BASE_URLS['negotiation']}/v1/negotiation/{NID}/propose").respond(
@@ -130,7 +130,7 @@ def test_propose_posts_propose_with_proposal_and_public_key(
 
 
 def test_counter_posts_counter_with_counter_to(
-    make_client: Callable[..., PraxisClient],
+    make_client: Callable[..., ColberClient],
 ) -> None:
     with respx.mock:
         route = respx.post(f"{TEST_BASE_URLS['negotiation']}/v1/negotiation/{NID}/counter").respond(
@@ -154,7 +154,7 @@ def test_counter_posts_counter_with_counter_to(
 
 
 def test_settle_omits_winning_proposal_id_when_not_provided(
-    make_client: Callable[..., PraxisClient],
+    make_client: Callable[..., ColberClient],
 ) -> None:
     with respx.mock:
         route = respx.post(f"{TEST_BASE_URLS['negotiation']}/v1/negotiation/{NID}/settle").respond(
@@ -171,7 +171,7 @@ def test_settle_omits_winning_proposal_id_when_not_provided(
 
 
 def test_settle_forwards_winning_proposal_id_when_provided(
-    make_client: Callable[..., PraxisClient],
+    make_client: Callable[..., ColberClient],
 ) -> None:
     with respx.mock:
         route = respx.post(f"{TEST_BASE_URLS['negotiation']}/v1/negotiation/{NID}/settle").respond(

@@ -1,4 +1,4 @@
-"""``PraxisClient`` — the main entry point of the SDK.
+"""``ColberClient`` — the main entry point of the SDK.
 
 Bundles one typed client per service, sharing a single httpx session
 configured with timeout / retry / auth. The constructor accepts a fully
@@ -28,7 +28,7 @@ from .types import BaseUrls, RetryConfig, ServiceName
 DEFAULT_TIMEOUT_S = 5.0
 DEFAULT_RETRIES = RetryConfig(count=2, backoff_ms=100)
 
-#: Default β-VM ports used by :meth:`PraxisClient.local`.
+#: Default β-VM ports used by :meth:`ColberClient.local`.
 DEFAULT_LOCAL_PORTS: dict[ServiceName, int] = {
     "identity": 14001,
     "reputation": 14011,
@@ -38,7 +38,7 @@ DEFAULT_LOCAL_PORTS: dict[ServiceName, int] = {
     "insurance": 14051,
 }
 
-#: Path mapping used by :meth:`PraxisClient.from_base_url` (PROVISIONAL).
+#: Path mapping used by :meth:`ColberClient.from_base_url` (PROVISIONAL).
 DEFAULT_INGRESS_PATHS: dict[ServiceName, str] = {
     "identity": "/identity",
     "reputation": "/reputation",
@@ -49,7 +49,7 @@ DEFAULT_INGRESS_PATHS: dict[ServiceName, str] = {
 }
 
 
-class PraxisClient:
+class ColberClient:
     """The main entry point. Call ``.identity``, ``.reputation``, etc."""
 
     identity: IdentityService
@@ -128,7 +128,7 @@ class PraxisClient:
             self._owned_client.close()
             self._owned_client = None
 
-    def __enter__(self) -> PraxisClient:
+    def __enter__(self) -> ColberClient:
         return self
 
     def __exit__(self, *_exc: object) -> None:
@@ -143,10 +143,10 @@ class PraxisClient:
         retries: RetryConfig | dict[str, int] | None = None,
         auth_token: str | None = None,
         sleep: Callable[[float], None] | None = None,
-    ) -> PraxisClient:
+    ) -> ColberClient:
         """Return a client wired to the default β-VM ports on ``localhost``.
 
-        Handy for local dev against ``praxis-stack/docker-compose.services.yml``.
+        Handy for local dev against ``colber-stack/docker-compose.services.yml``.
         """
         base_urls: BaseUrls = {
             "identity": f"http://localhost:{DEFAULT_LOCAL_PORTS['identity']}",
@@ -175,12 +175,12 @@ class PraxisClient:
         retries: RetryConfig | dict[str, int] | None = None,
         auth_token: str | None = None,
         sleep: Callable[[float], None] | None = None,
-    ) -> PraxisClient:
+    ) -> ColberClient:
         """Return a client where every service is reached via path-based
         routing under a single base.
 
-        Example: ``https://api.praxis.dev/identity``,
-        ``https://api.praxis.dev/reputation``, ...
+        Example: ``https://api.colber.dev/identity``,
+        ``https://api.colber.dev/reputation``, ...
 
         **PROVISIONAL** — assumes a future ingress configuration. The v1
         deployment exposes each service on a dedicated port; use the

@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import pytest
 
-from praxis_sdk.crypto import (
+from colber_sdk.crypto import (
     encode_did_key,
     from_base64,
     generate_did_key,
     parse_did_key,
 )
-from praxis_sdk.crypto._codec import to_base58btc
+from colber_sdk.crypto._codec import to_base58btc
 
 
 def test_generates_a_fresh_did_and_base64_keypair() -> None:

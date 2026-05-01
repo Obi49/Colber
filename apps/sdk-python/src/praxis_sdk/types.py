@@ -25,7 +25,7 @@ class BaseUrls(TypedDict):
     """Map from service name to base URL.
 
     Mirrors the TS ``BaseUrls`` type. Pass an instance to
-    :class:`praxis_sdk.PraxisClient` to wire each typed sub-client.
+    :class:`colber_sdk.ColberClient` to wire each typed sub-client.
     """
 
     identity: str

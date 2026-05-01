@@ -3,14 +3,14 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { TEST_BASE_URLS, makeClient } from './fixtures.js';
 import { server } from './msw-server.js';
-import { PraxisClient, DEFAULT_INGRESS_PATHS, DEFAULT_LOCAL_PORTS } from '../src/client.js';
-import { PraxisApiError, PraxisNetworkError } from '../src/errors.js';
+import { ColberClient, DEFAULT_INGRESS_PATHS, DEFAULT_LOCAL_PORTS } from '../src/client.js';
+import { ColberApiError, ColberNetworkError } from '../src/errors.js';
 import { buildUrl } from '../src/http.js';
 
-describe('PraxisClient', () => {
+describe('ColberClient', () => {
   describe('constructor', () => {
     it('uses globalThis.fetch by default and keeps services attached', () => {
-      const c = new PraxisClient({ baseUrls: TEST_BASE_URLS });
+      const c = new ColberClient({ baseUrls: TEST_BASE_URLS });
       expect(c.identity).toBeDefined();
       expect(c.reputation).toBeDefined();
       expect(c.memory).toBeDefined();
@@ -49,8 +49,8 @@ describe('PraxisClient', () => {
 
   describe('local() factory', () => {
     it('points each service at the documented β-VM port', () => {
-      const c = PraxisClient.local();
-      expect(c).toBeInstanceOf(PraxisClient);
+      const c = ColberClient.local();
+      expect(c).toBeInstanceOf(ColberClient);
       // Sanity-check the documented default map didn't drift.
       expect(DEFAULT_LOCAL_PORTS.identity).toBe(14001);
       expect(DEFAULT_LOCAL_PORTS.insurance).toBe(14051);
@@ -59,22 +59,22 @@ describe('PraxisClient', () => {
 
   describe('fromBaseUrl() factory', () => {
     it('resolves each service via path-based routing under a single base', () => {
-      const c = PraxisClient.fromBaseUrl('https://api.praxis.dev');
-      expect(c).toBeInstanceOf(PraxisClient);
+      const c = ColberClient.fromBaseUrl('https://api.colber.dev');
+      expect(c).toBeInstanceOf(ColberClient);
       expect(DEFAULT_INGRESS_PATHS.identity).toBe('/identity');
       expect(DEFAULT_INGRESS_PATHS.insurance).toBe('/insurance');
     });
 
     it('strips trailing slashes from the base URL', () => {
-      const c = PraxisClient.fromBaseUrl('https://api.praxis.dev/');
-      expect(c).toBeInstanceOf(PraxisClient);
+      const c = ColberClient.fromBaseUrl('https://api.colber.dev/');
+      expect(c).toBeInstanceOf(ColberClient);
     });
   });
 });
 
 describe('http transport behaviour', () => {
   describe('error envelope handling', () => {
-    it('throws PraxisApiError with structured fields on { ok: false, error }', async () => {
+    it('throws ColberApiError with structured fields on { ok: false, error }', async () => {
       server.use(
         http.get(`${TEST_BASE_URLS.identity}/v1/identity/:did`, () =>
           HttpResponse.json(
@@ -93,7 +93,7 @@ describe('http transport behaviour', () => {
       );
       const client = makeClient();
       await expect(client.identity.resolve('did:key:zfoo')).rejects.toMatchObject({
-        name: 'PraxisApiError',
+        name: 'ColberApiError',
         code: 'NOT_FOUND',
         status: 404,
         details: { did: 'did:key:zfoo' },
@@ -101,17 +101,17 @@ describe('http transport behaviour', () => {
       });
     });
 
-    it('throws PraxisApiError with HTTP_ERROR code when body is not an envelope', async () => {
+    it('throws ColberApiError with HTTP_ERROR code when body is not an envelope', async () => {
       server.use(
         http.get(`${TEST_BASE_URLS.identity}/v1/identity/:did`, () =>
           HttpResponse.json({ unrelated: true }, { status: 502 }),
         ),
       );
       const client = makeClient();
-      await expect(client.identity.resolve('did:key:zfoo')).rejects.toBeInstanceOf(PraxisApiError);
+      await expect(client.identity.resolve('did:key:zfoo')).rejects.toBeInstanceOf(ColberApiError);
     });
 
-    it('throws PraxisNetworkError on a non-JSON 2xx body', async () => {
+    it('throws ColberNetworkError on a non-JSON 2xx body', async () => {
       server.use(
         http.get(`${TEST_BASE_URLS.identity}/v1/identity/:did`, () =>
           HttpResponse.text('not json'),
@@ -119,11 +119,11 @@ describe('http transport behaviour', () => {
       );
       const client = makeClient();
       await expect(client.identity.resolve('did:key:zfoo')).rejects.toBeInstanceOf(
-        PraxisNetworkError,
+        ColberNetworkError,
       );
     });
 
-    it('throws PraxisNetworkError(INVALID_RESPONSE) on a 2xx with wrong shape', async () => {
+    it('throws ColberNetworkError(INVALID_RESPONSE) on a 2xx with wrong shape', async () => {
       server.use(
         http.get(`${TEST_BASE_URLS.identity}/v1/identity/:did`, () =>
           HttpResponse.json({ unrelated: true }),
@@ -131,8 +131,8 @@ describe('http transport behaviour', () => {
       );
       const client = makeClient();
       const err: unknown = await client.identity.resolve('did:key:zfoo').catch((e: unknown) => e);
-      expect(err).toBeInstanceOf(PraxisNetworkError);
-      expect((err as PraxisNetworkError).code).toBe('INVALID_RESPONSE');
+      expect(err).toBeInstanceOf(ColberNetworkError);
+      expect((err as ColberNetworkError).code).toBe('INVALID_RESPONSE');
     });
   });
 
@@ -149,7 +149,7 @@ describe('http transport behaviour', () => {
         }),
       );
       const client = makeClient({ retries: { count: 2, backoffMs: 1 } });
-      await expect(client.identity.resolve('did:key:zfoo')).rejects.toBeInstanceOf(PraxisApiError);
+      await expect(client.identity.resolve('did:key:zfoo')).rejects.toBeInstanceOf(ColberApiError);
       // initial attempt + 2 retries == 3.
       expect(calls).toBe(3);
     });
@@ -166,7 +166,7 @@ describe('http transport behaviour', () => {
         }),
       );
       const client = makeClient({ retries: { count: 5, backoffMs: 1 } });
-      await expect(client.identity.resolve('did:key:zfoo')).rejects.toBeInstanceOf(PraxisApiError);
+      await expect(client.identity.resolve('did:key:zfoo')).rejects.toBeInstanceOf(ColberApiError);
       expect(calls).toBe(1);
     });
 
@@ -203,7 +203,7 @@ describe('http transport behaviour', () => {
   });
 
   describe('timeout behaviour', () => {
-    it('throws PraxisNetworkError(TIMEOUT) when the request exceeds timeoutMs', async () => {
+    it('throws ColberNetworkError(TIMEOUT) when the request exceeds timeoutMs', async () => {
       server.use(
         http.get(`${TEST_BASE_URLS.identity}/v1/identity/:did`, async () => {
           await new Promise((r) => setTimeout(r, 200));
@@ -212,8 +212,8 @@ describe('http transport behaviour', () => {
       );
       const client = makeClient({ timeoutMs: 30, retries: { count: 0, backoffMs: 1 } });
       const err: unknown = await client.identity.resolve('did:key:zfoo').catch((e: unknown) => e);
-      expect(err).toBeInstanceOf(PraxisNetworkError);
-      expect((err as PraxisNetworkError).code).toBe('TIMEOUT');
+      expect(err).toBeInstanceOf(ColberNetworkError);
+      expect((err as ColberNetworkError).code).toBe('TIMEOUT');
     });
 
     it('does NOT retry after a timeout (the user budget is already exhausted)', async () => {
@@ -230,7 +230,7 @@ describe('http transport behaviour', () => {
         retries: { count: 3, backoffMs: 1 },
       });
       await expect(client.identity.resolve('did:key:zfoo')).rejects.toBeInstanceOf(
-        PraxisNetworkError,
+        ColberNetworkError,
       );
       expect(calls).toBe(1);
     });

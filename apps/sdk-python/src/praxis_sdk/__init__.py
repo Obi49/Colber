@@ -1,12 +1,12 @@
-"""``praxis_sdk`` — official Python SDK for the Praxis platform.
+"""``colber_sdk`` — official Python SDK for the Colber platform.
 
-Mirror of ``@praxis/sdk@0.1.0`` (TypeScript). Same surface, same wire
+Mirror of ``@colber/sdk@0.1.0`` (TypeScript). Same surface, same wire
 format, same crypto vectors. Synchronous-only in v0.1.0.
 
 Example:
-    >>> from praxis_sdk import PraxisClient
-    >>> from praxis_sdk.crypto import generate_did_key
-    >>> client = PraxisClient.local()
+    >>> from colber_sdk import ColberClient
+    >>> from colber_sdk.crypto import generate_did_key
+    >>> client = ColberClient.local()
     >>> keys = generate_did_key()
 """
 
@@ -15,15 +15,15 @@ from __future__ import annotations
 from .client import (
     DEFAULT_INGRESS_PATHS,
     DEFAULT_LOCAL_PORTS,
-    PraxisClient,
+    ColberClient,
 )
 from .envelope import is_error_envelope, is_ok_envelope
 from .errors import (
-    PraxisApiError,
-    PraxisError,
-    PraxisNetworkError,
-    PraxisNetworkErrorCode,
-    PraxisValidationError,
+    ColberApiError,
+    ColberError,
+    ColberNetworkError,
+    ColberNetworkErrorCode,
+    ColberValidationError,
 )
 from .services.identity import (
     IdentityService,
@@ -125,13 +125,13 @@ __all__ = [
     "PolicyListView",
     "PolicyView",
     # Errors
-    "PraxisApiError",
+    "ColberApiError",
     # Client
-    "PraxisClient",
-    "PraxisError",
-    "PraxisNetworkError",
-    "PraxisNetworkErrorCode",
-    "PraxisValidationError",
+    "ColberClient",
+    "ColberError",
+    "ColberNetworkError",
+    "ColberNetworkErrorCode",
+    "ColberValidationError",
     "QueryResponse",
     "QueryRow",
     "QuoteView",

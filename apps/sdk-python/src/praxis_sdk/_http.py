@@ -26,7 +26,7 @@ from urllib.parse import quote
 import httpx
 
 from .envelope import is_error_envelope, is_ok_envelope
-from .errors import PraxisApiError, PraxisNetworkError
+from .errors import ColberApiError, ColberNetworkError
 from .types import RetryConfig
 
 HttpMethod = Literal["GET", "POST", "PATCH", "DELETE", "PUT"]
@@ -39,7 +39,7 @@ SleepFunc = Callable[[float], None]
 class HttpClientOptions:
     """Bundle of options shared across every service call.
 
-    Constructed once by :class:`PraxisClient` and forwarded into every
+    Constructed once by :class:`ColberClient` and forwarded into every
     service-level call.
     """
 
@@ -112,8 +112,8 @@ def _run_once(
     """Run a single HTTP attempt, including timeout.
 
     Returns the parsed body (already envelope-checked) on 2xx, or raises
-    :class:`PraxisApiError` on a 4xx/5xx with a parseable error envelope.
-    Raises :class:`PraxisNetworkError` on transport failures; the caller
+    :class:`ColberApiError` on a 4xx/5xx with a parseable error envelope.
+    Raises :class:`ColberNetworkError` on transport failures; the caller
     decides whether to retry.
     """
     url = build_url(params.base_url, params.path, params.query)
@@ -136,13 +136,13 @@ def _run_once(
     try:
         response = options.fetch(**request_kwargs)
     except httpx.TimeoutException as cause:
-        raise PraxisNetworkError(
+        raise ColberNetworkError(
             code="TIMEOUT",
             message=f"Request timed out after {options.timeout_s}s: {params.method} {url}",
             cause=cause,
         ) from cause
     except httpx.HTTPError as cause:
-        raise PraxisNetworkError(
+        raise ColberNetworkError(
             code="FETCH_FAILED",
             message=f"fetch failed: {params.method} {url}",
             cause=cause,
@@ -151,7 +151,7 @@ def _run_once(
     # 204 / explicit no-body — short-circuit.
     if params.expect_no_body or response.status_code == 204:
         if not (200 <= response.status_code < 300):
-            raise PraxisApiError(
+            raise ColberApiError(
                 code="HTTP_ERROR",
                 message=f"HTTP {response.status_code} {response.reason_phrase}",
                 status=response.status_code,
@@ -161,7 +161,7 @@ def _run_once(
     try:
         parsed: Any = response.json()
     except (ValueError, _json.JSONDecodeError) as cause:
-        raise PraxisNetworkError(
+        raise ColberNetworkError(
             code="INVALID_JSON",
             message=f"failed to parse JSON response: {params.method} {url}",
             cause=cause,
@@ -169,16 +169,16 @@ def _run_once(
 
     if 200 <= response.status_code < 300:
         if not is_ok_envelope(parsed):
-            raise PraxisNetworkError(
+            raise ColberNetworkError(
                 code="INVALID_RESPONSE",
                 message=f"unexpected response shape (missing ok/data): {params.method} {url}",
             )
         return parsed["data"]
 
     if is_error_envelope(parsed):
-        raise PraxisApiError.from_body(response.status_code, parsed["error"])
+        raise ColberApiError.from_body(response.status_code, parsed["error"])
 
-    raise PraxisApiError(
+    raise ColberApiError(
         code="HTTP_ERROR",
         message=f"HTTP {response.status_code} {response.reason_phrase}",
         status=response.status_code,
@@ -189,8 +189,8 @@ def request(options: HttpClientOptions, params: RequestParams) -> Any:
     """Outer driver — runs ``_run_once`` up to ``retries.count + 1`` times.
 
     Retries on:
-      - :class:`PraxisNetworkError` (except ``TIMEOUT``).
-      - :class:`PraxisApiError` with HTTP 5xx.
+      - :class:`ColberNetworkError` (except ``TIMEOUT``).
+      - :class:`ColberApiError` with HTTP 5xx.
 
     Does NOT retry on:
       - ``TIMEOUT`` (user budget already exhausted).
@@ -206,7 +206,7 @@ def request(options: HttpClientOptions, params: RequestParams) -> Any:
     while attempt < max_attempts:
         try:
             return _run_once(options, params)
-        except (PraxisNetworkError, PraxisApiError) as err:
+        except (ColberNetworkError, ColberApiError) as err:
             last_error = err
 
             is_last = attempt == max_attempts - 1
@@ -214,9 +214,9 @@ def request(options: HttpClientOptions, params: RequestParams) -> Any:
                 break
 
             retriable = False
-            if isinstance(err, PraxisNetworkError):
+            if isinstance(err, ColberNetworkError):
                 retriable = err.code != "TIMEOUT"
-            elif isinstance(err, PraxisApiError):
+            elif isinstance(err, ColberApiError):
                 retriable = _is_retriable_status(err.status)
             if not retriable:
                 break

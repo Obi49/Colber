@@ -13,14 +13,14 @@ import httpx
 import pytest
 import respx
 
-from praxis_sdk import (
+from colber_sdk import (
     DEFAULT_INGRESS_PATHS,
     DEFAULT_LOCAL_PORTS,
-    PraxisApiError,
-    PraxisClient,
-    PraxisNetworkError,
+    ColberApiError,
+    ColberClient,
+    ColberNetworkError,
 )
-from praxis_sdk._http import build_url
+from colber_sdk._http import build_url
 
 from ._helpers import TEST_BASE_URLS
 
@@ -38,9 +38,9 @@ OK_RESOLVE_BODY = {
 }
 
 
-class TestPraxisClientConstructor:
+class TestColberClientConstructor:
     def test_uses_default_httpx_client_and_attaches_services(self, base_urls: Any) -> None:
-        c = PraxisClient(base_urls)
+        c = ColberClient(base_urls)
         try:
             assert c.identity is not None
             assert c.reputation is not None
@@ -51,7 +51,7 @@ class TestPraxisClientConstructor:
         finally:
             c.close()
 
-    def test_accepts_an_injected_fetch(self, make_client: Callable[..., PraxisClient]) -> None:
+    def test_accepts_an_injected_fetch(self, make_client: Callable[..., ColberClient]) -> None:
         with respx.mock:
             respx.get(f"{TEST_BASE_URLS['identity']}/v1/identity/did%3Akey%3Azfoo").respond(
                 json=OK_RESOLVE_BODY
@@ -69,9 +69,9 @@ class TestPraxisClientConstructor:
 
 class TestLocalFactory:
     def test_local_creates_a_client_at_the_documented_ports(self) -> None:
-        c = PraxisClient.local()
+        c = ColberClient.local()
         try:
-            assert isinstance(c, PraxisClient)
+            assert isinstance(c, ColberClient)
             assert DEFAULT_LOCAL_PORTS["identity"] == 14001
             assert DEFAULT_LOCAL_PORTS["insurance"] == 14051
         finally:
@@ -80,25 +80,25 @@ class TestLocalFactory:
 
 class TestFromBaseUrlFactory:
     def test_resolves_each_service_via_path_based_routing(self) -> None:
-        c = PraxisClient.from_base_url("https://api.praxis.dev")
+        c = ColberClient.from_base_url("https://api.colber.dev")
         try:
-            assert isinstance(c, PraxisClient)
+            assert isinstance(c, ColberClient)
             assert DEFAULT_INGRESS_PATHS["identity"] == "/identity"
             assert DEFAULT_INGRESS_PATHS["insurance"] == "/insurance"
         finally:
             c.close()
 
     def test_strips_trailing_slashes_from_the_base_url(self) -> None:
-        c = PraxisClient.from_base_url("https://api.praxis.dev/")
+        c = ColberClient.from_base_url("https://api.colber.dev/")
         try:
-            assert isinstance(c, PraxisClient)
+            assert isinstance(c, ColberClient)
         finally:
             c.close()
 
 
 class TestErrorEnvelopeHandling:
-    def test_throws_praxis_api_error_with_structured_fields(
-        self, make_client: Callable[..., PraxisClient]
+    def test_throws_colber_api_error_with_structured_fields(
+        self, make_client: Callable[..., ColberClient]
     ) -> None:
         with respx.mock:
             respx.get(f"{TEST_BASE_URLS['identity']}/v1/identity/did%3Akey%3Azfoo").respond(
@@ -114,51 +114,51 @@ class TestErrorEnvelopeHandling:
                 },
             )
             client = make_client()
-            with pytest.raises(PraxisApiError) as exc_info:
+            with pytest.raises(ColberApiError) as exc_info:
                 client.identity.resolve("did:key:zfoo")
             assert exc_info.value.code == "NOT_FOUND"
             assert exc_info.value.status == 404
             assert exc_info.value.details == {"did": "did:key:zfoo"}
             assert exc_info.value.trace_id == "t-abc"
 
-    def test_throws_praxis_api_error_with_http_error_code_when_body_is_not_envelope(
-        self, make_client: Callable[..., PraxisClient]
+    def test_throws_colber_api_error_with_http_error_code_when_body_is_not_envelope(
+        self, make_client: Callable[..., ColberClient]
     ) -> None:
         with respx.mock:
             respx.get(f"{TEST_BASE_URLS['identity']}/v1/identity/did%3Akey%3Azfoo").respond(
                 status_code=502, json={"unrelated": True}
             )
             client = make_client()
-            with pytest.raises(PraxisApiError):
+            with pytest.raises(ColberApiError):
                 client.identity.resolve("did:key:zfoo")
 
-    def test_throws_praxis_network_error_on_non_json_2xx_body(
-        self, make_client: Callable[..., PraxisClient]
+    def test_throws_colber_network_error_on_non_json_2xx_body(
+        self, make_client: Callable[..., ColberClient]
     ) -> None:
         with respx.mock:
             respx.get(f"{TEST_BASE_URLS['identity']}/v1/identity/did%3Akey%3Azfoo").respond(
                 content="not json", headers={"content-type": "text/plain"}
             )
             client = make_client()
-            with pytest.raises(PraxisNetworkError):
+            with pytest.raises(ColberNetworkError):
                 client.identity.resolve("did:key:zfoo")
 
-    def test_throws_praxis_network_error_invalid_response_on_2xx_with_wrong_shape(
-        self, make_client: Callable[..., PraxisClient]
+    def test_throws_colber_network_error_invalid_response_on_2xx_with_wrong_shape(
+        self, make_client: Callable[..., ColberClient]
     ) -> None:
         with respx.mock:
             respx.get(f"{TEST_BASE_URLS['identity']}/v1/identity/did%3Akey%3Azfoo").respond(
                 json={"unrelated": True}
             )
             client = make_client()
-            with pytest.raises(PraxisNetworkError) as exc_info:
+            with pytest.raises(ColberNetworkError) as exc_info:
                 client.identity.resolve("did:key:zfoo")
             assert exc_info.value.code == "INVALID_RESPONSE"
 
 
 class TestRetryBehaviour:
     def test_retries_on_5xx_up_to_count_then_throws(
-        self, make_client: Callable[..., PraxisClient]
+        self, make_client: Callable[..., ColberClient]
     ) -> None:
         with respx.mock:
             route = respx.get(f"{TEST_BASE_URLS['identity']}/v1/identity/did%3Akey%3Azfoo").respond(
@@ -166,24 +166,24 @@ class TestRetryBehaviour:
                 json={"ok": False, "error": {"code": "INTERNAL_ERROR", "message": "boom"}},
             )
             client = make_client(retries={"count": 2, "backoff_ms": 1})
-            with pytest.raises(PraxisApiError):
+            with pytest.raises(ColberApiError):
                 client.identity.resolve("did:key:zfoo")
             # initial + 2 retries = 3
             assert route.call_count == 3
 
-    def test_does_not_retry_on_4xx(self, make_client: Callable[..., PraxisClient]) -> None:
+    def test_does_not_retry_on_4xx(self, make_client: Callable[..., ColberClient]) -> None:
         with respx.mock:
             route = respx.get(f"{TEST_BASE_URLS['identity']}/v1/identity/did%3Akey%3Azfoo").respond(
                 status_code=404,
                 json={"ok": False, "error": {"code": "NOT_FOUND", "message": "gone"}},
             )
             client = make_client(retries={"count": 5, "backoff_ms": 1})
-            with pytest.raises(PraxisApiError):
+            with pytest.raises(ColberApiError):
                 client.identity.resolve("did:key:zfoo")
             assert route.call_count == 1
 
     def test_returns_success_after_a_transient_5xx_then_a_200(
-        self, make_client: Callable[..., PraxisClient]
+        self, make_client: Callable[..., ColberClient]
     ) -> None:
         with respx.mock:
             route = respx.get(f"{TEST_BASE_URLS['identity']}/v1/identity/did%3Akey%3Azfoo")
@@ -204,32 +204,32 @@ class TestRetryBehaviour:
 
 
 class TestTimeoutBehaviour:
-    def test_throws_praxis_network_error_timeout_on_timeout(
-        self, make_client: Callable[..., PraxisClient]
+    def test_throws_colber_network_error_timeout_on_timeout(
+        self, make_client: Callable[..., ColberClient]
     ) -> None:
         with respx.mock:
             respx.get(f"{TEST_BASE_URLS['identity']}/v1/identity/did%3Akey%3Azfoo").mock(
                 side_effect=httpx.TimeoutException("slow")
             )
             client = make_client(timeout_s=0.05, retries={"count": 0, "backoff_ms": 1})
-            with pytest.raises(PraxisNetworkError) as exc_info:
+            with pytest.raises(ColberNetworkError) as exc_info:
                 client.identity.resolve("did:key:zfoo")
             assert exc_info.value.code == "TIMEOUT"
 
-    def test_does_not_retry_after_a_timeout(self, make_client: Callable[..., PraxisClient]) -> None:
+    def test_does_not_retry_after_a_timeout(self, make_client: Callable[..., ColberClient]) -> None:
         with respx.mock:
             route = respx.get(f"{TEST_BASE_URLS['identity']}/v1/identity/did%3Akey%3Azfoo").mock(
                 side_effect=httpx.TimeoutException("slow")
             )
             client = make_client(timeout_s=0.05, retries={"count": 3, "backoff_ms": 1})
-            with pytest.raises(PraxisNetworkError):
+            with pytest.raises(ColberNetworkError):
                 client.identity.resolve("did:key:zfoo")
             assert route.call_count == 1
 
 
 class TestAuthHeaderInjection:
     def test_attaches_authorization_when_auth_token_is_set(
-        self, make_client: Callable[..., PraxisClient]
+        self, make_client: Callable[..., ColberClient]
     ) -> None:
         with respx.mock:
             route = respx.get(f"{TEST_BASE_URLS['identity']}/v1/identity/did%3Akey%3Azfoo").respond(
@@ -240,7 +240,7 @@ class TestAuthHeaderInjection:
             assert route.calls.last.request.headers.get("authorization") == "Bearer tk-1"
 
     def test_omits_authorization_when_auth_token_is_not_set(
-        self, make_client: Callable[..., PraxisClient]
+        self, make_client: Callable[..., ColberClient]
     ) -> None:
         with respx.mock:
             route = respx.get(f"{TEST_BASE_URLS['identity']}/v1/identity/did%3Akey%3Azfoo").respond(
@@ -273,25 +273,25 @@ class TestBuildUrl:
 
 class TestRetryConfigCoercion:
     def test_accepts_a_retry_config_object_directly(self, base_urls: Any) -> None:
-        from praxis_sdk.types import RetryConfig
+        from colber_sdk.types import RetryConfig
 
-        c = PraxisClient(base_urls, retries=RetryConfig(count=1, backoff_ms=10))
+        c = ColberClient(base_urls, retries=RetryConfig(count=1, backoff_ms=10))
         try:
-            assert isinstance(c, PraxisClient)
+            assert isinstance(c, ColberClient)
         finally:
             c.close()
 
     def test_default_retries_when_omitted(self, base_urls: Any) -> None:
-        c = PraxisClient(base_urls)
+        c = ColberClient(base_urls)
         try:
-            assert isinstance(c, PraxisClient)
+            assert isinstance(c, ColberClient)
         finally:
             c.close()
 
 
 class TestContextManager:
     def test_can_be_used_as_a_context_manager(self, base_urls: Any) -> None:
-        with PraxisClient(base_urls) as c:
+        with ColberClient(base_urls) as c:
             assert c.identity is not None
         # No assertion on `closed` — `httpx.Client.is_closed` exists but
         # we keep the test minimal.

@@ -1,4 +1,4 @@
-import { isDidKey } from '@praxis/core-types';
+import { isDidKey } from '@colber/core-types';
 import { describe, expect, it } from 'vitest';
 
 import { decodeDidKey, encodeDidKey } from './did-key.js';

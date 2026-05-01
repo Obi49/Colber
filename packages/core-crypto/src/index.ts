@@ -1,5 +1,5 @@
 /**
- * @praxis/core-crypto — cryptographic primitives for the Praxis platform.
+ * @colber/core-crypto — cryptographic primitives for the Colber platform.
  *
  * Design notes
  * -------------

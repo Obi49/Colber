@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "Praxis — base TypeScript config",
+  "display": "Colber — base TypeScript config",
   "compilerOptions": {
     "target": "ES2023",
     "lib": ["ES2023"],
@@ -35,12 +35,5 @@
     "removeComments": false,
     "preserveConstEnums": true
   },
-  "exclude": [
-    "node_modules",
-    "dist",
-    "build",
-    "coverage",
-    "**/*.test.ts",
-    "**/*.spec.ts"
-  ]
+  "exclude": ["node_modules", "dist", "build", "coverage", "**/*.test.ts", "**/*.spec.ts"]
 }

@@ -6,7 +6,7 @@ explicitly. ``conftest.py`` is reserved for pytest fixtures.
 
 from __future__ import annotations
 
-from praxis_sdk.types import BaseUrls
+from colber_sdk.types import BaseUrls
 
 TEST_BASE_URLS: BaseUrls = {
     "identity": "http://identity.test",

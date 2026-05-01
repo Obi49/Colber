@@ -7,7 +7,7 @@ import { signMessage, verifySignature } from '../../src/crypto/signing.js';
 describe('Ed25519 sign / verify (base64-on-the-wire)', () => {
   it('round-trip: sign → verify succeeds', async () => {
     const { publicKeyBase64, secretKeyBase64 } = await generateDidKey();
-    const message = new TextEncoder().encode('hello praxis');
+    const message = new TextEncoder().encode('hello colber');
     const sig = await signMessage(secretKeyBase64, message);
     const ok = await verifySignature(publicKeyBase64, message, sig);
     expect(ok).toBe(true);
@@ -21,8 +21,8 @@ describe('Ed25519 sign / verify (base64-on-the-wire)', () => {
 
   it('returns false on a tampered message (1-byte flip)', async () => {
     const { publicKeyBase64, secretKeyBase64 } = await generateDidKey();
-    const sig = await signMessage(secretKeyBase64, 'hello praxis');
-    const ok = await verifySignature(publicKeyBase64, 'hello praxis!', sig);
+    const sig = await signMessage(secretKeyBase64, 'hello colber');
+    const ok = await verifySignature(publicKeyBase64, 'hello colber!', sig);
     expect(ok).toBe(false);
   });
 
