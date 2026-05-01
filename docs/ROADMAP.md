@@ -1,4 +1,4 @@
-# ROADMAP — Praxis (reprise après pause)
+# ROADMAP — Colber (reprise après pause)
 
 **Référence** : `PLAN_DE_DEVELOPPEMENT.md` (plan canonique 18 mois) — ce document est le **plan d'attaque opérationnel pour les sessions suivantes** avec les briefs prêts à coller dans les agents dev.
 
@@ -35,7 +35,7 @@
 - Scaffold initial repris depuis `feature/observability-wip` (commit `86a4f05` "ne build pas").
 - Délégation à `backend-architect` pour le fix-up TS strict + lint (10 fichiers modifiés, 32 tests verts en local).
 - Commit `391e82f` (scaffold + fix), `dbe1827` (compose + e2e étendu), `0976383` (fix timestamps ClickHouse + DELETE sans Content-Type).
-- VM : `praxis-observability` healthy, ports `14031`/`14032`, DB `praxis_observability` + ClickHouse tables `praxis_logs`/`praxis_spans` (DateTime64 UTC, partitions/jour, TTL 30j).
+- VM : `colber-observability` healthy, ports `14031`/`14032`, DB `colber_observability` + ClickHouse tables `colber_logs`/`colber_spans` (DateTime64 UTC, partitions/jour, TTL 30j).
 - E2E `.tools/e2e_smoke.py` : 11/11 verts (4 healthchecks + 7 steps métier).
 
 ### Contexte historique (avant livraison)
@@ -45,7 +45,7 @@ Module **interrompu** lors de la session précédente par le rate limit de l'age
 ### Brief prêt à l'emploi (à coller dans l'agent dev)
 
 ```
-You are implementing the OBSERVABILITY module of the Praxis project — distributed
+You are implementing the OBSERVABILITY module of the Colber project — distributed
 logging and tracing for agent-to-agent (A2A) interactions. It's the 4th service
 after agent-identity, reputation, and memory.
 
@@ -73,14 +73,14 @@ DATA MODEL:
   events? }
 
 STORAGE:
-- ClickHouse: 2 tables (praxis_logs, praxis_spans) created at startup with
+- ClickHouse: 2 tables (colber_logs, colber_spans) created at startup with
   CREATE TABLE IF NOT EXISTS, partitioned by day, ORDER BY (timestamp, traceId,
   spanId), TTL 30 days (env var OBSERVABILITY_LOG_TTL_DAYS).
   Use @clickhouse/client (HTTP). Insert via JSONEachRow. Batch up to
   OBSERVABILITY_FLUSH_INTERVAL_MS=1000 OR OBSERVABILITY_FLUSH_BATCH=500.
   attributes/resource columns: pick JSON type or parallel arrays
   (attributes_keys/values/types) — document the choice.
-- Postgres praxis_observability: alert_rules table via drizzle-orm
+- Postgres colber_observability: alert_rules table via drizzle-orm
   (id, ownerOperatorId, name, description, enabled, scope, condition jsonb,
   cooldownSeconds, notification jsonb, createdAt, updatedAt).
   Migration drizzle/0000_init.sql.
@@ -103,7 +103,7 @@ ENDPOINTS (mirror Fastify v5 patterns from apps/memory):
 TESTS (mirror memory):
 - Vitest unit + integration via app.inject()
 - InMemoryClickHouseClient + InMemoryAlertRepository fakes
-- 1 placeholder live test gated PRAXIS_LIVE_TESTS=1
+- 1 placeholder live test gated COLBER_LIVE_TESTS=1
 - Coverage ≥ 80% on domain/
 
 PACKAGING: mirror apps/memory exactly. tsconfig strict, ESLint v9 flat,
@@ -114,7 +114,7 @@ HARD CONSTRAINTS:
   net-new exports).
 - Don't push to git.
 - Don't implement evaluation, anomaly ML, tiering, OTel exporter — out of scope.
-- Don't modify praxis-stack/docker-compose*.yml — human will update those.
+- Don't modify colber-stack/docker-compose*.yml — human will update those.
 - drizzle-orm only.
 
 VALIDATE: pnpm build, typecheck, test, lint must all be green.
@@ -129,14 +129,14 @@ OUTPUT: list of files, last 5 lines of each pnpm command, deviations + open Qs.
 
    ```bash
    # Créer la 4e DB
-   docker exec praxis-postgres psql -U praxis -d postgres -c \
-     'CREATE DATABASE praxis_observability OWNER praxis;'
+   docker exec colber-postgres psql -U colber -d postgres -c \
+     'CREATE DATABASE colber_observability OWNER colber;'
 
    # Pull, ajouter le service au compose, build
-   git pull --rebase https://x-access-token:${TOKEN}@github.com/Obi49/Praxis.git main
+   git pull --rebase https://x-access-token:${TOKEN}@github.com/Obi49/Colber.git main
    ```
 
-4. Mettre à jour `praxis-stack/docker-compose.services.yml` avec le bloc `observability` (ports `14031`/`14032`, env `CLICKHOUSE_URL=http://clickhouse:8123`, `CLICKHOUSE_USER=praxis`, `CLICKHOUSE_PASSWORD=praxis_dev`, `CLICKHOUSE_DATABASE=praxis`, `DATABASE_URL=postgresql://praxis:praxis_dev@postgres:5432/praxis_observability`, depends_on postgres+clickhouse).
+4. Mettre à jour `colber-stack/docker-compose.services.yml` avec le bloc `observability` (ports `14031`/`14032`, env `CLICKHOUSE_URL=http://clickhouse:8123`, `CLICKHOUSE_USER=colber`, `CLICKHOUSE_PASSWORD=colber_dev`, `CLICKHOUSE_DATABASE=colber`, `DATABASE_URL=postgresql://colber:colber_dev@postgres:5432/colber_observability`, depends_on postgres+clickhouse).
 5. Build + up :
    ```bash
    docker compose -f docker-compose.yml -f docker-compose.services.yml build observability
@@ -148,7 +148,7 @@ OUTPUT: list of files, last 5 lines of each pnpm command, deviations + open Qs.
 ### Acceptation (gate pour passer à l'étape 2)
 
 - [ ] `pnpm test` ≥ 50 nouveaux tests verts pour observability.
-- [ ] Service `praxis-observability` healthy sur la VM.
+- [ ] Service `colber-observability` healthy sur la VM.
 - [ ] E2E ingestion log + query → 200 avec données récupérées.
 - [ ] CRUD alert → 200 sur les 4 méthodes.
 
@@ -183,7 +183,7 @@ Mode dégradé compatible v1 : si scoring config = "v2", nouvelle formule pondé
 
 ### Dépendance
 
-Étape 1 (OBSERVABILITY) doit être faite — les détecteurs anti-fraude doivent loger leurs décisions dans `praxis_logs`.
+Étape 1 (OBSERVABILITY) doit être faite — les détecteurs anti-fraude doivent loger leurs décisions dans `colber_logs`.
 
 ---
 
@@ -191,11 +191,11 @@ Mode dégradé compatible v1 : si scoring config = "v2", nouvelle formule pondé
 
 ### Périmètre
 
-3 plugins distribués sur npm sous `@praxis/*-plugin` :
+3 plugins distribués sur npm sous `@colber/*-plugin` :
 
-1. **`@praxis/langchain-plugin`** — callback handler observability (logs auto sur `BaseCallbackHandler` events) + `MemoryBackend` adapter.
-2. **`@praxis/crewai-plugin`** — pareil pour CrewAI (Python, package séparé sur PyPI).
-3. **`@praxis/autogen-plugin`** — pareil pour Autogen.
+1. **`@colber/langchain-plugin`** — callback handler observability (logs auto sur `BaseCallbackHandler` events) + `MemoryBackend` adapter.
+2. **`@colber/crewai-plugin`** — pareil pour CrewAI (Python, package séparé sur PyPI).
+3. **`@colber/autogen-plugin`** — pareil pour Autogen.
 
 ### Brief résumé
 
@@ -233,8 +233,8 @@ Créer `apps/operator-console/` à plat. UX inspirée des consoles Stripe/Vercel
 
 ### Périmètre
 
-- **`@praxis/sdk` (TypeScript, npm)** : wrapper unifié des 4 modules + helpers crypto (sign payload, verify, gen DID:key).
-- **`praxis-sdk` (Python, PyPI)** : équivalent.
+- **`@colber/sdk` (TypeScript, npm)** : wrapper unifié des 4 modules + helpers crypto (sign payload, verify, gen DID:key).
+- **`colber-sdk` (Python, PyPI)** : équivalent.
 
 ### Brief résumé
 
@@ -251,7 +251,7 @@ SDK = clients HTTP/gRPC typés générés depuis les `.proto` + REST OpenAPI (à
 - Commit `a6489e6` (module), `4c72638` (compose + e2e étendu).
 - Pricing engine fonctionnel : 1000 USDC × 2% × multiplier(score=510 → 1.0) = 20 USDC. Fallback score=500 sur erreur reputation (warn log).
 - Escrow simulé Postgres : table `escrow_holdings` + audit trail `escrow_events` (BIGSERIAL append-only). État machine validée (locked → released | claimed | refunded, no skipping).
-- VM : `praxis-insurance` healthy, ports `14051`/`14052`, DB `praxis_insurance`. Premier déploiement réussi sans bug e2e (signature stricte côté serveur évitée car v1 sans signature).
+- VM : `colber-insurance` healthy, ports `14051`/`14052`, DB `colber_insurance`. Premier déploiement réussi sans bug e2e (signature stricte côté serveur évitée car v1 sans signature).
 - E2E `.tools/e2e_smoke.py` : 23/23 verts (6 healthchecks + lifecycle complet quote → subscribe → idempotent replay → claim → admin transition `claimed` (avec claimId) → policy=claimed, claim=paid, payout=1000 → status final cohérent).
 - Décisions clés (cf. STATUS §5 #16-18) :
   - Mode simulation pure (validé CdP "pas de réel chain pour le moment").
@@ -298,7 +298,7 @@ Table `escrow_holdings (id, policy_id, amount_usdc, status, locked_at, released_
 - Endpoint admin/debug (gated env `INSURANCE_ADMIN_ENABLED=false` par défaut) pour forcer une transition en dev.
 - Comment marqué clairement : "TODO P3 : remplacer par smart contract Solidity sur Base Sepolia + viem".
 
-### Storage Postgres `praxis_insurance`
+### Storage Postgres `colber_insurance`
 
 - `policies (id, subscriber_did, beneficiary_did, deal_subject, amount_usdc, premium_usdc, risk_multiplier, sla_terms jsonb, status, created_at, expires_at)`.
 - `escrow_holdings (id, policy_id UNIQUE, amount_usdc, status, locked_at, released_at, claimed_at)`.
@@ -321,10 +321,10 @@ Table `escrow_holdings (id, policy_id, amount_usdc, status, locked_at, released_
 3. Commit + push.
 4. Sur la VM :
    ```bash
-   docker exec praxis-postgres psql -U praxis -d postgres -c \
-     'CREATE DATABASE praxis_insurance OWNER praxis;'
+   docker exec colber-postgres psql -U colber -d postgres -c \
+     'CREATE DATABASE colber_insurance OWNER colber;'
    ```
-5. Ajouter le bloc `insurance` au `praxis-stack/docker-compose.services.yml` (ports `14051`/`14052`, dépendance postgres + reputation pour le lookup réputation).
+5. Ajouter le bloc `insurance` au `colber-stack/docker-compose.services.yml` (ports `14051`/`14052`, dépendance postgres + reputation pour le lookup réputation).
 6. Build + up.
 7. Étendre `.tools/e2e_smoke.py` : quote → subscribe → claim → status.
 8. Push final + STATUS/ROADMAP update.
@@ -365,10 +365,10 @@ Phase 1 : pricing + escrow on testnet Base Sepolia, plafonds bas. Phase 2 : clai
 
 ### Résumé livraison
 
-- 5ᵉ service Praxis livré hors-séquence (avant INSURANCE) — pas de bloquant on-chain en v1, donc jouable directement.
+- 5ᵉ service Colber livré hors-séquence (avant INSURANCE) — pas de bloquant on-chain en v1, donc jouable directement.
 - Délégation à `backend-architect` from scratch (45 fichiers, 61 tests, ≥80% coverage). Mirror reputation pour signatures Ed25519+JCS et observability pour packaging/Dockerfile/tests.
 - Commit `4283555` (module), `6dd93e1` (compose + e2e étendu), `c16cc78` (fix Python int vs float dans la canonicalisation JCS).
-- VM : `praxis-negotiation` healthy, ports `14041`/`14042`, DB `praxis_negotiation` (event store + projection UPSERT en transaction unique).
+- VM : `colber-negotiation` healthy, ports `14041`/`14042`, DB `colber_negotiation` (event store + projection UPSERT en transaction unique).
 - E2E `.tools/e2e_smoke.py` : 17/17 verts (5 healthchecks + lifecycle complet : start, idempotent replay same-id, propose A=100, counter B=150 best=B, settle avec sigs A+B sur JCS{negoId, winId}, history events=4).
 
 ### Out of scope v1 → étape 8b
@@ -404,7 +404,7 @@ Implémentation event-sourced classique : domain events typés, projections rebu
 - Audit sécurité tiers complet (cf. CDC §4.2 et §9.3).
 - Self-service ouvert (registration opérateur sans liste blanche).
 - Documentation publique stable (versions API gelées avec deprecation policy).
-- Statut page (status.praxis.dev ?) avec uptime et incidents.
+- Statut page (status.colber.dev ?) avec uptime et incidents.
 
 ### Critères go/no-go (cf. PLAN §6 gates)
 
@@ -445,7 +445,7 @@ Implémentation event-sourced classique : domain events typés, projections rebu
 
 ### Premières actions à faire
 
-1. **Vérifier la santé de la VM** : `python .tools/ssh_run.py --sudo "docker compose -p praxis ps"`. Si traefik est encore en boucle ou un autre service en panne, diagnostiquer avant de continuer.
+1. **Vérifier la santé de la VM** : `python .tools/ssh_run.py --sudo "docker compose -p colber ps"`. Si traefik est encore en boucle ou un autre service en panne, diagnostiquer avant de continuer.
 2. **Vérifier le repo** : `git pull` + `pnpm install` + `pnpm test`.
 3. **Vérifier le PAT GitHub** : si toujours valide, OK ; sinon, demander à l'utilisateur d'en générer un nouveau.
 4. **Lire** : [STATUS.md](STATUS.md) (snapshot) puis ce document.
@@ -466,7 +466,7 @@ Implémentation event-sourced classique : domain events typés, projections rebu
 ### Secrets
 
 - `.env.local` (local) : `GITHUB_TOKEN`, `GITHUB_REPO`, `GITHUB_USER`. **À régénérer si compromis.**
-- `praxis-stack/services.env` (sur la VM) : clés Ed25519 platform + AES memory. **Fixtures dev.**
+- `colber-stack/services.env` (sur la VM) : clés Ed25519 platform + AES memory. **Fixtures dev.**
 
 ### Convention de commits
 

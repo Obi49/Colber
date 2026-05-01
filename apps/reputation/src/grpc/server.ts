@@ -1,11 +1,11 @@
 import { fileURLToPath } from 'node:url';
 
+import { ERROR_CODES, ColberError } from '@colber/core-types';
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
-import { ERROR_CODES, PraxisError } from '@praxis/core-types';
 
 import type { ReputationService } from '../domain/reputation-service.js';
-import type { Logger } from '@praxis/core-logger';
+import type { Logger } from '@colber/core-logger';
 
 const PROTO_PATH = fileURLToPath(new URL('../../proto/reputation.proto', import.meta.url));
 
@@ -46,7 +46,7 @@ interface ReputationGrpcService extends grpc.UntypedServiceImplementation {
 }
 
 const toGrpcError = (err: unknown): grpc.ServiceError => {
-  if (err instanceof PraxisError) {
+  if (err instanceof ColberError) {
     const code =
       err.statusCode === 404
         ? grpc.status.NOT_FOUND
@@ -182,9 +182,9 @@ export const buildGrpcServer = (service: ReputationService, logger: Logger): Grp
         oneofs: true,
       });
       const proto = grpc.loadPackageDefinition(packageDef) as unknown as {
-        praxis: { reputation: { v1: { ReputationService: { service: grpc.ServiceDefinition } } } };
+        colber: { reputation: { v1: { ReputationService: { service: grpc.ServiceDefinition } } } };
       };
-      server.addService(proto.praxis.reputation.v1.ReputationService.service, handlers);
+      server.addService(proto.colber.reputation.v1.ReputationService.service, handlers);
 
       return new Promise<number>((resolve, reject) => {
         server.bindAsync(

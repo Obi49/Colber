@@ -1,4 +1,4 @@
-# `@praxis/insurance`
+# `@colber/insurance`
 
 > Agentic delivery insurance broker — pricing engine, simulated escrow,
 > claims workflow, global exposure cap. **v1 MVP is simulation-only**:
@@ -6,7 +6,7 @@
 > (Solidity + viem + Base Sepolia) is a separate P3 ticket — see
 > [`ROADMAP.md` étape 7b](../../docs/ROADMAP.md).
 
-The fifth Praxis service after `agent-identity`, `reputation`, `memory`,
+The fifth Colber service after `agent-identity`, `reputation`, `memory`,
 `observability`, and `negotiation`.
 
 See [`ARCHITECTURE_BREAKDOWN.md` §3.5](../../docs/ARCHITECTURE_BREAKDOWN.md) and
@@ -63,24 +63,24 @@ response body and in logs.
 Prereqs:
 
 - Node 22+, pnpm 9+.
-- Postgres 16 reachable (the `praxis-stack` runs it on `15432`).
+- Postgres 16 reachable (the `colber-stack` runs it on `15432`).
 - The reputation service reachable at `REPUTATION_URL` (or accept the
   fallback score=500).
-- Create the `praxis_insurance` database:
+- Create the `colber_insurance` database:
 
   ```sh
-  docker exec -i praxis-postgres psql -U praxis -d praxis -c \
-    "CREATE DATABASE praxis_insurance OWNER praxis;"
+  docker exec -i colber-postgres psql -U colber -d colber -c \
+    "CREATE DATABASE colber_insurance OWNER colber;"
   ```
 
 ```sh
 pnpm install
-pnpm --filter @praxis/insurance build
+pnpm --filter @colber/insurance build
 
 cp apps/insurance/.env.example apps/insurance/.env
 
-pnpm --filter @praxis/insurance db:migrate
-pnpm --filter @praxis/insurance dev
+pnpm --filter @colber/insurance db:migrate
+pnpm --filter @colber/insurance dev
 ```
 
 | Surface  | Address (default)               |
@@ -122,9 +122,9 @@ Postgres advisory lock.
 ## Tests
 
 ```sh
-pnpm --filter @praxis/insurance test           # unit + integration (in-memory fakes)
-pnpm --filter @praxis/insurance test:coverage  # with v8 coverage
-PRAXIS_LIVE_TESTS=1 pnpm --filter @praxis/insurance test  # opt-in live containers
+pnpm --filter @colber/insurance test           # unit + integration (in-memory fakes)
+pnpm --filter @colber/insurance test:coverage  # with v8 coverage
+COLBER_LIVE_TESTS=1 pnpm --filter @colber/insurance test  # opt-in live containers
 ```
 
 The default test suite uses in-memory `PolicyStore` + `ReputationClient`

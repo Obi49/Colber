@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""End-to-end smoke test of Praxis services running on the VM.
+"""End-to-end smoke test of Colber services running on the VM.
 
 Exercises the 5 modules (agent-identity + reputation, memory, observability,
 negotiation, insurance) by:
@@ -31,7 +31,7 @@ from datetime import datetime, timedelta, timezone
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
-VM = os.environ.get("PRAXIS_VM", "100.83.10.125")
+VM = os.environ.get("COLBER_VM", "100.83.10.125")
 IDENTITY = f"http://{VM}:14001"
 REPUTATION = f"http://{VM}:14011"
 MEMORY = f"http://{VM}:14021"
@@ -149,7 +149,7 @@ def main() -> int:
     # ---- 4. Verify a signature via agent-identity ----
     step("Verify a signature via agent-identity")
     if "A" in agents:
-        msg = b"hello praxis"
+        msg = b"hello colber"
         sig = sign_ed25519(agents["A"]["priv"], msg)
         code, body = http("POST", f"{IDENTITY}/v1/identity/verify", {
             "did": agents["A"]["did"],

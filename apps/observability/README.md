@@ -1,7 +1,7 @@
-# `@praxis/observability`
+# `@colber/observability`
 
 > Distributed logging + tracing for agent-to-agent (A2A) interactions on the
-> Praxis platform. The fourth Praxis service after `agent-identity`,
+> Colber platform. The fourth Colber service after `agent-identity`,
 > `reputation`, and `memory`.
 
 Implements the four observability operations specified in the cahier des
@@ -40,33 +40,33 @@ Out of scope (future sprints):
 Prereqs:
 
 - Node 22+, pnpm 9+.
-- The `praxis-stack` Docker stack running with Postgres (15432) and
+- The `colber-stack` Docker stack running with Postgres (15432) and
   ClickHouse (18123 HTTP, 19000 native):
 
   ```sh
-  cd ../../praxis-stack && docker compose up -d postgres clickhouse
+  cd ../../colber-stack && docker compose up -d postgres clickhouse
   ```
 
-- Create the `praxis_observability` database in Postgres:
+- Create the `colber_observability` database in Postgres:
 
   ```sh
-  docker exec -i praxis-postgres psql -U praxis -d praxis -c \
-    "CREATE DATABASE praxis_observability OWNER praxis;"
+  docker exec -i colber-postgres psql -U colber -d colber -c \
+    "CREATE DATABASE colber_observability OWNER colber;"
   ```
 
 ```sh
 # from the repo root
 pnpm install
-pnpm --filter @praxis/observability build
+pnpm --filter @colber/observability build
 
 # create a local .env from the example (DEV creds only)
 cp apps/observability/.env.example apps/observability/.env
 
 # apply migrations against the running Postgres (alert_rules table)
-pnpm --filter @praxis/observability db:migrate
+pnpm --filter @colber/observability db:migrate
 
 # start in watch mode — bootstraps ClickHouse tables on first request
-pnpm --filter @praxis/observability dev
+pnpm --filter @colber/observability dev
 ```
 
 The service exposes:
@@ -83,7 +83,7 @@ The service exposes:
 
 ## Storage layout
 
-### ClickHouse — `praxis_logs` and `praxis_spans`
+### ClickHouse — `colber_logs` and `colber_spans`
 
 Bootstrapped at app startup via `CREATE TABLE IF NOT EXISTS`. Both tables
 use the `MergeTree` engine, partitioned by day, ordered by
@@ -115,9 +115,9 @@ Standard drizzle-orm schema in `src/db/schema.ts`. Migrations in
 ## Tests
 
 ```sh
-pnpm --filter @praxis/observability test           # unit + integration (in-memory fakes)
-pnpm --filter @praxis/observability test:coverage  # with v8 coverage
-PRAXIS_LIVE_TESTS=1 pnpm --filter @praxis/observability test  # opt-in live containers
+pnpm --filter @colber/observability test           # unit + integration (in-memory fakes)
+pnpm --filter @colber/observability test:coverage  # with v8 coverage
+COLBER_LIVE_TESTS=1 pnpm --filter @colber/observability test  # opt-in live containers
 ```
 
 The default test suite uses an in-memory `TelemetryRepository` fake and an

@@ -1,4 +1,4 @@
-# ONBOARDING — Reprendre Praxis sans perte de contexte
+# ONBOARDING — Reprendre Colber sans perte de contexte
 
 > Guide unique pour reprendre le projet — humain ou agent IA arrivant en session vierge. Lis ce document avant tout autre.
 
@@ -12,7 +12,7 @@
 
 - Pipeline local : 16/16 typecheck/test/lint/build, **385 tests passing**, FULL TURBO.
 - VM β : 16 conteneurs Docker, tous healthy, `python .tools/e2e_smoke.py` → **23/23 verts**.
-- Repo : <https://github.com/Obi49/Praxis>, branche `main`, dernier commit `77612f6`.
+- Repo : <https://github.com/Obi49/Colber>, branche `main`, dernier commit `77612f6`.
 
 **Aucune urgence**. Aucun bug bloquant. La v1 est consolidée. Les prochaines étapes sont des enrichissements optionnels — voir §6.
 
@@ -44,11 +44,11 @@ pnpm typecheck && pnpm test && pnpm lint && pnpm build
 # Attendu : 16/16 typecheck/test/lint, 11/11 build, FULL TURBO
 
 # Santé de la VM (Tailscale 100.83.10.125)
-python .tools/ssh_run.py --sudo "docker compose -p praxis ps"
+python .tools/ssh_run.py --sudo "docker compose -p colber ps"
 # Attendu : 16 conteneurs (15 healthy + traefik en flapping connu, non bloquant)
 
 # E2E complet contre la VM
-PRAXIS_VM=100.83.10.125 python .tools/e2e_smoke.py
+COLBER_VM=100.83.10.125 python .tools/e2e_smoke.py
 # Attendu : 23/23 ALL E2E STEPS PASSED
 ```
 
@@ -76,8 +76,8 @@ Mode de collaboration attendu pour les agents IA :
 2. **Pas de bypass des hooks Husky**. Si lint-staged casse, patcher la config ESLint, pas contourner.
 3. **Push à chaque livrable significatif** : un module fini OU un fix qui débloque → commit + push immédiat avec Conventional Commits + co-author Claude.
 4. **Documentation avant pause** : à toute demande de pause, mettre à jour `STATUS.md` + `ROADMAP.md` + mémoire (au moins `project_agentstack.md` + `project_artifacts.md`) + commit + push.
-5. **PAT GitHub jamais persisté** dans `.git/config`. Toujours via URL one-shot avec token. Le stocker dans `.env.local` (gitignored) seulement. **Le PAT actuel est considéré compromis — à révoquer + régénérer en fine-grained scopé `Obi49/Praxis` avant tout push sensible.**
-6. **Cohabitation VM** : la VM β héberge ShowWeb3 (autre projet). Tous les conteneurs Praxis sont préfixés `praxis-*`, ports décalés `14xxx`/`16xxx`/`17xxx`/`18xxx`/`19xxx`. **Ne jamais toucher** ShowWeb3, Tailscale, `/home/showweb3`, `/home/claude/ShowWeb3`, `/home/claude/WebBot`. Ne jamais faire `docker compose down -v` sans `-p praxis`.
+5. **PAT GitHub jamais persisté** dans `.git/config`. Toujours via URL one-shot avec token. Le stocker dans `.env.local` (gitignored) seulement. **Le PAT actuel est considéré compromis — à révoquer + régénérer en fine-grained scopé `Obi49/Colber` avant tout push sensible.**
+6. **Cohabitation VM** : la VM β héberge ShowWeb3 (autre projet). Tous les conteneurs Colber sont préfixés `colber-*`, ports décalés `14xxx`/`16xxx`/`17xxx`/`18xxx`/`19xxx`. **Ne jamais toucher** ShowWeb3, Tailscale, `/home/showweb3`, `/home/claude/ShowWeb3`, `/home/claude/WebBot`. Ne jamais faire `docker compose down -v` sans `-p colber`.
 
 ### Workflow validé pour livrer un module
 
@@ -93,18 +93,18 @@ Mode de collaboration attendu pour les agents IA :
    pnpm build && pnpm typecheck && pnpm test && pnpm lint
 
 4. Commit + push (Conventional Commits + co-author Claude)
-   git push https://x-access-token:${TOKEN}@github.com/Obi49/Praxis.git HEAD:main
+   git push https://x-access-token:${TOKEN}@github.com/Obi49/Colber.git HEAD:main
 
 5. Déploiement VM
    - SSH pull du repo
    - Création de la DB Postgres si applicable
-   - Ajout du bloc compose dans praxis-stack/docker-compose.services.yml
-   - docker compose -p praxis build <service> && up -d <service>
+   - Ajout du bloc compose dans colber-stack/docker-compose.services.yml
+   - docker compose -p colber build <service> && up -d <service>
    - Attendre healthcheck "healthy"
 
 6. E2E
    - Étendre .tools/e2e_smoke.py avec un bloc lifecycle pour le module
-   - PRAXIS_VM=100.83.10.125 python .tools/e2e_smoke.py
+   - COLBER_VM=100.83.10.125 python .tools/e2e_smoke.py
    - Tout vert attendu
 
 7. Pause
@@ -132,42 +132,42 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
 
 **Adresse Tailscale** : `100.83.10.125` · **Hostname** : `showweb3` (Debian 13 Trixie) · **Co-locataire** : projet `ShowWeb3` (séparé, intact, namespace Docker indépendant).
 
-### 16 conteneurs Docker (`docker compose -p praxis ps`)
+### 16 conteneurs Docker (`docker compose -p colber ps`)
 
 | Catégorie      | Conteneur               | Image                                       | Ports hôte      |
 | -------------- | ----------------------- | ------------------------------------------- | --------------- |
-| **Datastore**  | `praxis-postgres`       | `postgres:16-alpine`                        | `15432`         |
-|                | `praxis-redis`          | `redis:7-alpine`                            | `16379`         |
-|                | `praxis-qdrant`         | `qdrant/qdrant:v1.15.4`                     | `16333`/`16334` |
-|                | `praxis-clickhouse`     | `clickhouse/clickhouse-server:24.10-alpine` | `18123`/`19000` |
-|                | `praxis-neo4j`          | `neo4j:5-community`                         | `17474`/`17687` |
-| **Bus**        | `praxis-nats`           | `nats:2.10-alpine`                          | `14222`/`18222` |
-| **Embeddings** | `praxis-ollama`         | `ollama/ollama:0.4.7`                       | `11434`         |
-| **Métriques**  | `praxis-prometheus`     | `prom/prometheus:v2.55.1`                   | `19090`         |
-|                | `praxis-grafana`        | `grafana/grafana:11.3.0`                    | `13000`         |
-| **Edge**       | `praxis-traefik`        | `traefik:v3.2`                              | `18000`/`18080` |
-| **Apps**       | `praxis-agent-identity` | `praxis/agent-identity:dev`                 | `14001`/`14002` |
-|                | `praxis-reputation`     | `praxis/reputation:dev`                     | `14011`/`14012` |
-|                | `praxis-memory`         | `praxis/memory:dev`                         | `14021`/`14022` |
-|                | `praxis-observability`  | `praxis/observability:dev`                  | `14031`/`14032` |
-|                | `praxis-negotiation`    | `praxis/negotiation:dev`                    | `14041`/`14042` |
-|                | `praxis-insurance`      | `praxis/insurance:dev`                      | `14051`/`14052` |
+| **Datastore**  | `colber-postgres`       | `postgres:16-alpine`                        | `15432`         |
+|                | `colber-redis`          | `redis:7-alpine`                            | `16379`         |
+|                | `colber-qdrant`         | `qdrant/qdrant:v1.15.4`                     | `16333`/`16334` |
+|                | `colber-clickhouse`     | `clickhouse/clickhouse-server:24.10-alpine` | `18123`/`19000` |
+|                | `colber-neo4j`          | `neo4j:5-community`                         | `17474`/`17687` |
+| **Bus**        | `colber-nats`           | `nats:2.10-alpine`                          | `14222`/`18222` |
+| **Embeddings** | `colber-ollama`         | `ollama/ollama:0.4.7`                       | `11434`         |
+| **Métriques**  | `colber-prometheus`     | `prom/prometheus:v2.55.1`                   | `19090`         |
+|                | `colber-grafana`        | `grafana/grafana:11.3.0`                    | `13000`         |
+| **Edge**       | `colber-traefik`        | `traefik:v3.2`                              | `18000`/`18080` |
+| **Apps**       | `colber-agent-identity` | `colber/agent-identity:dev`                 | `14001`/`14002` |
+|                | `colber-reputation`     | `colber/reputation:dev`                     | `14011`/`14012` |
+|                | `colber-memory`         | `colber/memory:dev`                         | `14021`/`14022` |
+|                | `colber-observability`  | `colber/observability:dev`                  | `14031`/`14032` |
+|                | `colber-negotiation`    | `colber/negotiation:dev`                    | `14041`/`14042` |
+|                | `colber-insurance`      | `colber/insurance:dev`                      | `14051`/`14052` |
 
-### Bases Postgres (sur `praxis-postgres`)
+### Bases Postgres (sur `colber-postgres`)
 
 | DB                     | Service        | Tables principales                                                   |
 | ---------------------- | -------------- | -------------------------------------------------------------------- |
-| `praxis_identity`      | agent-identity | `agents`                                                             |
-| `praxis_reputation`    | reputation     | `score_snapshots`, `feedback_log`, `merkle_anchors`                  |
-| `praxis_memory`        | memory         | `memories`, `memory_versions`, `memory_shares`, `memory_quotas`      |
-| `praxis_observability` | observability  | `alert_rules`                                                        |
-| `praxis_negotiation`   | negotiation    | `negotiation_events` (event store), `negotiation_state` (projection) |
-| `praxis_insurance`     | insurance      | `policies`, `escrow_holdings`, `escrow_events`, `claims`             |
+| `colber_identity`      | agent-identity | `agents`                                                             |
+| `colber_reputation`    | reputation     | `score_snapshots`, `feedback_log`, `merkle_anchors`                  |
+| `colber_memory`        | memory         | `memories`, `memory_versions`, `memory_shares`, `memory_quotas`      |
+| `colber_observability` | observability  | `alert_rules`                                                        |
+| `colber_negotiation`   | negotiation    | `negotiation_events` (event store), `negotiation_state` (projection) |
+| `colber_insurance`     | insurance      | `policies`, `escrow_holdings`, `escrow_events`, `claims`             |
 
 ### Autres datastores
 
-- **ClickHouse `praxis`** : `praxis_logs`, `praxis_spans` (DateTime64 UTC, partitions/jour, TTL 30j).
-- **Qdrant** : collection `praxis_memories` (vecteurs 768d nomic-embed-text).
+- **ClickHouse `colber`** : `colber_logs`, `colber_spans` (DateTime64 UTC, partitions/jour, TTL 30j).
+- **Qdrant** : collection `colber_memories` (vecteurs 768d nomic-embed-text).
 - **Neo4j** : graphe REPUTATION `(Agent)-[PARTICIPATED_IN]->(Transaction)`, `(Agent)-[RATED]->(Agent)`.
 - **Redis** : cache scoring REPUTATION (TTL 60s).
 
@@ -183,44 +183,44 @@ pnpm typecheck                              # ~150 ms FULL TURBO si cache
 pnpm test                                   # ~150 ms FULL TURBO si cache
 pnpm lint
 pnpm build
-pnpm --filter @praxis/<module> <script>     # Cibler un module
+pnpm --filter @colber/<module> <script>     # Cibler un module
 ```
 
 ### Push GitHub
 
 ```bash
 TOKEN=$(grep -E '^GITHUB_TOKEN=' .env.local | cut -d= -f2-)
-git push "https://x-access-token:${TOKEN}@github.com/Obi49/Praxis.git" HEAD:main
+git push "https://x-access-token:${TOKEN}@github.com/Obi49/Colber.git" HEAD:main
 ```
 
 ### Inspection VM
 
 ```bash
 # État conteneurs
-python .tools/ssh_run.py --sudo "docker compose -p praxis ps"
+python .tools/ssh_run.py --sudo "docker compose -p colber ps"
 
 # Logs d'un service
-python .tools/ssh_run.py --sudo "docker logs --tail=50 praxis-<service>"
+python .tools/ssh_run.py --sudo "docker logs --tail=50 colber-<service>"
 
 # Pull repo + rebuild + up un service
 TOKEN=$(grep -E '^GITHUB_TOKEN=' .env.local | cut -d= -f2-)
-python .tools/ssh_run.py "cd /home/claude/Praxis && git pull --rebase https://x-access-token:${TOKEN}@github.com/Obi49/Praxis.git main"
-python .tools/ssh_run.py --sudo "cd /home/claude/Praxis/praxis-stack && docker compose -p praxis -f docker-compose.yml -f docker-compose.services.yml build <service> && docker compose -p praxis -f docker-compose.yml -f docker-compose.services.yml up -d --force-recreate <service>"
+python .tools/ssh_run.py "cd /home/claude/Colber && git pull --rebase https://x-access-token:${TOKEN}@github.com/Obi49/Colber.git main"
+python .tools/ssh_run.py --sudo "cd /home/claude/Colber/colber-stack && docker compose -p colber -f docker-compose.yml -f docker-compose.services.yml build <service> && docker compose -p colber -f docker-compose.yml -f docker-compose.services.yml up -d --force-recreate <service>"
 
 # Création d'une nouvelle DB pour un futur module
-python .tools/ssh_run.py --sudo "docker exec praxis-postgres psql -U praxis -d postgres -c 'CREATE DATABASE praxis_<module> OWNER praxis;'"
+python .tools/ssh_run.py --sudo "docker exec colber-postgres psql -U colber -d postgres -c 'CREATE DATABASE colber_<module> OWNER colber;'"
 ```
 
 ### E2E
 
 ```bash
-PRAXIS_VM=100.83.10.125 python .tools/e2e_smoke.py
+COLBER_VM=100.83.10.125 python .tools/e2e_smoke.py
 ```
 
 ### Tests live (testcontainers, optionnel)
 
 ```bash
-PRAXIS_LIVE_TESTS=1 pnpm --filter @praxis/<module> test
+COLBER_LIVE_TESTS=1 pnpm --filter @colber/<module> test
 ```
 
 ---
@@ -269,20 +269,20 @@ python .tools/ssh_run.py "tailscale status | head -5"
 python .tools/ssh_run.py --sudo "docker ps | head -5"
 
 # Conteneurs healthy ?
-python .tools/ssh_run.py --sudo "docker compose -p praxis ps"
+python .tools/ssh_run.py --sudo "docker compose -p colber ps"
 ```
 
-### Un service Praxis spécifique fail
+### Un service Colber spécifique fail
 
 ```bash
 # Logs
-python .tools/ssh_run.py --sudo "docker logs --tail=100 praxis-<service>"
+python .tools/ssh_run.py --sudo "docker logs --tail=100 colber-<service>"
 
 # Healthcheck manuel
 curl -s http://100.83.10.125:140<XX>/healthz | head
 
 # Restart
-python .tools/ssh_run.py --sudo "docker compose -p praxis -f docker-compose.yml -f docker-compose.services.yml up -d --force-recreate <service>"
+python .tools/ssh_run.py --sudo "docker compose -p colber -f docker-compose.yml -f docker-compose.services.yml up -d --force-recreate <service>"
 ```
 
 ### E2E qui échoue après une mise à jour
@@ -291,7 +291,7 @@ Vérifier qu'il y a bien un `git pull` côté VM **avant** le rebuild :
 
 ```bash
 TOKEN=$(grep -E '^GITHUB_TOKEN=' .env.local | cut -d= -f2-)
-python .tools/ssh_run.py "cd /home/claude/Praxis && git pull --rebase https://x-access-token:${TOKEN}@github.com/Obi49/Praxis.git main"
+python .tools/ssh_run.py "cd /home/claude/Colber && git pull --rebase https://x-access-token:${TOKEN}@github.com/Obi49/Colber.git main"
 ```
 
 ### Bugs E2E historiques connus (résolus mais à connaître)
@@ -310,16 +310,16 @@ Connu, non bloquant. Les services applicatifs sont exposés directement sur leur
 
 🔴 **Critique**
 
-- **PAT GitHub `ghp_lzGq…` exposé** en chat lors d'une session précédente → à révoquer (<https://github.com/settings/tokens>) et remplacer par un fine-grained PAT scopé `Obi49/Praxis` uniquement.
+- **PAT GitHub `ghp_lzGq…` exposé** en chat lors d'une session précédente → à révoquer (<https://github.com/settings/tokens>) et remplacer par un fine-grained PAT scopé `Obi49/Colber` uniquement.
 
 🟡 **À durcir**
 
-- **Clés Ed25519 platform** + **clé AES MEMORY_ENCRYPTION_KEY** stockées dans `praxis-stack/services.env` sur la VM uniquement. Fixtures de DEV — à régénérer + stocker dans un KMS pour tout autre environnement.
+- **Clés Ed25519 platform** + **clé AES MEMORY_ENCRYPTION_KEY** stockées dans `colber-stack/services.env` sur la VM uniquement. Fixtures de DEV — à régénérer + stocker dans un KMS pour tout autre environnement.
 - **Auth endpoints memory v1** : `callerDid`/`queryDid` en clair (pas de signature). À durcir en P2.
 - **Score caching invalidation** : reputation v1 ne purge pas le cache Redis sur `submitFeedback` ; staleness window 60 s.
 - **History pagination reputation** : cursor par timestamp seul, pas de tie-breaking. À renforcer en v2.
 - **`SignatureProvider`** dans `core-crypto` n'expose pas `derivePublicKey` ; reputation a importé `@noble/ed25519` directement.
-- **Live test placeholder** dans chaque service (testcontainers non installé). Activable via `PRAXIS_LIVE_TESTS=1`.
+- **Live test placeholder** dans chaque service (testcontainers non installé). Activable via `COLBER_LIVE_TESTS=1`.
 - **INSURANCE admin endpoint** ouvert sur le réseau si `INSURANCE_ADMIN_ENABLED=true` (cas de la VM β). Aucune auth → ajouter shared secret ou mTLS en v1.1.
 
 ---
@@ -336,4 +336,4 @@ Connu, non bloquant. Les services applicatifs sont exposés directement sur leur
 
 ---
 
-— _Fin du guide. Bon retour dans Praxis._
+— _Fin du guide. Bon retour dans Colber._

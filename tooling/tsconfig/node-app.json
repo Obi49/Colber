@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "Praxis — Node.js application (service)",
+  "display": "Colber — Node.js application (service)",
   "extends": "./base.json",
   "compilerOptions": {
     "composite": true,

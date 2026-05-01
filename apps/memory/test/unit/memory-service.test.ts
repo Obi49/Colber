@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto';
 
-import { ERROR_CODES } from '@praxis/core-types';
+import { ERROR_CODES } from '@colber/core-types';
 import { describe, expect, it } from 'vitest';
 
 import { AesGcmEncryptionService, NoopEncryptionService } from '../../src/domain/encryption.js';
@@ -15,7 +15,7 @@ const NOW = new Date('2026-04-27T00:00:00.000Z');
 const buildSvc = async (cfg: Partial<MemoryServiceConfig> = {}) => {
   const repo = new InMemoryMemoryRepository();
   const vectors = new InMemoryVectorRepository();
-  const embeddings = new DeterministicStubProvider(64, 'praxis-stub-v1');
+  const embeddings = new DeterministicStubProvider(64, 'colber-stub-v1');
   const encryption = new AesGcmEncryptionService({
     keyB64: randomBytes(32).toString('base64'),
   });
@@ -51,7 +51,7 @@ describe('MemoryService.store', () => {
       permissions: { visibility: 'private' },
     });
     expect(result.id).toMatch(/^[0-9a-f-]{36}$/);
-    expect(result.embedding).toEqual({ model: 'praxis-stub-v1', dim: 64 });
+    expect(result.embedding).toEqual({ model: 'colber-stub-v1', dim: 64 });
     expect(repo.size()).toBe(1);
     expect(vectors.points.size).toBe(1);
   });

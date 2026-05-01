@@ -1,4 +1,4 @@
-import { ERROR_CODES, PraxisError } from '@praxis/core-types';
+import { ERROR_CODES, ColberError } from '@colber/core-types';
 
 import { AscendingAuctionStrategy } from './ascending-auction.js';
 import { MultiCriteriaStrategy } from './multi-criteria.js';
@@ -28,7 +28,7 @@ export const getStrategy = (id: Strategy): NegotiationStrategy => {
     default: {
       // Exhaustive — TS narrows `id` to `never` here.
       const _exhaustive: never = id;
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.VALIDATION_FAILED,
         `Unknown strategy: ${String(_exhaustive)}`,
         400,

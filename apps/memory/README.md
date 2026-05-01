@@ -1,7 +1,7 @@
-# `@praxis/memory`
+# `@colber/memory`
 
-> Persistent external memory with semantic search for AI agents on the Praxis
-> platform. Other Praxis modules (NEGOTIATION, INSURANCE) and third-party
+> Persistent external memory with semantic search for AI agents on the Colber
+> platform. Other Colber modules (NEGOTIATION, INSURANCE) and third-party
 > agents call this service to remember facts/events/preferences across
 > sessions and discover them again via semantic retrieval.
 
@@ -22,25 +22,25 @@ See [`ARCHITECTURE_BREAKDOWN.md` §3.2](../../docs/ARCHITECTURE_BREAKDOWN.md) an
 Prereqs:
 
 - Node 22+, pnpm 9+
-- The `praxis-stack` Docker stack running with Postgres (15432), Qdrant
+- The `colber-stack` Docker stack running with Postgres (15432), Qdrant
   (16333) and Ollama (11434):
   ```sh
-  cd ../../praxis-stack && docker compose up -d postgres qdrant ollama ollama-init
+  cd ../../colber-stack && docker compose up -d postgres qdrant ollama ollama-init
   ```
 
 ```sh
 # from the repo root
 pnpm install
-pnpm --filter @praxis/memory build
+pnpm --filter @colber/memory build
 
 # create a local .env from the example (DEV creds only)
 cp apps/memory/.env.example apps/memory/.env
 
 # apply migrations against the running Postgres
-pnpm --filter @praxis/memory db:migrate
+pnpm --filter @colber/memory db:migrate
 
 # start in watch mode
-pnpm --filter @praxis/memory dev
+pnpm --filter @colber/memory dev
 ```
 
 The service exposes:
@@ -67,7 +67,7 @@ returns 503 with a per-dependency status block.
 | `DATABASE_URL`              | —                        | Postgres URL                                             |
 | `QDRANT_URL`                | `http://localhost:16333` | Qdrant REST endpoint                                     |
 | `QDRANT_API_KEY`            | —                        | Optional (Qdrant Cloud)                                  |
-| `QDRANT_COLLECTION`         | `praxis_memories`        | Collection name (created on boot)                        |
+| `QDRANT_COLLECTION`         | `colber_memories`        | Collection name (created on boot)                        |
 | `MEMORY_EMBEDDING_PROVIDER` | `ollama`                 | `ollama` or `stub` (deterministic in-memory)             |
 | `OLLAMA_URL`                | `http://localhost:11434` |                                                          |
 | `OLLAMA_EMBED_MODEL`        | `nomic-embed-text`       | Any Ollama embedding model                               |
@@ -152,7 +152,7 @@ Per-tenant KMS resolution lands in P1.7 and is a constructor change at
 ## REST endpoints
 
 All responses follow the `{ ok: true, data } | { ok: false, error }` envelope
-defined in `@praxis/core-types`.
+defined in `@colber/core-types`.
 
 ### `POST /v1/memory`
 
@@ -268,7 +268,7 @@ Zod-defined in `src/mcp/tools.ts` and round-trip via the in-process
 ## gRPC
 
 Proto contract: [`proto/memory.proto`](./proto/memory.proto).
-Service: `praxis.memory.v1.MemoryService` with `Store`, `Retrieve`, `Update`,
+Service: `colber.memory.v1.MemoryService` with `Store`, `Retrieve`, `Update`,
 `Share`, `Get` RPCs. Inter-service usage only — never exposed to the
 public edge.
 
@@ -293,14 +293,14 @@ Selection happens at boot via `MEMORY_EMBEDDING_PROVIDER`.
 ## Tests
 
 ```sh
-pnpm --filter @praxis/memory test          # unit + integration (in-memory fakes)
-pnpm --filter @praxis/memory test:coverage # with v8 coverage, ≥ 80% target on domain/
+pnpm --filter @colber/memory test          # unit + integration (in-memory fakes)
+pnpm --filter @colber/memory test:coverage # with v8 coverage, ≥ 80% target on domain/
 ```
 
 Integration tests do **not** require running services — they use in-memory
 fakes from `test/fakes/`. The live integration suite under `test/live/` is
-gated behind `PRAXIS_LIVE_TESTS=1` and intentionally not wired in CI.
-Filling it in requires `pnpm --filter @praxis/memory add -D testcontainers
+gated behind `COLBER_LIVE_TESTS=1` and intentionally not wired in CI.
+Filling it in requires `pnpm --filter @colber/memory add -D testcontainers
 @testcontainers/postgresql @testcontainers/qdrant` first.
 
 ---
@@ -319,5 +319,5 @@ Filling it in requires `pnpm --filter @praxis/memory add -D testcontainers
 
 ```sh
 # from the repo root
-docker build -f apps/memory/Dockerfile -t praxis/memory:dev .
+docker build -f apps/memory/Dockerfile -t colber/memory:dev .
 ```

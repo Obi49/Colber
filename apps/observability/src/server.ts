@@ -15,7 +15,7 @@
  *   8. Build gRPC server.
  *   9. Listen on both transports + register graceful shutdown.
  */
-import { createLogger } from '@praxis/core-logger';
+import { createLogger } from '@colber/core-logger';
 
 import { ClickHouseTelemetryRepository } from './clickhouse/client.js';
 import { loadAppConfig } from './config.js';

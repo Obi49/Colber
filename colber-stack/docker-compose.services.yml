@@ -1,12 +1,12 @@
-name: praxis
+name: colber
 
 # ------------------------------------------------------------------
-# Stack des services applicatifs Praxis (P1 sprints 1-7).
+# Stack des services applicatifs Colber (P1 sprints 1-7).
 #
-# À lancer depuis praxis-stack/ avec :
+# À lancer depuis colber-stack/ avec :
 #   docker compose -f docker-compose.yml -f docker-compose.services.yml up -d
 #
-# Le réseau praxis_net est défini dans le compose principal.
+# Le réseau colber_net est défini dans le compose principal.
 # Les services se connectent aux datastores via les hostnames internes
 # (postgres, redis, neo4j, qdrant, ollama) — pas via les ports décalés.
 # ------------------------------------------------------------------
@@ -21,8 +21,8 @@ services:
   # ------- AGENT-IDENTITY -------
 
   agent-identity:
-    image: praxis/agent-identity:dev
-    container_name: praxis-agent-identity
+    image: colber/agent-identity:dev
+    container_name: colber-agent-identity
     restart: unless-stopped
     build:
       context: ..
@@ -35,7 +35,7 @@ services:
       HTTP_PORT: 4001
       GRPC_HOST: 0.0.0.0
       GRPC_PORT: 4002
-      DATABASE_URL: postgresql://praxis:praxis_dev@postgres:5432/praxis_identity
+      DATABASE_URL: postgresql://colber:colber_dev@postgres:5432/colber_identity
       PRETTY_LOGS: 'false'
     ports:
       - '14001:4001'
@@ -49,14 +49,14 @@ services:
       timeout: 5s
       retries: 6
       start_period: 30s
-    networks: [praxis_net]
+    networks: [colber_net]
     logging: *default-logging
 
   # ------- REPUTATION -------
 
   reputation:
-    image: praxis/reputation:dev
-    container_name: praxis-reputation
+    image: colber/reputation:dev
+    container_name: colber-reputation
     restart: unless-stopped
     build:
       context: ..
@@ -72,10 +72,10 @@ services:
       HTTP_PORT: 4011
       GRPC_HOST: 0.0.0.0
       GRPC_PORT: 4012
-      DATABASE_URL: postgresql://praxis:praxis_dev@postgres:5432/praxis_reputation
+      DATABASE_URL: postgresql://colber:colber_dev@postgres:5432/colber_reputation
       NEO4J_BOLT_URL: bolt://neo4j:7687
       NEO4J_USERNAME: neo4j
-      NEO4J_PASSWORD: praxis_dev
+      NEO4J_PASSWORD: colber_dev
       NEO4J_DATABASE: neo4j
       REDIS_URL: redis://redis:6379
       REPUTATION_SCORE_TX_DELTA: '10'
@@ -101,14 +101,14 @@ services:
       timeout: 5s
       retries: 6
       start_period: 30s
-    networks: [praxis_net]
+    networks: [colber_net]
     logging: *default-logging
 
   # ------- MEMORY -------
 
   memory:
-    image: praxis/memory:dev
-    container_name: praxis-memory
+    image: colber/memory:dev
+    container_name: colber-memory
     restart: unless-stopped
     build:
       context: ..
@@ -124,9 +124,9 @@ services:
       HTTP_PORT: 4021
       GRPC_HOST: 0.0.0.0
       GRPC_PORT: 4022
-      DATABASE_URL: postgresql://praxis:praxis_dev@postgres:5432/praxis_memory
+      DATABASE_URL: postgresql://colber:colber_dev@postgres:5432/colber_memory
       QDRANT_URL: http://qdrant:6333
-      QDRANT_COLLECTION: praxis_memories
+      QDRANT_COLLECTION: colber_memories
       MEMORY_EMBEDDING_PROVIDER: ollama
       OLLAMA_URL: http://ollama:11434
       OLLAMA_EMBED_MODEL: nomic-embed-text
@@ -151,14 +151,14 @@ services:
       timeout: 5s
       retries: 6
       start_period: 30s
-    networks: [praxis_net]
+    networks: [colber_net]
     logging: *default-logging
 
   # ------- NEGOTIATION -------
 
   negotiation:
-    image: praxis/negotiation:dev
-    container_name: praxis-negotiation
+    image: colber/negotiation:dev
+    container_name: colber-negotiation
     restart: unless-stopped
     build:
       context: ..
@@ -171,7 +171,7 @@ services:
       HTTP_PORT: 4041
       GRPC_HOST: 0.0.0.0
       GRPC_PORT: 4042
-      DATABASE_URL: postgresql://praxis:praxis_dev@postgres:5432/praxis_negotiation
+      DATABASE_URL: postgresql://colber:colber_dev@postgres:5432/colber_negotiation
       NEGOTIATION_DEFAULT_DEADLINE_HOURS: '24'
       NEGOTIATION_MAX_PROPOSALS_PER_NEGOTIATION: '200'
       NEGOTIATION_MAX_PARTIES: '16'
@@ -190,14 +190,14 @@ services:
       timeout: 5s
       retries: 6
       start_period: 30s
-    networks: [praxis_net]
+    networks: [colber_net]
     logging: *default-logging
 
   # ------- INSURANCE -------
 
   insurance:
-    image: praxis/insurance:dev
-    container_name: praxis-insurance
+    image: colber/insurance:dev
+    container_name: colber-insurance
     restart: unless-stopped
     build:
       context: ..
@@ -210,7 +210,7 @@ services:
       HTTP_PORT: 4051
       GRPC_HOST: 0.0.0.0
       GRPC_PORT: 4052
-      DATABASE_URL: postgresql://praxis:praxis_dev@postgres:5432/praxis_insurance
+      DATABASE_URL: postgresql://colber:colber_dev@postgres:5432/colber_insurance
       REPUTATION_URL: http://reputation:4011
       INSURANCE_BASE_RATE_BPS: '200'
       INSURANCE_QUOTE_VALIDITY_SECONDS: '300'
@@ -235,14 +235,14 @@ services:
       timeout: 5s
       retries: 6
       start_period: 30s
-    networks: [praxis_net]
+    networks: [colber_net]
     logging: *default-logging
 
   # ------- OBSERVABILITY -------
 
   observability:
-    image: praxis/observability:dev
-    container_name: praxis-observability
+    image: colber/observability:dev
+    container_name: colber-observability
     restart: unless-stopped
     build:
       context: ..
@@ -255,11 +255,11 @@ services:
       HTTP_PORT: 4031
       GRPC_HOST: 0.0.0.0
       GRPC_PORT: 4032
-      DATABASE_URL: postgresql://praxis:praxis_dev@postgres:5432/praxis_observability
+      DATABASE_URL: postgresql://colber:colber_dev@postgres:5432/colber_observability
       CLICKHOUSE_URL: http://clickhouse:8123
-      CLICKHOUSE_USER: praxis
-      CLICKHOUSE_PASSWORD: praxis_dev
-      CLICKHOUSE_DATABASE: praxis
+      CLICKHOUSE_USER: colber
+      CLICKHOUSE_PASSWORD: colber_dev
+      CLICKHOUSE_DATABASE: colber
       OBSERVABILITY_FLUSH_INTERVAL_MS: '1000'
       OBSERVABILITY_FLUSH_BATCH: '500'
       OBSERVABILITY_MAX_EVENTS_PER_REQUEST: '1000'
@@ -283,5 +283,5 @@ services:
       timeout: 5s
       retries: 6
       start_period: 30s
-    networks: [praxis_net]
+    networks: [colber_net]
     logging: *default-logging

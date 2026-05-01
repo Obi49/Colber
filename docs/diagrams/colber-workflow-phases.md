@@ -1,7 +1,7 @@
-# Praxis — workflow A2A par phases (vue synthétique horizontale)
+# Colber — workflow A2A par phases (vue synthétique horizontale)
 
 > Variante synthétique du workflow A2A : 4 phases lisibles d'un coup d'œil.
-> Pour la version détaillée avec sequence diagram, voir [praxis-workflow-a2a.md](praxis-workflow-a2a.md).
+> Pour la version détaillée avec sequence diagram, voir [colber-workflow-a2a.md](colber-workflow-a2a.md).
 
 ```mermaid
 flowchart LR

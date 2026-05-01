@@ -1,4 +1,4 @@
-import { ERROR_CODES, PraxisError } from '@praxis/core-types';
+import { ERROR_CODES, ColberError } from '@colber/core-types';
 
 import {
   LOG_LEVELS,
@@ -15,7 +15,7 @@ import {
  * Pure-function validators for telemetry payloads.
  *
  * Returns a typed `LogEvent` / `SpanEvent` on success, or throws a
- * `PraxisError(VALIDATION_FAILED)` describing the first violation. The HTTP
+ * `ColberError(VALIDATION_FAILED)` describing the first violation. The HTTP
  * + MCP layers wrap callers so violations land as 400s with a stable
  * `{ index, reason }` shape.
  */
@@ -35,7 +35,7 @@ const isSpanStatus = (v: unknown): v is SpanStatus =>
   typeof v === 'string' && (SPAN_STATUSES as readonly string[]).includes(v);
 
 const reject = (msg: string): never => {
-  throw new PraxisError(ERROR_CODES.VALIDATION_FAILED, msg, 400);
+  throw new ColberError(ERROR_CODES.VALIDATION_FAILED, msg, 400);
 };
 
 const requireIso8601 = (raw: unknown, field: string): string => {

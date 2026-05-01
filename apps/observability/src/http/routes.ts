@@ -33,7 +33,7 @@ import type { FastifyInstance } from 'fastify';
  *   DELETE /v1/observability/alerts/:id          → delete alert
  *
  * All responses follow the `{ ok, data | error }` envelope from
- * `@praxis/core-types`.
+ * `@colber/core-types`.
  */
 
 const alertToResponse = (a: AlertRule): AlertResponse =>

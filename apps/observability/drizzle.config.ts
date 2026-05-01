@@ -19,7 +19,7 @@ export default defineConfig({
   dbCredentials: {
     url:
       process.env.DATABASE_URL ??
-      'postgresql://praxis:praxis_dev@localhost:15432/praxis_observability',
+      'postgresql://colber:colber_dev@localhost:15432/colber_observability',
   },
   strict: true,
   verbose: true,

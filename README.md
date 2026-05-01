@@ -1,11 +1,11 @@
-# Praxis
+# Colber
 
 > **Plateforme d'infrastructure pour l'économie agentique.**
 > Cinq services intégrés pour agents IA autonomes : **Insurance · Reputation · Observability · Negotiation · Memory** — tous exposés en MCP + REST + gRPC.
 
-Praxis se positionne comme la couche de **trust, coordination & continuity** au-dessus des rails de paiement A2A (MoonPay, Coinbase x402, Nevermined). Là où ces acteurs gèrent la transaction monétaire, Praxis fournit ce qui permet aux agents IA de **se faire confiance**, **négocier**, **garantir leurs livrables**, **tracer leurs interactions** et **se souvenir entre sessions**.
+Colber se positionne comme la couche de **trust, coordination & continuity** au-dessus des rails de paiement A2A (MoonPay, Coinbase x402, Nevermined). Là où ces acteurs gèrent la transaction monétaire, Colber fournit ce qui permet aux agents IA de **se faire confiance**, **négocier**, **garantir leurs livrables**, **tracer leurs interactions** et **se souvenir entre sessions**.
 
-> Projet initialement nommé _AgentStack_ (cahier des charges v1.0). Renommé **Praxis** définitivement en avril 2026.
+> Projet initialement nommé _AgentStack_ (cahier des charges v1.0). Renommé **Colber** définitivement en avril 2026.
 
 ---
 
@@ -15,12 +15,12 @@ Praxis se positionne comme la couche de **trust, coordination & continuity** au-
 
 | Module                                               | Statut | Tests | Service VM β            | Ports         | DB                                           |
 | ---------------------------------------------------- | ------ | ----- | ----------------------- | ------------- | -------------------------------------------- |
-| [`agent-identity`](apps/agent-identity/) (support)   | ✅ v1  | 21    | `praxis-agent-identity` | 14001 / 14002 | `praxis_identity`                            |
-| [`reputation`](apps/reputation/)                     | ✅ v1  | 62    | `praxis-reputation`     | 14011 / 14012 | `praxis_reputation`                          |
-| [`memory`](apps/memory/)                             | ✅ v1  | 78    | `praxis-memory`         | 14021 / 14022 | `praxis_memory`                              |
-| [`observability`](apps/observability/)               | ✅ v1  | 32    | `praxis-observability`  | 14031 / 14032 | `praxis_observability` + ClickHouse `praxis` |
-| [`negotiation`](apps/negotiation/)                   | ✅ v1  | 61    | `praxis-negotiation`    | 14041 / 14042 | `praxis_negotiation`                         |
-| [`insurance`](apps/insurance/) (mode simulation MVP) | ✅ v1  | 54    | `praxis-insurance`      | 14051 / 14052 | `praxis_insurance`                           |
+| [`agent-identity`](apps/agent-identity/) (support)   | ✅ v1  | 21    | `colber-agent-identity` | 14001 / 14002 | `colber_identity`                            |
+| [`reputation`](apps/reputation/)                     | ✅ v1  | 62    | `colber-reputation`     | 14011 / 14012 | `colber_reputation`                          |
+| [`memory`](apps/memory/)                             | ✅ v1  | 78    | `colber-memory`         | 14021 / 14022 | `colber_memory`                              |
+| [`observability`](apps/observability/)               | ✅ v1  | 32    | `colber-observability`  | 14031 / 14032 | `colber_observability` + ClickHouse `colber` |
+| [`negotiation`](apps/negotiation/)                   | ✅ v1  | 61    | `colber-negotiation`    | 14041 / 14042 | `colber_negotiation`                         |
+| [`insurance`](apps/insurance/) (mode simulation MVP) | ✅ v1  | 54    | `colber-insurance`      | 14051 / 14052 | `colber_insurance`                           |
 
 **Pipeline FULL TURBO** : 16/16 typecheck/test/lint, 11/11 build, **385 tests passing** (4 skipped placeholders live).
 **E2E sur VM β** (`100.83.10.125`) : `python .tools/e2e_smoke.py` → **23/23 steps verts**.
@@ -71,13 +71,13 @@ flowchart TB
 | **NEGOTIATION**   | Broker de négociation A2A multi-parties (event-sourced) | Postgres (event store + projection)         |
 | **INSURANCE**     | Garantie de livrable agentique avec escrow              | Postgres (escrow simulé en v1; on-chain P3) |
 
-**Schémas complémentaires** : [vue plateforme complète](docs/diagrams/praxis-functional.md) · [workflow A2A séquence](docs/diagrams/praxis-workflow-a2a.md) · [workflow par phases](docs/diagrams/praxis-workflow-phases.md) · [tous les schémas](docs/diagrams/).
+**Schémas complémentaires** : [vue plateforme complète](docs/diagrams/colber-functional.md) · [workflow A2A séquence](docs/diagrams/colber-workflow-a2a.md) · [workflow par phases](docs/diagrams/colber-workflow-phases.md) · [tous les schémas](docs/diagrams/).
 
 Détails techniques : [docs/ARCHITECTURE_BREAKDOWN.md](docs/ARCHITECTURE_BREAKDOWN.md) (modèle C4 + WBS + SLO).
 
 ### Effet de plateforme
 
-Là où les concurrents sont focalisés sur **un seul** module (MoonPay/x402 = paiement, Mem0/Letta/Zep = mémoire, Datadog = observability humaine), Praxis offre les **5 modules intégrés** mais commercialisables séparément. Fenêtre stratégique 12-24 mois avant qu'un acteur établi (Stripe/Coinbase/AWS) bundle l'ensemble.
+Là où les concurrents sont focalisés sur **un seul** module (MoonPay/x402 = paiement, Mem0/Letta/Zep = mémoire, Datadog = observability humaine), Colber offre les **5 modules intégrés** mais commercialisables séparément. Fenêtre stratégique 12-24 mois avant qu'un acteur établi (Stripe/Coinbase/AWS) bundle l'ensemble.
 
 ---
 
@@ -93,8 +93,8 @@ Là où les concurrents sont focalisés sur **un seul** module (MoonPay/x402 = p
 ### Installation et tests locaux
 
 ```bash
-git clone https://github.com/Obi49/Praxis.git
-cd Praxis
+git clone https://github.com/Obi49/Colber.git
+cd Colber
 pnpm install
 pnpm typecheck   # 16/16 verts
 pnpm test        # 385 tests passing
@@ -105,7 +105,7 @@ pnpm build       # 11/11 verts
 ### Lancer la stack β en local (Docker)
 
 ```bash
-cd praxis-stack
+cd colber-stack
 docker compose -f docker-compose.yml -f docker-compose.services.yml up -d
 ```
 
@@ -114,7 +114,7 @@ Voir [docs/DEPLOY.md](docs/DEPLOY.md) pour le runbook complet.
 ### Tests E2E contre une VM déployée
 
 ```bash
-PRAXIS_VM=<ip_de_la_vm> python .tools/e2e_smoke.py
+COLBER_VM=<ip_de_la_vm> python .tools/e2e_smoke.py
 ```
 
 23/23 steps verts attendus.
@@ -128,7 +128,7 @@ PRAXIS_VM=<ip_de_la_vm> python .tools/e2e_smoke.py
 | **Backend**          | TypeScript / Node 22 + Rust (modules crypto critiques P3)   |
 | **Framework HTTP**   | Fastify v5 (zod validation, helmet, cors, sensible)         |
 | **gRPC**             | `@grpc/grpc-js` + `@grpc/proto-loader` (proto JSON-encoded) |
-| **MCP**              | `@praxis/core-mcp` interne (registry-style)                 |
+| **MCP**              | `@colber/core-mcp` interne (registry-style)                 |
 | **ORM Postgres**     | drizzle-orm + postgres-js (migrations versionnées)          |
 | **Vecteurs**         | Qdrant 1.15.4                                               |
 | **OLAP / logs**      | ClickHouse 24.10                                            |
@@ -160,7 +160,7 @@ MCP, A2A, x402, OpenTelemetry (export OTLP en P2), DID, Verifiable Credentials, 
 ## 📁 Structure du repo
 
 ```
-Praxis/
+Colber/
 ├── apps/                          # Services applicatifs (5 modules + agent-identity)
 │   ├── agent-identity/            # Bootstrap crypto, DID:key, register/resolve/verify
 │   ├── reputation/                # Scoring + attestations Ed25519+JCS
@@ -180,7 +180,7 @@ Praxis/
 │   ├── tsconfig/                  # Base TS + node-app TS configs
 │   └── eslint-config/             # Flat config v9 partagée
 │
-├── praxis-stack/                  # Stack Docker β
+├── colber-stack/                  # Stack Docker β
 │   ├── docker-compose.yml         # Datastores + infra (postgres, redis, neo4j, ...)
 │   ├── docker-compose.services.yml# Services applicatifs (build + up)
 │   └── services.env               # Secrets dev (gitignoré sur la VM)
@@ -241,9 +241,9 @@ Toutes optionnelles, ordre à arbitrer selon priorités business — cf. [docs/R
 
 - **Étape 2** — OBSERVABILITY v1.1 : anomalies ML (IQR/EWMA/Z-score) + tiering S3 + exporter OTLP.
 - **Étape 3** — REPUTATION v2 : multi-dim (delivery/quality/communication) + anti-Sybil (Louvain/Leiden via Neo4j GDS) + workflow contestation.
-- **Étape 4** — Plugins frameworks : `@praxis/langchain-plugin`, `@praxis/crewai-plugin`, `@praxis/autogen-plugin`.
+- **Étape 4** — Plugins frameworks : `@colber/langchain-plugin`, `@colber/crewai-plugin`, `@colber/autogen-plugin`.
 - **Étape 5** — Console opérateur web (Next.js 15 + React 19 + Tailwind v4).
-- **Étape 6** — SDK officiels : `@praxis/sdk` (TS sur npm), `praxis-sdk` (Python sur PyPI).
+- **Étape 6** — SDK officiels : `@colber/sdk` (TS sur npm), `colber-sdk` (Python sur PyPI).
 - **Étape 7b** — INSURANCE on-chain réel : Solidity + Foundry + viem + Base Sepolia → mainnet. **Audit Trail of Bits ou OpenZeppelin obligatoire avant prod.**
 - **Étape 8b** — NEGOTIATION v1.1 : cancellation + sweeper deadline + LLM mediator + EIP-712 + insurance/reputation bridges.
 - **Étape 9** — GA publique : bug bounty Immunefi (smart contracts) + HackerOne (web/API) + audit sécu tiers + self-service ouvert.
@@ -253,8 +253,8 @@ Toutes optionnelles, ordre à arbitrer selon priorités business — cf. [docs/R
 
 ## 🔐 Sécurité
 
-- **PAT GitHub** : utilisé pour push depuis l'environnement local. Le PAT actuel dans `.env.local` est considéré compromis (a transité en clair en session précédente). **À régénérer en fine-grained scopé `Obi49/Praxis` uniquement** avant la prochaine session sensible.
-- **Clés platform Ed25519** + **clé AES MEMORY_ENCRYPTION_KEY** : fixtures de DEV stockées dans `praxis-stack/services.env` (sur la VM uniquement, gitignoré). À régénérer pour tout autre environnement.
+- **PAT GitHub** : utilisé pour push depuis l'environnement local. Le PAT actuel dans `.env.local` est considéré compromis (a transité en clair en session précédente). **À régénérer en fine-grained scopé `Obi49/Colber` uniquement** avant la prochaine session sensible.
+- **Clés platform Ed25519** + **clé AES MEMORY_ENCRYPTION_KEY** : fixtures de DEV stockées dans `colber-stack/services.env` (sur la VM uniquement, gitignoré). À régénérer pour tout autre environnement.
 - **Auth endpoints memory v1** : `callerDid`/`queryDid` en clair (pas de signature). À durcir en P2.
 - **PCI / KYC / AML** : non applicable au MVP simulation. Devient critique avec INSURANCE on-chain (étape 7b).
 
@@ -264,7 +264,9 @@ Pour les détails sécurité-conformité prévus en GA (RGPD, audit trail, AI Ac
 
 ## 📜 Licence
 
-`UNLICENSED` (privé, propriétaire). Voir le `package.json` racine.
+[**Apache License 2.0**](LICENSE) — voir aussi [`NOTICE`](NOTICE) pour le détail des attributions et de l'historique du projet.
+
+Les modules `apps/insurance/` (variante on-chain à venir, étape 7b) et `apps/reputation/` (variante anti-Sybil, étape 3) pourront basculer vers une licence commerciale séparée pour leurs versions de production. Les versions actuelles (Apache-2.0) resteront disponibles.
 
 ---
 
@@ -272,4 +274,4 @@ Pour les détails sécurité-conformité prévus en GA (RGPD, audit trail, AI Ac
 
 **Johan** — Chef de projet — `dof1502.mwm27@gmail.com`
 
-Repo : <https://github.com/Obi49/Praxis>
+Repo : <https://github.com/Obi49/Colber>

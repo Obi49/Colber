@@ -1,6 +1,6 @@
-# `@praxis/agent-identity`
+# `@colber/agent-identity`
 
-> Bootstrap identity service for the Praxis platform. The only Praxis service
+> Bootstrap identity service for the Colber platform. The only Colber service
 > that does **not** itself require signed inbound calls — every other service
 > resolves and verifies agent DIDs through this one.
 
@@ -17,24 +17,24 @@ See [`ARCHITECTURE_BREAKDOWN.md` §3.6.1](../../docs/ARCHITECTURE_BREAKDOWN.md) 
 Prereqs:
 
 - Node 22+, pnpm 9+
-- The `praxis-stack` Docker stack running (Postgres on port `15432`):
+- The `colber-stack` Docker stack running (Postgres on port `15432`):
   ```sh
-  cd ../../praxis-stack && docker compose up -d postgres
+  cd ../../colber-stack && docker compose up -d postgres
   ```
 
 ```sh
 # from the repo root
 pnpm install
-pnpm --filter @praxis/agent-identity build
+pnpm --filter @colber/agent-identity build
 
 # create a local .env from the example (DEV creds only)
 cp apps/agent-identity/.env.example apps/agent-identity/.env
 
 # apply migrations against the running Postgres
-pnpm --filter @praxis/agent-identity db:migrate
+pnpm --filter @colber/agent-identity db:migrate
 
 # start in watch mode
-pnpm --filter @praxis/agent-identity dev
+pnpm --filter @colber/agent-identity dev
 ```
 
 The service exposes:
@@ -50,7 +50,7 @@ The service exposes:
 ## REST endpoints
 
 All responses follow the `{ ok: true, data } | { ok: false, error }` envelope
-defined in `@praxis/core-types`.
+defined in `@colber/core-types`.
 
 ### `POST /v1/identity/register`
 
@@ -137,14 +137,14 @@ stabilises.
 ## gRPC
 
 Proto contract: [`proto/identity.proto`](./proto/identity.proto).
-Service: `praxis.identity.v1.IdentityService` with `Register`, `Resolve`,
+Service: `colber.identity.v1.IdentityService` with `Register`, `Resolve`,
 `Verify` RPCs. Inter-service usage only — never exposed to the public edge.
 
 ## DID method extensibility
 
 For MVP we ship `did:key` only. The signature provider abstraction
-(`@praxis/core-crypto`'s `SignatureProvider`) and the `DID_METHODS` list in
-`@praxis/core-types` are designed so that:
+(`@colber/core-crypto`'s `SignatureProvider`) and the `DID_METHODS` list in
+`@colber/core-types` are designed so that:
 
 - `did:web` resolution can be added by implementing a method-aware resolver
   in front of `IdentityService.resolve` (HTTP fetch + JSON-LD parse).
@@ -155,8 +155,8 @@ For MVP we ship `did:key` only. The signature provider abstraction
 ## Tests
 
 ```sh
-pnpm --filter @praxis/agent-identity test          # unit + integration (fastify.inject)
-pnpm --filter @praxis/agent-identity test:coverage # with v8 coverage, ≥ 80% target
+pnpm --filter @colber/agent-identity test          # unit + integration (fastify.inject)
+pnpm --filter @colber/agent-identity test:coverage # with v8 coverage, ≥ 80% target
 ```
 
 Integration tests do **not** require a running Postgres — they use an
@@ -175,5 +175,5 @@ planned for Sprint 2.
 
 ```sh
 # from the repo root
-docker build -f apps/agent-identity/Dockerfile -t praxis/agent-identity:dev .
+docker build -f apps/agent-identity/Dockerfile -t colber/agent-identity:dev .
 ```

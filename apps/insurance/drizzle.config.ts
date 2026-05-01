@@ -18,7 +18,7 @@ export default defineConfig({
   dialect: 'postgresql',
   dbCredentials: {
     url:
-      process.env.DATABASE_URL ?? 'postgresql://praxis:praxis_dev@localhost:15432/praxis_insurance',
+      process.env.DATABASE_URL ?? 'postgresql://colber:colber_dev@localhost:15432/colber_insurance',
   },
   strict: true,
   verbose: true,

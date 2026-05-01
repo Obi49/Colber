@@ -5,7 +5,7 @@ import prettierConfig from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import';
 
 /**
- * Build the base Praxis ESLint flat config.
+ * Build the base Colber ESLint flat config.
  *
  * @param {object} options
  * @param {string} options.tsconfigRootDir Absolute path to the repo root,

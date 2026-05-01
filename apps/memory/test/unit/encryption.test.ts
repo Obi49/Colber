@@ -17,7 +17,7 @@ describe('AesGcmEncryptionService', () => {
     for (const plaintext of cases) {
       const enc = svc.encrypt(plaintext);
       expect(enc.algorithm).toBe(ENCRYPTION_ALGORITHM);
-      expect(enc.keyId).toBe('praxis-memory-v1');
+      expect(enc.keyId).toBe('colber-memory-v1');
       expect(enc.ciphertext).not.toBe(plaintext);
       expect(svc.decrypt(enc.ciphertext)).toBe(plaintext);
     }

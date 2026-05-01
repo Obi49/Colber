@@ -21,7 +21,7 @@ export class DeterministicStubProvider implements EmbeddingProvider {
   public readonly model: string;
   public readonly dim: number;
 
-  constructor(dim = 768, model = 'praxis-stub-v1') {
+  constructor(dim = 768, model = 'colber-stub-v1') {
     this.dim = dim;
     this.model = model;
   }

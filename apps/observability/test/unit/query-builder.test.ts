@@ -12,7 +12,7 @@ describe('buildQuery', () => {
       offset: 0,
     });
     expect(built.sql).toBe(
-      'SELECT * FROM praxis_logs WHERE timestamp >= parseDateTime64BestEffort({from:String}, 3) AND timestamp < parseDateTime64BestEffort({to:String}, 3) ORDER BY timestamp DESC LIMIT {limit:UInt32} OFFSET {offset:UInt32}',
+      'SELECT * FROM colber_logs WHERE timestamp >= parseDateTime64BestEffort({from:String}, 3) AND timestamp < parseDateTime64BestEffort({to:String}, 3) ORDER BY timestamp DESC LIMIT {limit:UInt32} OFFSET {offset:UInt32}',
     );
     expect(built.params).toMatchObject({
       from: '2026-04-27T00:00:00Z',

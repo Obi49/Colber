@@ -1,4 +1,4 @@
-import { ERROR_CODES, PraxisError } from '@praxis/core-types';
+import { ERROR_CODES, ColberError } from '@colber/core-types';
 
 import type { QueryFilter, QueryRequest } from '../domain/query-types.js';
 
@@ -68,11 +68,11 @@ export interface BuiltQuery {
 }
 
 const reject = (msg: string): never => {
-  throw new PraxisError(ERROR_CODES.VALIDATION_FAILED, msg, 400);
+  throw new ColberError(ERROR_CODES.VALIDATION_FAILED, msg, 400);
 };
 
 const tableFor = (scope: 'logs' | 'spans'): string =>
-  scope === 'logs' ? 'praxis_logs' : 'praxis_spans';
+  scope === 'logs' ? 'colber_logs' : 'colber_spans';
 
 const timestampColumn = (scope: 'logs' | 'spans'): string =>
   scope === 'logs' ? 'timestamp' : 'start_timestamp';

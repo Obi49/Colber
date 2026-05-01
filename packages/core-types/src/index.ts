@@ -1,5 +1,5 @@
 /**
- * @praxis/core-types — shared types for the Praxis platform.
+ * @colber/core-types — shared types for the Colber platform.
  *
  * This package is intentionally dependency-free: only types,
  * type guards, and small branded primitives. It is consumed by every

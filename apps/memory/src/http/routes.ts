@@ -32,7 +32,7 @@ import type { FastifyInstance } from 'fastify';
  *   POST   /v1/memory/:id/share           → memory.share
  *
  * All responses follow the `{ ok, data | error }` envelope from
- * `@praxis/core-types`.
+ * `@colber/core-types`.
  *
  * Auth is intentionally weak in v1 — the caller's DID is supplied via the
  * request body or query string. Production will replace this with a signed

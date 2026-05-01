@@ -1,11 +1,11 @@
 import { fileURLToPath } from 'node:url';
 
+import { ERROR_CODES, ColberError } from '@colber/core-types';
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
-import { ERROR_CODES, PraxisError } from '@praxis/core-types';
 
 import type { IdentityService } from '../domain/identity-service.js';
-import type { Logger } from '@praxis/core-logger';
+import type { Logger } from '@colber/core-logger';
 
 const PROTO_PATH = fileURLToPath(new URL('../../proto/identity.proto', import.meta.url));
 
@@ -35,7 +35,7 @@ interface IdentityGrpcService extends grpc.UntypedServiceImplementation {
 }
 
 const toGrpcError = (err: unknown): grpc.ServiceError => {
-  if (err instanceof PraxisError) {
+  if (err instanceof ColberError) {
     const code =
       err.statusCode === 404
         ? grpc.status.NOT_FOUND
@@ -128,9 +128,9 @@ export const buildGrpcServer = (service: IdentityService, logger: Logger): GrpcS
         oneofs: true,
       });
       const proto = grpc.loadPackageDefinition(packageDef) as unknown as {
-        praxis: { identity: { v1: { IdentityService: { service: grpc.ServiceDefinition } } } };
+        colber: { identity: { v1: { IdentityService: { service: grpc.ServiceDefinition } } } };
       };
-      server.addService(proto.praxis.identity.v1.IdentityService.service, handlers);
+      server.addService(proto.colber.identity.v1.IdentityService.service, handlers);
 
       return new Promise<number>((resolve, reject) => {
         server.bindAsync(

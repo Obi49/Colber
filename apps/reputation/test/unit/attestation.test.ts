@@ -1,4 +1,4 @@
-import { fromBase64, getSignatureProvider, toBase64 } from '@praxis/core-crypto';
+import { fromBase64, getSignatureProvider, toBase64 } from '@colber/core-crypto';
 import { describe, expect, it } from 'vitest';
 
 import {

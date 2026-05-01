@@ -1,5 +1,5 @@
-import { getSignatureProvider, toBase64 } from '@praxis/core-crypto';
-import { ERROR_CODES, PraxisError } from '@praxis/core-types';
+import { getSignatureProvider, toBase64 } from '@colber/core-crypto';
+import { ERROR_CODES, ColberError } from '@colber/core-types';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { IdentityService } from '../../src/domain/identity-service.js';
@@ -33,7 +33,7 @@ describe('IdentityService', () => {
     it('rejects a non-base64 public key', async () => {
       await expect(
         service.register({ publicKeyBase64: 'not!base64', ownerOperatorId: 'op' }),
-      ).rejects.toBeInstanceOf(PraxisError);
+      ).rejects.toBeInstanceOf(ColberError);
     });
 
     it('rejects a public key of the wrong length', async () => {

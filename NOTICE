@@ -1,0 +1,50 @@
+Colber — Infrastructure platform for the agent economy
+Copyright 2026 Johan / Colber
+
+This product includes software developed by Johan and contributors,
+released under the Apache License, Version 2.0 (see LICENSE).
+
+================================================================================
+Project history
+================================================================================
+
+This project was initially named "AgentStack" (specification v1.0 written in
+French, preserved as docs/AgentStack_Cahier_des_charges.docx for historical
+reference). It was renamed "Praxis" in April 2026, then renamed definitively
+to "Colber" on 2026-05-01.
+
+Repository: https://github.com/Obi49/Colber
+Domain:     https://colber.dev
+
+================================================================================
+Future module licensing
+================================================================================
+
+The following modules are released under Apache-2.0 alongside the rest of the
+codebase today, but may transition to a separate commercial license once their
+production-grade variants are released:
+
+  - apps/insurance/          (when on-chain Solidity contracts ship — step 7b)
+  - apps/reputation/         (when scoring v2 with anti-Sybil ships — step 3)
+
+Any such transition will only apply to *new* releases; previously published
+versions will remain available under Apache-2.0.
+
+================================================================================
+Third-party software
+================================================================================
+
+This product depends on third-party libraries listed in package.json files.
+Their respective licenses are included in node_modules/<package>/LICENSE
+after `pnpm install`. Notable runtime dependencies include:
+
+  - @noble/ed25519           (MIT)        — Ed25519 signatures
+  - fastify                  (MIT)        — HTTP framework
+  - drizzle-orm              (Apache-2.0) — Postgres ORM
+  - postgres                 (Unlicense)  — Postgres driver
+  - @grpc/grpc-js            (Apache-2.0) — gRPC server
+  - @qdrant/js-client-rest   (Apache-2.0) — Qdrant client
+  - pino                     (MIT)        — Structured logging
+  - zod                      (MIT)        — Schema validation
+
+For the complete list, run `pnpm licenses list` at the repository root.

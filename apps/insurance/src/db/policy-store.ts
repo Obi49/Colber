@@ -1,4 +1,4 @@
-import { ERROR_CODES, PraxisError } from '@praxis/core-types';
+import { ERROR_CODES, ColberError } from '@colber/core-types';
 import { and, asc, desc, eq, sql } from 'drizzle-orm';
 
 import { claims, escrowEvents, escrowHoldings, policies } from './schema.js';
@@ -67,7 +67,7 @@ export class DrizzlePolicyStore implements PolicyStore {
         .where(eq(escrowHoldings.status, 'locked'));
       const totalLocked = Number(exposure[0]?.total ?? '0');
       if (totalLocked + input.policy.amountUsdc > input.maxGlobalExposureUsdc) {
-        throw new PraxisError(
+        throw new ColberError(
           ERROR_CODES.VALIDATION_FAILED,
           `global exposure cap reached (${totalLocked} + ${input.policy.amountUsdc} > ${input.maxGlobalExposureUsdc})`,
           400,
@@ -103,7 +103,7 @@ export class DrizzlePolicyStore implements PolicyStore {
           .limit(1);
         const row = existing[0];
         if (!row) {
-          throw new PraxisError(
+          throw new ColberError(
             ERROR_CODES.INTERNAL_ERROR,
             'idempotency conflict but row missing',
             500,
@@ -111,7 +111,7 @@ export class DrizzlePolicyStore implements PolicyStore {
         }
         const view = await this.fetchPolicyView(row.id, tx);
         if (!view) {
-          throw new PraxisError(
+          throw new ColberError(
             ERROR_CODES.INTERNAL_ERROR,
             'policy row found but view rebuild failed',
             500,
@@ -141,7 +141,7 @@ export class DrizzlePolicyStore implements PolicyStore {
 
       const view = await this.fetchPolicyView(input.policy.id, tx);
       if (!view) {
-        throw new PraxisError(ERROR_CODES.INTERNAL_ERROR, 'view rebuild failed', 500);
+        throw new ColberError(ERROR_CODES.INTERNAL_ERROR, 'view rebuild failed', 500);
       }
       return { view, idempotent: false };
     });
@@ -179,7 +179,7 @@ export class DrizzlePolicyStore implements PolicyStore {
           .limit(1);
         const row = existing[0];
         if (!row) {
-          throw new PraxisError(
+          throw new ColberError(
             ERROR_CODES.INTERNAL_ERROR,
             'idempotency conflict but row missing',
             500,
@@ -189,7 +189,7 @@ export class DrizzlePolicyStore implements PolicyStore {
       }
       const row = inserted[0];
       if (!row) {
-        throw new PraxisError(ERROR_CODES.INTERNAL_ERROR, 'insert returned no rows', 500);
+        throw new ColberError(ERROR_CODES.INTERNAL_ERROR, 'insert returned no rows', 500);
       }
       return { claim: rowToClaim(row), idempotent: false };
     });
@@ -241,7 +241,7 @@ export class DrizzlePolicyStore implements PolicyStore {
         .limit(1);
       const row = rows[0];
       if (!row) {
-        throw new PraxisError(
+        throw new ColberError(
           ERROR_CODES.NOT_FOUND,
           `escrow holding ${input.holdingId} not found`,
           404,
@@ -250,7 +250,7 @@ export class DrizzlePolicyStore implements PolicyStore {
 
       const verdict = validateTransition(row.status as EscrowStatus, input.to);
       if (verdict.kind === 'reject') {
-        throw new PraxisError(ERROR_CODES.VALIDATION_FAILED, verdict.reason, 400);
+        throw new ColberError(ERROR_CODES.VALIDATION_FAILED, verdict.reason, 400);
       }
       if (verdict.kind === 'noop') {
         const events = await this.fetchEscrowEvents(input.holdingId, tx);
@@ -269,7 +269,7 @@ export class DrizzlePolicyStore implements PolicyStore {
         .returning();
       const updatedRow = updated[0];
       if (!updatedRow) {
-        throw new PraxisError(ERROR_CODES.INTERNAL_ERROR, 'update returned no rows', 500);
+        throw new ColberError(ERROR_CODES.INTERNAL_ERROR, 'update returned no rows', 500);
       }
 
       const payload: Record<string, unknown> = {};

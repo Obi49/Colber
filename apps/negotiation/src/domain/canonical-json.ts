@@ -4,7 +4,7 @@
  * Mirrors `apps/reputation/src/domain/canonical-json.ts` (the reputation
  * service does the same thing for its signed score / signed feedback
  * payloads). We deliberately keep a per-service copy rather than promoting
- * to `@praxis/core-crypto` because:
+ * to `@colber/core-crypto` because:
  *   - The spec is small.
  *   - We want byte-exact behaviour locked in tests within this package.
  *   - Promoting later is mechanical if a third service needs it.

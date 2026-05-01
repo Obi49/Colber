@@ -1,4 +1,4 @@
-import { defineMcpTool, McpToolRegistry } from '@praxis/core-mcp';
+import { defineMcpTool, McpToolRegistry } from '@colber/core-mcp';
 import { z } from 'zod';
 
 import {
@@ -14,7 +14,7 @@ import type { MemoryService } from '../domain/memory-service.js';
 
 /**
  * MCP tools exposed by the memory service.
- * Names follow the Praxis convention `<module>.<verb>` (cf. ADR §0.2.3 / CDC §2.5).
+ * Names follow the Colber convention `<module>.<verb>` (cf. ADR §0.2.3 / CDC §2.5).
  */
 export const buildMemoryMcpRegistry = (service: MemoryService): McpToolRegistry => {
   const registry = new McpToolRegistry();

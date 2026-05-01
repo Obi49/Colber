@@ -2,8 +2,8 @@
  * REST integration tests using fastify's `inject` (no real HTTP socket needed).
  * Uses the in-memory `EventStore` fake — no real Postgres connection.
  */
-import { getSignatureProvider, toBase64 } from '@praxis/core-crypto';
-import { createLogger, type Logger } from '@praxis/core-logger';
+import { getSignatureProvider, toBase64 } from '@colber/core-crypto';
+import { createLogger, type Logger } from '@colber/core-logger';
 import { v4 as uuidv4 } from 'uuid';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 

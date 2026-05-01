@@ -1,4 +1,4 @@
-import { ERROR_CODES, PraxisError, type ApiError } from '@praxis/core-types';
+import { ERROR_CODES, ColberError, type ApiError } from '@colber/core-types';
 import { ZodError } from 'zod';
 
 import type { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
@@ -10,7 +10,7 @@ import type { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 export const errorHandler = (err: FastifyError, req: FastifyRequest, reply: FastifyReply): void => {
   const traceId = req.id;
 
-  if (err instanceof PraxisError) {
+  if (err instanceof ColberError) {
     req.log.warn(
       { code: err.code, statusCode: err.statusCode, details: err.details, traceId },
       err.message,

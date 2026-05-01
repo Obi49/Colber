@@ -1,4 +1,4 @@
-import { ERROR_CODES, PraxisError } from '@praxis/core-types';
+import { ERROR_CODES, ColberError } from '@colber/core-types';
 
 import { policyViewToWire, quoteToView, claimToWire } from './views.js';
 import {
@@ -25,7 +25,7 @@ import type { FastifyInstance } from 'fastify';
  *   POST /v1/insurance/admin/escrow/:holdingId/transition  (gated)
  *
  * All responses follow the `{ ok, data | error }` envelope from
- * `@praxis/core-types`.
+ * `@colber/core-types`.
  */
 export interface InsuranceRoutesDeps {
   readonly service: InsuranceService;
@@ -98,7 +98,7 @@ export const registerInsuranceRoutes = (app: FastifyInstance, deps: InsuranceRou
     '/v1/insurance/admin/escrow/:holdingId/transition',
     async (req, reply) => {
       if (!adminEnabled) {
-        throw new PraxisError(
+        throw new ColberError(
           ERROR_CODES.UNAUTHORIZED,
           'admin endpoints are disabled (set INSURANCE_ADMIN_ENABLED=true to enable)',
           403,

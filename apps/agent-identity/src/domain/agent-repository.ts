@@ -4,7 +4,7 @@ import {
   type AgentIdentity,
   type Did,
   type SignatureScheme,
-} from '@praxis/core-types';
+} from '@colber/core-types';
 import { eq } from 'drizzle-orm';
 
 import { agents, type AgentInsert, type AgentRow } from '../db/schema.js';

@@ -1,4 +1,4 @@
-import { ERROR_CODES, PraxisError } from '@praxis/core-types';
+import { ERROR_CODES, ColberError } from '@colber/core-types';
 import { v4 as uuidv4 } from 'uuid';
 
 import { applyEvent, rebuildProjection } from './projection.js';
@@ -94,7 +94,7 @@ export class NegotiationService {
 
   public async start(input: StartNegotiationInput): Promise<StartNegotiationResult> {
     if (input.terms.partyDids.length > this.cfg.maxParties) {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.VALIDATION_FAILED,
         `partyDids must have at most ${this.cfg.maxParties} entries`,
         400,
@@ -102,7 +102,7 @@ export class NegotiationService {
     }
     const deadlineMs = Date.parse(input.terms.deadline);
     if (deadlineMs <= this.now().getTime()) {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.VALIDATION_FAILED,
         'terms.deadline must be in the future',
         400,
@@ -168,7 +168,7 @@ export class NegotiationService {
     const strat = getStrategy(state.strategy);
     const validation = strat.validateProposal(state, proposal);
     if (!validation.ok) {
-      throw new PraxisError(ERROR_CODES.VALIDATION_FAILED, validation.reason, 400);
+      throw new ColberError(ERROR_CODES.VALIDATION_FAILED, validation.reason, 400);
     }
 
     const at = this.now().toISOString();
@@ -204,7 +204,7 @@ export class NegotiationService {
     const strat = getStrategy(state.strategy);
     const validation = strat.validateProposal(state, proposal, input.counterTo);
     if (!validation.ok) {
-      throw new PraxisError(ERROR_CODES.VALIDATION_FAILED, validation.reason, 400);
+      throw new ColberError(ERROR_CODES.VALIDATION_FAILED, validation.reason, 400);
     }
 
     const at = this.now().toISOString();
@@ -238,7 +238,7 @@ export class NegotiationService {
     this.assertActive(state);
 
     if (state.proposals.length === 0) {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.VALIDATION_FAILED,
         'cannot settle a negotiation with no proposals',
         400,
@@ -249,7 +249,7 @@ export class NegotiationService {
     if (input.winningProposalId) {
       const found = state.proposals.find((p) => p.proposalId === input.winningProposalId);
       if (!found) {
-        throw new PraxisError(
+        throw new ColberError(
           ERROR_CODES.VALIDATION_FAILED,
           `winningProposalId ${input.winningProposalId} not found`,
           400,
@@ -260,7 +260,7 @@ export class NegotiationService {
       const strat = getStrategy(state.strategy);
       const pick = strat.pickWinner(state);
       if ('reason' in pick) {
-        throw new PraxisError(ERROR_CODES.VALIDATION_FAILED, pick.reason, 400);
+        throw new ColberError(ERROR_CODES.VALIDATION_FAILED, pick.reason, 400);
       }
       winningProposalId = pick.proposalId;
     }
@@ -269,7 +269,7 @@ export class NegotiationService {
     const sigDids = new Set(input.signatures.map((s) => s.did));
     for (const did of state.partyDids) {
       if (!sigDids.has(did)) {
-        throw new PraxisError(
+        throw new ColberError(
           ERROR_CODES.VALIDATION_FAILED,
           `missing settlement signature from did=${did}`,
           400,
@@ -278,7 +278,7 @@ export class NegotiationService {
     }
     for (const sig of input.signatures) {
       if (!state.partyDids.includes(sig.did)) {
-        throw new PraxisError(
+        throw new ColberError(
           ERROR_CODES.VALIDATION_FAILED,
           `signature from non-party did=${sig.did}`,
           400,
@@ -325,7 +325,7 @@ export class NegotiationService {
   ): Promise<{ readonly events: readonly StoredEvent[]; readonly nextCursor: number | null }> {
     const state = await this.store.getState(negotiationId);
     if (!state) {
-      throw new PraxisError(ERROR_CODES.NOT_FOUND, `negotiation ${negotiationId} not found`, 404);
+      throw new ColberError(ERROR_CODES.NOT_FOUND, `negotiation ${negotiationId} not found`, 404);
     }
     return this.store.history(negotiationId, cursor, limit);
   }
@@ -338,7 +338,7 @@ export class NegotiationService {
   public async rebuildProjection(negotiationId: string): Promise<NegotiationState> {
     const events = await this.store.listEvents(negotiationId);
     if (events.length === 0) {
-      throw new PraxisError(ERROR_CODES.NOT_FOUND, `negotiation ${negotiationId} not found`, 404);
+      throw new ColberError(ERROR_CODES.NOT_FOUND, `negotiation ${negotiationId} not found`, 404);
     }
     return rebuildProjection(events.map((e) => e.event));
   }
@@ -358,29 +358,29 @@ export class NegotiationService {
   private async requireState(id: string): Promise<NegotiationState> {
     const state = await this.store.getState(id);
     if (!state) {
-      throw new PraxisError(ERROR_CODES.NOT_FOUND, `negotiation ${id} not found`, 404);
+      throw new ColberError(ERROR_CODES.NOT_FOUND, `negotiation ${id} not found`, 404);
     }
     return state;
   }
 
   private assertActive(state: NegotiationState): void {
     if (state.status === 'cancelled' || state.status === 'expired') {
-      throw new PraxisError(ERROR_CODES.VALIDATION_FAILED, `negotiation is ${state.status}`, 400);
+      throw new ColberError(ERROR_CODES.VALIDATION_FAILED, `negotiation is ${state.status}`, 400);
     }
     if (state.status === 'settled') {
-      throw new PraxisError(ERROR_CODES.VALIDATION_FAILED, 'negotiation is already settled', 400);
+      throw new ColberError(ERROR_CODES.VALIDATION_FAILED, 'negotiation is already settled', 400);
     }
   }
 
   private assertNotExpired(state: NegotiationState): void {
     if (Date.parse(state.expiresAt) <= this.now().getTime()) {
-      throw new PraxisError(ERROR_CODES.VALIDATION_FAILED, 'negotiation deadline has passed', 400);
+      throw new ColberError(ERROR_CODES.VALIDATION_FAILED, 'negotiation deadline has passed', 400);
     }
   }
 
   private assertProposalCap(state: NegotiationState): void {
     if (state.proposals.length >= this.cfg.maxProposalsPerNegotiation) {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.VALIDATION_FAILED,
         `max proposals (${this.cfg.maxProposalsPerNegotiation}) reached`,
         400,

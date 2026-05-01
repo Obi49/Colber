@@ -1,4 +1,4 @@
-import { ERROR_CODES, PraxisError } from '@praxis/core-types';
+import { ERROR_CODES, ColberError } from '@colber/core-types';
 
 import { getStrategy } from './strategies/index.js';
 
@@ -16,7 +16,7 @@ import type { NegotiationEvent, NegotiationState, NegotiationTerms } from './neg
  *     `negotiation_state` row drifts from the event log.
  *   - Tests (no DB needed) to verify state transitions end-to-end.
  *
- * Invariants enforced here (illegal transitions throw `PraxisError(VALIDATION_FAILED)`):
+ * Invariants enforced here (illegal transitions throw `ColberError(VALIDATION_FAILED)`):
  *   - The first event MUST be `negotiation.started`.
  *   - No events accepted after a terminal event (`settled`, `cancelled`,
  *     `expired`).
@@ -29,7 +29,7 @@ import type { NegotiationEvent, NegotiationState, NegotiationTerms } from './neg
 
 export const rebuildProjection = (events: readonly NegotiationEvent[]): NegotiationState => {
   if (events.length === 0) {
-    throw new PraxisError(
+    throw new ColberError(
       ERROR_CODES.NOT_FOUND,
       'cannot rebuild projection from empty event log',
       404,
@@ -38,7 +38,7 @@ export const rebuildProjection = (events: readonly NegotiationEvent[]): Negotiat
 
   const head = events[0];
   if (head?.type !== 'negotiation.started') {
-    throw new PraxisError(
+    throw new ColberError(
       ERROR_CODES.VALIDATION_FAILED,
       `first event must be negotiation.started, got ${head?.type ?? 'undefined'}`,
       500,
@@ -67,7 +67,7 @@ const TERMINAL_STATUSES = new Set<NegotiationState['status']>(['settled', 'cance
  */
 export const applyEvent = (state: NegotiationState, ev: NegotiationEvent): NegotiationState => {
   if (TERMINAL_STATUSES.has(state.status)) {
-    throw new PraxisError(
+    throw new ColberError(
       ERROR_CODES.VALIDATION_FAILED,
       `cannot apply event ${ev.type} to terminal status ${state.status}`,
       400,
@@ -76,7 +76,7 @@ export const applyEvent = (state: NegotiationState, ev: NegotiationEvent): Negot
 
   switch (ev.type) {
     case 'negotiation.started':
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.VALIDATION_FAILED,
         'duplicate negotiation.started in event log',
         500,
@@ -86,7 +86,7 @@ export const applyEvent = (state: NegotiationState, ev: NegotiationEvent): Negot
       const strat = getStrategy(state.strategy);
       const validation = strat.validateProposal(state, ev.proposal);
       if (!validation.ok) {
-        throw new PraxisError(
+        throw new ColberError(
           ERROR_CODES.VALIDATION_FAILED,
           `proposal rejected: ${validation.reason}`,
           400,
@@ -99,7 +99,7 @@ export const applyEvent = (state: NegotiationState, ev: NegotiationEvent): Negot
       const strat = getStrategy(state.strategy);
       const validation = strat.validateProposal(state, ev.proposal, ev.counterTo);
       if (!validation.ok) {
-        throw new PraxisError(
+        throw new ColberError(
           ERROR_CODES.VALIDATION_FAILED,
           `counter rejected: ${validation.reason}`,
           400,
@@ -111,7 +111,7 @@ export const applyEvent = (state: NegotiationState, ev: NegotiationEvent): Negot
     case 'negotiation.settled': {
       const winning = state.proposals.find((p) => p.proposalId === ev.winningProposalId);
       if (!winning) {
-        throw new PraxisError(
+        throw new ColberError(
           ERROR_CODES.VALIDATION_FAILED,
           `winningProposalId ${ev.winningProposalId} not in proposals`,
           400,
@@ -121,7 +121,7 @@ export const applyEvent = (state: NegotiationState, ev: NegotiationEvent): Negot
       const actual = new Set(ev.signatures.map((s) => s.did));
       for (const did of expected) {
         if (!actual.has(did)) {
-          throw new PraxisError(
+          throw new ColberError(
             ERROR_CODES.VALIDATION_FAILED,
             `settlement is missing signature from did=${did}`,
             400,
@@ -154,7 +154,7 @@ export const applyEvent = (state: NegotiationState, ev: NegotiationEvent): Negot
 
     default: {
       const _exhaustive: never = ev;
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.INTERNAL_ERROR,
         `unknown event type: ${JSON.stringify(_exhaustive)}`,
         500,

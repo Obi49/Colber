@@ -14,7 +14,7 @@
  *   9. Build gRPC server.
  *  10. Listen on both transports + register graceful shutdown.
  */
-import { createLogger } from '@praxis/core-logger';
+import { createLogger } from '@colber/core-logger';
 
 import { loadAppConfig } from './config.js';
 import { createDbClient } from './db/client.js';

@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package praxis.insurance.v1;
+package colber.insurance.v1;
 
-// Praxis — Insurance broker gRPC contract (v1).
+// Colber — Insurance broker gRPC contract (v1).
 // Mirrors the REST + MCP surfaces. v1 is simulation-only (no on-chain).
 // Free-form fields (sla_terms, evidence, escrow, claims) are JSON-encoded
 // to keep the proto stable as the domain shape evolves.

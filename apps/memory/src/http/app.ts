@@ -13,7 +13,7 @@ import { registerHealthRoutes, type HealthDeps } from './health.js';
 import { registerMemoryRoutes } from './routes.js';
 
 import type { MemoryService } from '../domain/memory-service.js';
-import type { Logger } from '@praxis/core-logger';
+import type { Logger } from '@colber/core-logger';
 
 export interface BuildAppDeps extends HealthDeps {
   readonly logger: Logger;

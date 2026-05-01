@@ -1,4 +1,4 @@
-import { PraxisError } from '@praxis/core-types';
+import { ColberError } from '@colber/core-types';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 
@@ -35,18 +35,18 @@ describe('McpToolRegistry', () => {
     expect(out).toEqual({ text: 'hi' });
   });
 
-  it('throws PraxisError on invalid input', async () => {
+  it('throws ColberError on invalid input', async () => {
     const reg = new McpToolRegistry();
     reg.register(echoTool);
     await expect(reg.invoke('test.echo', { text: '' }, { traceId: 't1' })).rejects.toBeInstanceOf(
-      PraxisError,
+      ColberError,
     );
   });
 
-  it('throws PraxisError on unknown tool', async () => {
+  it('throws ColberError on unknown tool', async () => {
     const reg = new McpToolRegistry();
     await expect(reg.invoke('test.missing', {}, { traceId: 't1' })).rejects.toBeInstanceOf(
-      PraxisError,
+      ColberError,
     );
   });
 });

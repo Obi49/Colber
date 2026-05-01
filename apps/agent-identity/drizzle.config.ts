@@ -12,9 +12,7 @@ export default defineConfig({
   out: './drizzle',
   dialect: 'postgresql',
   dbCredentials: {
-    url:
-      process.env.DATABASE_URL ??
-      'postgresql://praxis:praxis_dev@localhost:15432/praxis',
+    url: process.env.DATABASE_URL ?? 'postgresql://colber:colber_dev@localhost:15432/colber',
   },
   strict: true,
   verbose: true,

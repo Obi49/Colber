@@ -1,4 +1,4 @@
-import { decodeDidKey } from '@praxis/core-crypto';
+import { decodeDidKey } from '@colber/core-crypto';
 import { sql } from 'drizzle-orm';
 
 import type { Database } from '../db/client.js';

@@ -1,4 +1,4 @@
-import { ERROR_CODES, PraxisError } from '@praxis/core-types';
+import { ERROR_CODES, ColberError } from '@colber/core-types';
 import { v4 as uuidv4 } from 'uuid';
 
 import {
@@ -132,7 +132,7 @@ export class MemoryService {
     let encMeta = { enabled: false, algorithm: '', keyId: '' };
     if (input.encryption?.enabled) {
       if (!this.encryption.available) {
-        throw new PraxisError(
+        throw new ColberError(
           ERROR_CODES.VALIDATION_FAILED,
           'encryption.enabled requested but no encryption key is configured',
           400,
@@ -185,7 +185,7 @@ export class MemoryService {
 
   public async retrieve(input: RetrieveInput): Promise<RetrieveHit[]> {
     if (input.queryText.length === 0) {
-      throw new PraxisError(ERROR_CODES.VALIDATION_FAILED, 'queryText must be non-empty', 400);
+      throw new ColberError(ERROR_CODES.VALIDATION_FAILED, 'queryText must be non-empty', 400);
     }
     const topK = Math.min(Math.max(1, input.topK | 0), MAX_TOP_K);
 
@@ -257,7 +257,7 @@ export class MemoryService {
     const callerOperatorId = await this.operators.resolveOperatorId(callerDid);
     const acl = await this.toAcl(stored);
     if (!canRead(acl, { callerDid, operatorId: callerOperatorId })) {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.UNAUTHORIZED,
         `Caller ${callerDid} is not authorised to read memory ${id}`,
         403,
@@ -285,7 +285,7 @@ export class MemoryService {
 
   public async update(input: UpdateInput): Promise<UpdateOutput> {
     if (input.text === undefined && input.payload === undefined) {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.VALIDATION_FAILED,
         'update must change at least one of `text` or `payload`',
         400,
@@ -299,7 +299,7 @@ export class MemoryService {
     const callerOperatorId = await this.operators.resolveOperatorId(input.callerDid);
     const acl = await this.toAcl(stored);
     if (!canWrite(acl, { callerDid: input.callerDid, operatorId: callerOperatorId })) {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.UNAUTHORIZED,
         `Only the owner can update memory ${input.id}`,
         403,
@@ -384,7 +384,7 @@ export class MemoryService {
 
   public async share(input: ShareInput): Promise<ShareOutput> {
     if (input.shareWith.length === 0) {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.VALIDATION_FAILED,
         'shareWith must contain at least one DID',
         400,
@@ -396,7 +396,7 @@ export class MemoryService {
     const callerOperatorId = await this.operators.resolveOperatorId(input.callerDid);
     const acl = await this.toAcl(stored);
     if (!canWrite(acl, { callerDid: input.callerDid, operatorId: callerOperatorId })) {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.UNAUTHORIZED,
         `Only the owner can share memory ${input.id}`,
         403,
@@ -451,7 +451,7 @@ export class MemoryService {
   private async requireMemory(id: string): Promise<StoredMemory> {
     const stored = await this.repo.findById(id);
     if (!stored) {
-      throw new PraxisError(ERROR_CODES.NOT_FOUND, `Memory not found: ${id}`, 404);
+      throw new ColberError(ERROR_CODES.NOT_FOUND, `Memory not found: ${id}`, 404);
     }
     return stored;
   }
@@ -468,12 +468,12 @@ export class MemoryService {
 
   private validateText(text: string): void {
     if (text.length === 0) {
-      throw new PraxisError(ERROR_CODES.VALIDATION_FAILED, 'text must be non-empty', 400);
+      throw new ColberError(ERROR_CODES.VALIDATION_FAILED, 'text must be non-empty', 400);
     }
     const max = this.cfg.maxTextBytes ?? DEFAULT_MAX_TEXT_BYTES;
     const byteLen = Buffer.byteLength(text, 'utf8');
     if (byteLen > max) {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.VALIDATION_FAILED,
         `text exceeds maximum size of ${max} bytes (got ${byteLen})`,
         400,
@@ -486,14 +486,14 @@ export class MemoryService {
     sharedWith: readonly string[] | undefined,
   ): void {
     if (!VISIBILITY_VALUES.includes(visibility)) {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.VALIDATION_FAILED,
         `unknown visibility: ${String(visibility)}`,
         400,
       );
     }
     if (visibility === 'shared' && (!sharedWith || sharedWith.length === 0)) {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.VALIDATION_FAILED,
         'permissions.sharedWith must be non-empty when visibility=shared',
         400,
@@ -507,7 +507,7 @@ export class MemoryService {
     }
     const d = new Date(raw);
     if (Number.isNaN(d.getTime())) {
-      throw new PraxisError(ERROR_CODES.VALIDATION_FAILED, `${name} must be ISO-8601`, 400);
+      throw new ColberError(ERROR_CODES.VALIDATION_FAILED, `${name} must be ISO-8601`, 400);
     }
     return d;
   }

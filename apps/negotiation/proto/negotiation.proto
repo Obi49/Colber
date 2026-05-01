@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package praxis.negotiation.v1;
+package colber.negotiation.v1;
 
-// Praxis — Negotiation broker gRPC contract (v1).
+// Colber — Negotiation broker gRPC contract (v1).
 // Mirrors the REST + MCP surfaces. Used for inter-service calls inside the
 // cluster (gRPC over service mesh).
 

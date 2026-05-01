@@ -22,7 +22,7 @@ import type { FastifyInstance } from 'fastify';
  *   POST /v1/negotiation/:id/settle             → negotiation.settle
  *
  * All responses follow the `{ ok, data | error }` envelope from
- * `@praxis/core-types`.
+ * `@colber/core-types`.
  */
 export const registerNegotiationRoutes = (
   app: FastifyInstance,

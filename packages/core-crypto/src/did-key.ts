@@ -1,4 +1,4 @@
-import { asDid, type Did, type SignatureScheme } from '@praxis/core-types';
+import { asDid, type Did, type SignatureScheme } from '@colber/core-types';
 
 import { fromBase58btc, toBase58btc } from './codec.js';
 

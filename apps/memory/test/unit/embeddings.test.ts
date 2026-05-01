@@ -142,7 +142,7 @@ describe('buildEmbeddingProvider', () => {
     const p = buildEmbeddingProvider({
       provider: 'stub',
       dim: 64,
-      model: 'praxis-stub',
+      model: 'colber-stub',
       ollamaUrl: 'http://nope',
     });
     expect(p).toBeInstanceOf(DeterministicStubProvider);

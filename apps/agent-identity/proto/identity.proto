@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package praxis.identity.v1;
+package colber.identity.v1;
 
-// Praxis — Agent Identity gRPC contract (v1).
+// Colber — Agent Identity gRPC contract (v1).
 // Mirror of the REST + MCP surfaces. Used for inter-service calls
 // inside the cluster (gRPC over Linkerd / Istio service mesh).
 

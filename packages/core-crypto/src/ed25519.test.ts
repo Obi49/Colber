@@ -14,7 +14,7 @@ describe('Ed25519 provider', () => {
 
   it('signs and verifies a message', async () => {
     const kp = await provider.generateKeyPair();
-    const msg = new TextEncoder().encode('hello praxis');
+    const msg = new TextEncoder().encode('hello colber');
     const sig = await provider.sign(msg, kp.privateKey);
     expect(sig.length).toBe(ED25519_CONSTANTS.SIGNATURE_BYTES);
 
@@ -24,10 +24,10 @@ describe('Ed25519 provider', () => {
 
   it('rejects a tampered message', async () => {
     const kp = await provider.generateKeyPair();
-    const msg = new TextEncoder().encode('hello praxis');
+    const msg = new TextEncoder().encode('hello colber');
     const sig = await provider.sign(msg, kp.privateKey);
 
-    const tampered = new TextEncoder().encode('hello praxis!');
+    const tampered = new TextEncoder().encode('hello colber!');
     const result = await provider.verify(tampered, sig, kp.publicKey);
     expect(result.valid).toBe(false);
     expect(result.reason).toBeDefined();

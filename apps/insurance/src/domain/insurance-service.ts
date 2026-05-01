@@ -1,7 +1,7 @@
 // TODO P3: claim arbitrator with external oracles + auto-decide rules.
 // v1 MVP keeps claims in `open` until an admin decides via the gated
 // admin endpoint. The on-chain version is a separate P3 ticket (étape 7b).
-import { ERROR_CODES, PraxisError } from '@praxis/core-types';
+import { ERROR_CODES, ColberError } from '@colber/core-types';
 import { v4 as uuidv4 } from 'uuid';
 
 import type { PolicyStore, PolicyView, SubmitClaimResult } from './policy-store.js';
@@ -158,10 +158,10 @@ export class InsuranceService {
   public async fileClaim(input: FileClaimInput): Promise<FileClaimResult> {
     const view = await this.store.getPolicy(input.policyId);
     if (!view) {
-      throw new PraxisError(ERROR_CODES.NOT_FOUND, `policy ${input.policyId} not found`, 404);
+      throw new ColberError(ERROR_CODES.NOT_FOUND, `policy ${input.policyId} not found`, 404);
     }
     if (view.policy.status !== 'active' && view.policy.status !== 'pending') {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.VALIDATION_FAILED,
         `policy is ${view.policy.status}; cannot file a new claim`,
         400,
@@ -191,7 +191,7 @@ export class InsuranceService {
   public async getPolicy(policyId: string): Promise<PolicyView> {
     const view = await this.store.getPolicy(policyId);
     if (!view) {
-      throw new PraxisError(ERROR_CODES.NOT_FOUND, `policy ${policyId} not found`, 404);
+      throw new ColberError(ERROR_CODES.NOT_FOUND, `policy ${policyId} not found`, 404);
     }
     return view;
   }
@@ -224,7 +224,7 @@ export class InsuranceService {
     const view = await this.store.getPolicy(result.holding.policyId);
     if (!view) {
       // Should never happen — the holding has a policy_id FK.
-      throw new PraxisError(ERROR_CODES.INTERNAL_ERROR, 'policy missing after transition', 500);
+      throw new ColberError(ERROR_CODES.INTERNAL_ERROR, 'policy missing after transition', 500);
     }
     return view;
   }

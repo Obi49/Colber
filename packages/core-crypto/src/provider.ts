@@ -1,4 +1,4 @@
-import type { KeyPair, SignatureScheme, VerificationResult } from '@praxis/core-types';
+import type { KeyPair, SignatureScheme, VerificationResult } from '@colber/core-types';
 
 /**
  * Pluggable signature provider.

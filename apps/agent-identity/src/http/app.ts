@@ -14,7 +14,7 @@ import { registerIdentityRoutes } from './routes.js';
 
 import type { DbClient } from '../db/client.js';
 import type { IdentityService } from '../domain/identity-service.js';
-import type { Logger } from '@praxis/core-logger';
+import type { Logger } from '@colber/core-logger';
 
 export interface BuildAppDeps {
   readonly logger: Logger;

@@ -1,4 +1,9 @@
-import { BaseServiceEnvSchema, loadConfig, PortSchema, PostgresUrlSchema } from '@praxis/core-config';
+import {
+  BaseServiceEnvSchema,
+  loadConfig,
+  PortSchema,
+  PostgresUrlSchema,
+} from '@colber/core-config';
 import { z } from 'zod';
 
 /**

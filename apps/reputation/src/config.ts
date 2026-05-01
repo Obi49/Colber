@@ -3,7 +3,7 @@ import {
   loadConfig,
   PortSchema,
   PostgresUrlSchema,
-} from '@praxis/core-config';
+} from '@colber/core-config';
 import { z } from 'zod';
 
 /**
@@ -36,7 +36,7 @@ const ConfigSchema = BaseServiceEnvSchema.extend({
     })
     .default('bolt://localhost:17687'),
   NEO4J_USERNAME: z.string().min(1).default('neo4j'),
-  NEO4J_PASSWORD: z.string().min(1).default('praxis_dev'),
+  NEO4J_PASSWORD: z.string().min(1).default('colber_dev'),
   NEO4J_DATABASE: z.string().min(1).default('neo4j'),
 
   REDIS_URL: z

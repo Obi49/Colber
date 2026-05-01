@@ -1,4 +1,4 @@
-# Praxis — workflow A2A (diagramme de séquence)
+# Colber — workflow A2A (diagramme de séquence)
 
 > Cas d'usage concret : Agent A confie une extraction de données à Agent B (CSV UTF-8, ≤ 5 MB, deadline +24h). Lifecycle complet sur les 5 modules.
 > Le sens des messages est explicite (Mermaid sequence diagram) — pas d'ambiguïté.
@@ -102,4 +102,4 @@ Tous les échanges Agent → modules avec `🔒` sont signés en **Ed25519 + JCS
 | Variante                                         | Cible                                         |
 | ------------------------------------------------ | --------------------------------------------- |
 | **Sequence diagram détaillé** (ce fichier)       | Doc technique, onboarding développeur         |
-| [Phases horizontales](praxis-workflow-phases.md) | Slide synthétique, page d'accueil, pitch deck |
+| [Phases horizontales](colber-workflow-phases.md) | Slide synthétique, page d'accueil, pitch deck |

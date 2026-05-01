@@ -1,16 +1,16 @@
-# PLAN DE DÉVELOPPEMENT — PRAXIS
+# PLAN DE DÉVELOPPEMENT — COLBER
 
-> **Note de rebrand (avril 2026)** : projet initialement nommé _AgentStack_ dans le cahier des charges v1.0 (`AgentStack_Cahier_des_charges.docx`), renommé **Praxis** — nom de marque définitif. Contenu fonctionnel et technique inchangé.
+> **Note de rebrand (avril 2026)** : projet initialement nommé _AgentStack_ dans le cahier des charges v1.0 (`AgentStack_Cahier_des_charges.docx`), renommé **Colber** — nom de marque définitif. Contenu fonctionnel et technique inchangé.
 
 **Document de pilotage projet — v1.0**
 **Auteur : Johan (Chef de projet) — Avril 2026**
-**Référence : `AgentStack_Cahier_des_charges.docx` v1.0 (à renommer en `Praxis_Cahier_des_charges.docx` lors d'une révision ultérieure)**
+**Référence : `AgentStack_Cahier_des_charges.docx` v1.0 (à renommer en `Colber_Cahier_des_charges.docx` lors d'une révision ultérieure)**
 
 ---
 
 ## 0. Synthèse exécutive
 
-Praxis est une plateforme d'infrastructure pour l'économie agentique regroupant **5 modules** : INSURANCE, REPUTATION, OBSERVABILITY, NEGOTIATION, MEMORY.
+Colber est une plateforme d'infrastructure pour l'économie agentique regroupant **5 modules** : INSURANCE, REPUTATION, OBSERVABILITY, NEGOTIATION, MEMORY.
 
 Le plan de développement est structuré en **5 phases** sur **18 mois (M0 → M18)**, avec une priorisation différenciante sur REPUTATION + MEMORY (modules les moins concurrencés et utilisables dès aujourd'hui).
 

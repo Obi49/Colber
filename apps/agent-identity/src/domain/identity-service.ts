@@ -1,12 +1,12 @@
-import { encodeDidKey, fromBase64, getSignatureProvider, toBase64 } from '@praxis/core-crypto';
+import { encodeDidKey, fromBase64, getSignatureProvider, toBase64 } from '@colber/core-crypto';
 import {
   asAgentId,
   asOperatorId,
   ERROR_CODES,
-  PraxisError,
+  ColberError,
   type AgentIdentity,
   type Did,
-} from '@praxis/core-types';
+} from '@colber/core-types';
 import { v7 as uuidv7 } from 'uuid';
 
 import type { AgentRepository } from './agent-repository.js';
@@ -40,16 +40,12 @@ export class IdentityService {
     try {
       publicKey = fromBase64(input.publicKeyBase64);
     } catch {
-      throw new PraxisError(
-        ERROR_CODES.INVALID_PUBLIC_KEY,
-        'publicKey must be valid base64',
-        400,
-      );
+      throw new ColberError(ERROR_CODES.INVALID_PUBLIC_KEY, 'publicKey must be valid base64', 400);
     }
 
     const provider = getSignatureProvider('Ed25519');
     if (!provider.isValidPublicKey(publicKey)) {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.INVALID_PUBLIC_KEY,
         `Ed25519 public key must be 32 bytes, got ${publicKey.length}`,
         400,
@@ -61,7 +57,7 @@ export class IdentityService {
 
     const existing = await this.repo.findByDid(did);
     if (existing) {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.DID_ALREADY_REGISTERED,
         `DID is already registered: ${did}`,
         409,
@@ -100,7 +96,7 @@ export class IdentityService {
   public async resolve(did: string): Promise<AgentIdentity> {
     const record = await this.repo.findByDid(did as Did);
     if (!record) {
-      throw new PraxisError(ERROR_CODES.DID_NOT_FOUND, `DID not found: ${did}`, 404, { did });
+      throw new ColberError(ERROR_CODES.DID_NOT_FOUND, `DID not found: ${did}`, 404, { did });
     }
     return record;
   }
@@ -115,12 +111,12 @@ export class IdentityService {
   public async verify(input: VerifySignatureInput): Promise<{ valid: boolean; reason?: string }> {
     const record = await this.repo.findByDid(input.did as Did);
     if (!record) {
-      throw new PraxisError(ERROR_CODES.DID_NOT_FOUND, `DID not found: ${input.did}`, 404, {
+      throw new ColberError(ERROR_CODES.DID_NOT_FOUND, `DID not found: ${input.did}`, 404, {
         did: input.did,
       });
     }
     if (record.revokedAt !== null) {
-      throw new PraxisError(ERROR_CODES.DID_REVOKED, `DID is revoked: ${input.did}`, 410, {
+      throw new ColberError(ERROR_CODES.DID_REVOKED, `DID is revoked: ${input.did}`, 410, {
         did: input.did,
         revokedAt: record.revokedAt,
       });
@@ -132,7 +128,7 @@ export class IdentityService {
       message = fromBase64(input.messageBase64);
       signature = fromBase64(input.signatureBase64);
     } catch {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.VALIDATION_FAILED,
         'message and signature must be valid base64',
         400,
@@ -143,8 +139,6 @@ export class IdentityService {
     const provider = getSignatureProvider(record.signatureScheme);
     const result = await provider.verify(message, signature, publicKey);
 
-    return result.valid
-      ? { valid: true }
-      : { valid: false, reason: result.reason ?? 'unknown' };
+    return result.valid ? { valid: true } : { valid: false, reason: result.reason ?? 'unknown' };
   }
 }

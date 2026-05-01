@@ -1,5 +1,5 @@
-import { fromBase64, getSignatureProvider, toBase64 } from '@praxis/core-crypto';
-import { ERROR_CODES, PraxisError } from '@praxis/core-types';
+import { fromBase64, getSignatureProvider, toBase64 } from '@colber/core-crypto';
+import { ERROR_CODES, ColberError } from '@colber/core-types';
 
 import { canonicalizeBytes } from './canonical-json.js';
 
@@ -35,7 +35,7 @@ export interface PlatformKeyMaterial {
 /**
  * Decode the platform attestation key from base64 env strings, deriving the
  * public key from the private key when not explicitly supplied. Throws a
- * `PraxisError(VALIDATION_FAILED)` so the misconfiguration surfaces as a
+ * `ColberError(VALIDATION_FAILED)` so the misconfiguration surfaces as a
  * bootstrap failure rather than silently signing with garbage.
  */
 export const loadPlatformKey = async (
@@ -46,14 +46,14 @@ export const loadPlatformKey = async (
   try {
     privateKey = fromBase64(privateKeyB64);
   } catch {
-    throw new PraxisError(
+    throw new ColberError(
       ERROR_CODES.VALIDATION_FAILED,
       'REPUTATION_PLATFORM_PRIVATE_KEY must be valid base64',
       500,
     );
   }
   if (privateKey.length !== ED25519_KEY_BYTES) {
-    throw new PraxisError(
+    throw new ColberError(
       ERROR_CODES.VALIDATION_FAILED,
       `REPUTATION_PLATFORM_PRIVATE_KEY must be ${ED25519_KEY_BYTES} bytes, got ${privateKey.length}`,
       500,
@@ -65,14 +65,14 @@ export const loadPlatformKey = async (
     try {
       publicKey = fromBase64(publicKeyB64);
     } catch {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.VALIDATION_FAILED,
         'REPUTATION_PLATFORM_PUBLIC_KEY must be valid base64',
         500,
       );
     }
     if (publicKey.length !== ED25519_KEY_BYTES) {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.VALIDATION_FAILED,
         `REPUTATION_PLATFORM_PUBLIC_KEY must be ${ED25519_KEY_BYTES} bytes, got ${publicKey.length}`,
         500,

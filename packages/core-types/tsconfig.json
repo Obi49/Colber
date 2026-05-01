@@ -1,5 +1,5 @@
 {
-  "extends": "@praxis/tsconfig/node-lib.json",
+  "extends": "@colber/tsconfig/node-lib.json",
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist"

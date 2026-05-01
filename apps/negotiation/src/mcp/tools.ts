@@ -1,4 +1,4 @@
-import { defineMcpTool, McpToolRegistry } from '@praxis/core-mcp';
+import { defineMcpTool, McpToolRegistry } from '@colber/core-mcp';
 import { z } from 'zod';
 
 import {
@@ -14,7 +14,7 @@ import type { NegotiationView } from '../http/views.js';
 
 /**
  * MCP tools exposed by the negotiation service.
- * Names follow the Praxis convention `<module>.<verb>` (CDC §2.3).
+ * Names follow the Colber convention `<module>.<verb>` (CDC §2.3).
  *
  * Tools:
  *   - negotiation.start    : create a new negotiation.

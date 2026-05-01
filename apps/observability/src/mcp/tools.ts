@@ -1,4 +1,4 @@
-import { defineMcpTool, McpToolRegistry } from '@praxis/core-mcp';
+import { defineMcpTool, McpToolRegistry } from '@colber/core-mcp';
 import { z } from 'zod';
 
 import {
@@ -18,7 +18,7 @@ import type { ObservabilityService } from '../domain/observability-service.js';
 
 /**
  * MCP tools exposed by the observability service.
- * Names follow the Praxis convention `<module>.<verb>` (CDC §2.3).
+ * Names follow the Colber convention `<module>.<verb>` (CDC §2.3).
  *
  * Tools:
  *   - observability.log    : ingest one or more log events.

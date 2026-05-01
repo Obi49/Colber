@@ -1,4 +1,4 @@
-# DESIGN BRIEF — Schémas Praxis pour Claude Design
+# DESIGN BRIEF — Schémas Colber pour Claude Design
 
 > **À copier/coller intégralement dans Claude Design pour qu'il produise les schémas demandés (versions vectorielles SVG).**
 > Le brief est self-contained : Claude Design n'a pas besoin de lire d'autres fichiers du repo.
@@ -10,7 +10,7 @@
 ## Prompt à coller dans Claude Design
 
 ```
-Tu es chargé de produire deux schémas visuels pour Praxis — une plateforme
+Tu es chargé de produire deux schémas visuels pour Colber — une plateforme
 d'infrastructure logicielle pour l'économie agentique (agents IA autonomes
 qui transactent entre eux). Les schémas serviront à la fois pour la
 communication produit (pitch, site, slides) et la documentation technique
@@ -33,9 +33,9 @@ Palette suggérée (à respecter) :
 Typo : sans-serif moderne (Inter, ou équivalent), tailles hiérarchiques
 claires, gras pour les titres et noms de modules, regular pour les libellés.
 
-# Le projet Praxis en 4 phrases
+# Le projet Colber en 4 phrases
 
-Praxis est une plateforme d'infrastructure pour l'économie agentique :
+Colber est une plateforme d'infrastructure pour l'économie agentique :
 des agents IA autonomes peuvent y transacter entre eux avec confiance,
 mémoire et garantie. La plateforme expose 5 modules intégrés
 (Reputation, Memory, Observability, Negotiation, Insurance), tous
@@ -57,7 +57,7 @@ gagnent en valeur quand on les utilise ensemble (effet de plateforme).
 
 # ───────── SCHÉMA #1 : SCHÉMA FONCTIONNEL ─────────
 
-OBJECTIF : montrer EN UN COUP D'ŒIL ce qu'est Praxis, qui sont les
+OBJECTIF : montrer EN UN COUP D'ŒIL ce qu'est Colber, qui sont les
 acteurs, et comment les 5 modules s'articulent autour de l'identité
 agentique. Cible : pitch deck / site web / slide hero.
 
@@ -71,9 +71,9 @@ LAYOUT :
     • Opérateurs humains (utilisateurs secondaires) — icône personne
     • Développeurs tiers (intégrateurs) — icône code
 
-  Zone 2 (centre) — PRAXIS PLATFORM
+  Zone 2 (centre) — COLBER PLATFORM
   ─────────────────────────────────────────────
-    Encadré "Praxis" avec :
+    Encadré "Colber" avec :
     • Au centre : agent-identity (DID Ed25519) — pilier transverse
     • Autour : 5 modules en pétales / cercle / hexagone autour de
       l'identité, chaque module avec son icône + son nom + sa baseline
@@ -98,7 +98,7 @@ LAYOUT :
 
 CONNEXIONS :
 - Flèches simples des acteurs vers les protocoles MCP/REST/gRPC.
-- Lignes pointillées de Praxis vers les systèmes externes (intégrations).
+- Lignes pointillées de Colber vers les systèmes externes (intégrations).
 - Marqueur "P3" discret sur les liens vers les blockchains réelles
   (escrow on-chain INSURANCE prévu en P3 mais pas encore actif —
   l'escrow v1 est simulé en Postgres).
@@ -121,10 +121,10 @@ Sur le premier rendu, toutes les flèches sont représentées avec le
 même style (pointillé descendant), alors que les flux ont des sens
 sémantiquement différents :
 
-- **Acteurs → Praxis (INBOUND)** : flèche **pleine** descendante,
+- **Acteurs → Colber (INBOUND)** : flèche **pleine** descendante,
   épaisseur 2 px, tête triangle plein, couleur primaire (bleu
   `#1E3A8A`). Label discret en italique : "consomme via MCP/REST/gRPC".
-- **Praxis → Systèmes externes (OUTBOUND)** : flèche **pleine
+- **Colber → Systèmes externes (OUTBOUND)** : flèche **pleine
   descendante** également, mais couleur GRIS désaturé (`#94A3B8`),
   pour signifier "intégration" plutôt que "consommation primaire".
   Label en italique sous chaque flèche : "intègre" / "exporte vers" /
@@ -134,7 +134,7 @@ sémantiquement différents :
   intégrations on-chain prévues en P3) — voir règle #5.
 
 L'œil doit comprendre en 2 secondes : "les acteurs en haut consomment
-Praxis, et Praxis intègre les systèmes en bas". Pas de flèches
+Colber, et Colber intègre les systèmes en bas". Pas de flèches
 multidirectionnelles : la direction de chaque ligne est sans ambiguïté.
 
 ## 2. Pilier `agent-identity` — agrandir et mettre en valeur
@@ -144,7 +144,7 @@ discret au centre, alors qu'il est le pilier transverse qui alimente
 les 5 modules (chaque DID y est délivré). À corriger :
 
 - Cercle d'**au moins le même diamètre** que les boîtes des 5 modules
-  (~140 px de diamètre minimum), centré dans la zone Praxis Platform.
+  (~140 px de diamètre minimum), centré dans la zone Colber Platform.
 - Fond gris clair (`#F1F5F9`) avec bordure 2 px gris foncé (`#475569`).
 - Titre `agent-identity` en gras + sous-titre : "Pilier identité —
   DID:key Ed25519".
@@ -176,7 +176,7 @@ prioriser `REPUTATION → INSURANCE` (la seule active en v1).
 ## 4. Code couleur cohérent avec le schéma #2
 
 Chaque module a une **couleur d'identité unique** qui doit être
-identique dans tous les schémas de la documentation Praxis :
+identique dans tous les schémas de la documentation Colber :
 
 | Module          | Couleur primaire | Hex       |
 | --------------- | ---------------- | --------- |
@@ -194,7 +194,7 @@ présente sur le premier rendu) est OK. Ajouter en plus :
 - Le **picto** (icône) tinté dans la même couleur.
 - Une **petite légende couleurs** en pied du schéma, juste avant la
   bande "Effet de plateforme" : "Couleur = identité du module
-  dans toute la documentation Praxis".
+  dans toute la documentation Colber".
 
 ## 5. Marqueurs `v1` / `P3` explicites — pas seulement discrets
 
@@ -210,7 +210,7 @@ quasi invisible. À renforcer :
   appels MEDIATOR — toujours v1.1, donc plutôt P3 ici), Embeddings
   (Ollama nomic-embed-text, ACTIF v1), Datadog/Honeycomb/Jaeger
   (export OTel = v1.1, donc P2). Adapter au cas par cas.
-- **Bande de séparation** entre la zone Praxis Platform et la zone
+- **Bande de séparation** entre la zone Colber Platform et la zone
   Systèmes externes avec le label : "Intégrations actives en v1 |
   prévues en P2/P3" — pour que le lecteur comprenne d'un coup d'œil.
 
@@ -246,7 +246,7 @@ DANS la bande "Protocoles d'accès" comme premier élément, par exemple :
   └──────────────────────────────────────────────────────────────┘
 
 Le badge n'est plus un orphelin — il qualifie clairement la nature
-du protocole MCP comme étant la voie native de Praxis (vs REST/gRPC
+du protocole MCP comme étant la voie native de Colber (vs REST/gRPC
 qui sont des transports complémentaires).
 
 ## 8. Effet de plateforme — visualisation comparative
@@ -256,7 +256,7 @@ en bas. Le RENFORCER avec une petite visualisation comparative à
 gauche de la bande noire :
 
   ┌─────────────────────┐  ┌──────────────────────────────────┐
-  │ CONCURRENT          │  │ PRAXIS                           │
+  │ CONCURRENT          │  │ COLBER                           │
   │ ┌────┐              │  │ ┌──┐ ┌──┐ ┌──┐ ┌──┐ ┌──┐         │
   │ │ X  │ (1 silo,     │  │ │R │ │M │ │O │ │N │ │I │         │
   │ └────┘  monolithe)  │  │ └─┬┘ └─┬┘ └─┬┘ └─┬┘ └─┬┘         │
@@ -273,7 +273,7 @@ séparément."
 - **Format paysage 16:9, 1920×1080 minimum** (déjà dans le brief
   d'origine) — préserver pour les slides hero.
 - **Marges intérieures généreuses** : 60 px haut/bas, 80 px
-  gauche/droite. La zone Praxis Platform doit utiliser 70-80% de la
+  gauche/droite. La zone Colber Platform doit utiliser 70-80% de la
   largeur visible (vs ~60% sur le premier rendu).
 - Test de lisibilité à **50% d'échelle** : tous les libellés des
   modules et leurs endpoints doivent rester déchiffrables. Si non,
@@ -542,12 +542,12 @@ Sinon, va-y avec les choix par défaut indiqués ci-dessus.
 
 Crée un dossier `docs/diagrams/` à la racine et place-y :
 
-- `docs/diagrams/praxis-functional.svg` (schéma #1 fonctionnel)
-- `docs/diagrams/praxis-workflow-a2a.svg` (schéma #2 workflow)
-- `docs/diagrams/praxis-functional@2x.png` (fallback PNG)
-- `docs/diagrams/praxis-workflow-a2a@2x.png` (fallback PNG)
+- `docs/diagrams/colber-functional.svg` (schéma #1 fonctionnel)
+- `docs/diagrams/colber-workflow-a2a.svg` (schéma #2 workflow)
+- `docs/diagrams/colber-functional@2x.png` (fallback PNG)
+- `docs/diagrams/colber-workflow-a2a@2x.png` (fallback PNG)
 
-Puis update [`../README.md`](../README.md) (section "Vision et architecture") et [`ARCHITECTURE_BREAKDOWN.md`](ARCHITECTURE_BREAKDOWN.md) (§1.3 et §3) pour intégrer les schémas. Depuis le README à la racine, utilise `![Praxis fonctionnel](docs/diagrams/praxis-functional.svg)`. Depuis les fichiers de docs/, utilise `![Praxis fonctionnel](diagrams/praxis-functional.svg)`.
+Puis update [`../README.md`](../README.md) (section "Vision et architecture") et [`ARCHITECTURE_BREAKDOWN.md`](ARCHITECTURE_BREAKDOWN.md) (§1.3 et §3) pour intégrer les schémas. Depuis le README à la racine, utilise `![Colber fonctionnel](docs/diagrams/colber-functional.svg)`. Depuis les fichiers de docs/, utilise `![Colber fonctionnel](diagrams/colber-functional.svg)`.
 
 ### Variantes à demander en suivi (optionnel)
 

@@ -3,7 +3,7 @@ import {
   loadConfig,
   PortSchema,
   PostgresUrlSchema,
-} from '@praxis/core-config';
+} from '@colber/core-config';
 import { z } from 'zod';
 
 /**
@@ -31,9 +31,9 @@ const ConfigSchema = BaseServiceEnvSchema.extend({
 
   // --- ClickHouse ---
   CLICKHOUSE_URL: HttpUrl.default('http://localhost:18123'),
-  CLICKHOUSE_USER: z.string().min(1).default('praxis'),
-  CLICKHOUSE_PASSWORD: z.string().min(0).default('praxis_dev'),
-  CLICKHOUSE_DATABASE: z.string().min(1).default('praxis'),
+  CLICKHOUSE_USER: z.string().min(1).default('colber'),
+  CLICKHOUSE_PASSWORD: z.string().min(0).default('colber_dev'),
+  CLICKHOUSE_DATABASE: z.string().min(1).default('colber'),
 
   // --- Ingestion / batching ---
   OBSERVABILITY_FLUSH_INTERVAL_MS: z.coerce.number().int().min(50).max(60_000).default(1000),

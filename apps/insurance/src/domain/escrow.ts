@@ -1,7 +1,7 @@
 // TODO P3: replace with Solidity escrow + viem (étape 7b — on-chain insurance).
 // v1 MVP is a simulation: the escrow lifecycle lives entirely in Postgres
 // (escrow_holdings + escrow_events). No chain RPC, no Solidity, no viem.
-import { ERROR_CODES, PraxisError } from '@praxis/core-types';
+import { ERROR_CODES, ColberError } from '@colber/core-types';
 
 import type { EscrowEvent, EscrowHolding, EscrowStatus } from './types.js';
 
@@ -91,7 +91,7 @@ export class EscrowService {
 
   public async lock(policyId: string, amountUsdc: number): Promise<EscrowHolding> {
     if (!Number.isFinite(amountUsdc) || amountUsdc <= 0) {
-      throw new PraxisError(ERROR_CODES.VALIDATION_FAILED, 'amountUsdc must be > 0', 400);
+      throw new ColberError(ERROR_CODES.VALIDATION_FAILED, 'amountUsdc must be > 0', 400);
     }
     return this.repo.lock({ policyId, amountUsdc, at: this.now() });
   }

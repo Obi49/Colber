@@ -3,7 +3,7 @@ import {
   loadConfig,
   PortSchema,
   PostgresUrlSchema,
-} from '@praxis/core-config';
+} from '@colber/core-config';
 import { z } from 'zod';
 
 /**
@@ -36,7 +36,7 @@ const ConfigSchema = BaseServiceEnvSchema.extend({
   // --- Qdrant ---
   QDRANT_URL: HttpUrl.default('http://localhost:16333'),
   QDRANT_API_KEY: z.string().optional(),
-  QDRANT_COLLECTION: z.string().min(1).default('praxis_memories'),
+  QDRANT_COLLECTION: z.string().min(1).default('colber_memories'),
 
   // --- Embedding provider ---
   MEMORY_EMBEDDING_PROVIDER: z.enum(['ollama', 'stub']).default('ollama'),

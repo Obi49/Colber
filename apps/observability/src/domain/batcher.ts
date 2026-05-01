@@ -2,7 +2,7 @@
  * Generic time + size based batcher.
  *
  * Used by the ingestion service to gather log + span events into a single
- * `INSERT INTO praxis_logs / praxis_spans` write — ClickHouse strongly
+ * `INSERT INTO colber_logs / colber_spans` write — ClickHouse strongly
  * prefers fewer, larger inserts (it's an LSM-style merger; tiny inserts
  * trigger expensive merges).
  *

@@ -4,8 +4,8 @@
  */
 import { randomBytes } from 'node:crypto';
 
-import { createLogger, type Logger } from '@praxis/core-logger';
-import { ERROR_CODES } from '@praxis/core-types';
+import { createLogger, type Logger } from '@colber/core-logger';
+import { ERROR_CODES } from '@colber/core-types';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { AesGcmEncryptionService } from '../../src/domain/encryption.js';
@@ -75,7 +75,7 @@ describe('REST /v1/memory*', () => {
   beforeEach(async () => {
     const repo = new InMemoryMemoryRepository();
     vectors = new InMemoryVectorRepository();
-    embeddings = new DeterministicStubProvider(64, 'praxis-stub-v1');
+    embeddings = new DeterministicStubProvider(64, 'colber-stub-v1');
     const encryption = new AesGcmEncryptionService({
       keyB64: randomBytes(32).toString('base64'),
     });

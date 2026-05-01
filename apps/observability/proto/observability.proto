@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package praxis.observability.v1;
+package colber.observability.v1;
 
-// Praxis — Observability gRPC contract (v1).
+// Colber — Observability gRPC contract (v1).
 // Mirror of the REST + MCP surfaces. Used for inter-service calls
 // inside the cluster (gRPC over Linkerd / Istio service mesh).
 

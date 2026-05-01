@@ -1,14 +1,14 @@
-name: praxis
+name: colber
 
 # ------------------------------------------------------------------
-# Stack de test Praxis — option A (cohabitation avec ShowWeb3)
+# Stack de test Colber — option A (cohabitation avec ShowWeb3)
 # Tous les ports externes sont décalés pour éviter tout conflit
 # avec les services existants sur la VM showweb3.
 # ------------------------------------------------------------------
 
 networks:
-  praxis_net:
-    name: praxis_net
+  colber_net:
+    name: colber_net
     driver: bridge
 
 volumes:
@@ -33,27 +33,27 @@ services:
 
   postgres:
     image: postgres:16-alpine
-    container_name: praxis-postgres
+    container_name: colber-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: praxis
-      POSTGRES_PASSWORD: praxis_dev
-      POSTGRES_DB: praxis
+      POSTGRES_USER: colber
+      POSTGRES_PASSWORD: colber_dev
+      POSTGRES_DB: colber
     ports:
       - '15432:5432'
     volumes:
       - pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U praxis -d praxis']
+      test: ['CMD-SHELL', 'pg_isready -U colber -d colber']
       interval: 10s
       timeout: 5s
       retries: 6
-    networks: [praxis_net]
+    networks: [colber_net]
     logging: *default-logging
 
   redis:
     image: redis:7-alpine
-    container_name: praxis-redis
+    container_name: colber-redis
     restart: unless-stopped
     command: ['redis-server', '--appendonly', 'yes']
     ports:
@@ -65,12 +65,12 @@ services:
       interval: 10s
       timeout: 5s
       retries: 6
-    networks: [praxis_net]
+    networks: [colber_net]
     logging: *default-logging
 
   nats:
     image: nats:2.10-alpine
-    container_name: praxis-nats
+    container_name: colber-nats
     restart: unless-stopped
     command: ['-js', '-m', '8222', '-sd', '/data']
     ports:
@@ -83,12 +83,12 @@ services:
       interval: 10s
       timeout: 5s
       retries: 6
-    networks: [praxis_net]
+    networks: [colber_net]
     logging: *default-logging
 
   qdrant:
     image: qdrant/qdrant:v1.15.4
-    container_name: praxis-qdrant
+    container_name: colber-qdrant
     restart: unless-stopped
     ports:
       - '16333:6333'
@@ -100,17 +100,17 @@ services:
       interval: 15s
       timeout: 5s
       retries: 6
-    networks: [praxis_net]
+    networks: [colber_net]
     logging: *default-logging
 
   clickhouse:
     image: clickhouse/clickhouse-server:24.10-alpine
-    container_name: praxis-clickhouse
+    container_name: colber-clickhouse
     restart: unless-stopped
     environment:
-      CLICKHOUSE_USER: praxis
-      CLICKHOUSE_PASSWORD: praxis_dev
-      CLICKHOUSE_DB: praxis
+      CLICKHOUSE_USER: colber
+      CLICKHOUSE_PASSWORD: colber_dev
+      CLICKHOUSE_DB: colber
     ulimits:
       nofile:
         soft: 262144
@@ -124,21 +124,21 @@ services:
       test:
         [
           'CMD-SHELL',
-          "clickhouse-client --user=praxis --password=praxis_dev --query='SELECT 1' >/dev/null 2>&1 || exit 1",
+          "clickhouse-client --user=colber --password=colber_dev --query='SELECT 1' >/dev/null 2>&1 || exit 1",
         ]
       interval: 15s
       timeout: 5s
       retries: 10
       start_period: 30s
-    networks: [praxis_net]
+    networks: [colber_net]
     logging: *default-logging
 
   neo4j:
     image: neo4j:5-community
-    container_name: praxis-neo4j
+    container_name: colber-neo4j
     restart: unless-stopped
     environment:
-      NEO4J_AUTH: neo4j/praxis_dev
+      NEO4J_AUTH: neo4j/colber_dev
       NEO4J_PLUGINS: '["apoc"]'
       NEO4J_server_memory_heap_initial__size: 512m
       NEO4J_server_memory_heap_max__size: 1G
@@ -153,14 +153,14 @@ services:
       interval: 15s
       timeout: 5s
       retries: 10
-    networks: [praxis_net]
+    networks: [colber_net]
     logging: *default-logging
 
   # ------- EMBEDDINGS (self-hosted) -------
 
   ollama:
     image: ollama/ollama:0.4.7
-    container_name: praxis-ollama
+    container_name: colber-ollama
     restart: unless-stopped
     ports:
       - '11434:11434'
@@ -171,19 +171,19 @@ services:
       interval: 15s
       timeout: 5s
       retries: 6
-    networks: [praxis_net]
+    networks: [colber_net]
     logging: *default-logging
 
   ollama-init:
     image: ollama/ollama:0.4.7
-    container_name: praxis-ollama-init
+    container_name: colber-ollama-init
     depends_on:
       ollama:
         condition: service_healthy
     entrypoint: ['/bin/sh', '-c']
     command:
       - "OLLAMA_HOST=ollama:11434 ollama pull nomic-embed-text && echo 'nomic-embed-text ready'"
-    networks: [praxis_net]
+    networks: [colber_net]
     restart: 'no'
     logging: *default-logging
 
@@ -191,7 +191,7 @@ services:
 
   prometheus:
     image: prom/prometheus:v2.55.1
-    container_name: praxis-prometheus
+    container_name: colber-prometheus
     restart: unless-stopped
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -207,16 +207,16 @@ services:
       interval: 15s
       timeout: 5s
       retries: 6
-    networks: [praxis_net]
+    networks: [colber_net]
     logging: *default-logging
 
   grafana:
     image: grafana/grafana:11.3.0
-    container_name: praxis-grafana
+    container_name: colber-grafana
     restart: unless-stopped
     environment:
       GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: praxis_dev
+      GF_SECURITY_ADMIN_PASSWORD: colber_dev
       GF_USERS_ALLOW_SIGN_UP: 'false'
     ports:
       - '13000:3000'
@@ -231,14 +231,14 @@ services:
       interval: 15s
       timeout: 5s
       retries: 6
-    networks: [praxis_net]
+    networks: [colber_net]
     logging: *default-logging
 
   # ------- REVERSE PROXY INTERNE -------
 
   traefik:
     image: traefik:v3.2
-    container_name: praxis-traefik
+    container_name: colber-traefik
     restart: unless-stopped
     command:
       - '--api.dashboard=true'
@@ -252,5 +252,5 @@ services:
       - '18080:8080'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks: [praxis_net]
+    networks: [colber_net]
     logging: *default-logging

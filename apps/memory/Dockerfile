@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 # ---------------------------------------------------------------------------
-# Praxis — memory
+# Colber — memory
 # Multi-stage build:
 #   1. `deps`    — install pnpm + workspace deps with cache mount.
 #   2. `build`   — compile TypeScript across the workspace, prune dev deps.
@@ -32,26 +32,26 @@ RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
 FROM deps AS build
 WORKDIR /repo
 COPY . .
-RUN pnpm --filter @praxis/memory... build
+RUN pnpm --filter @colber/memory... build
 
 # Prune dev dependencies for the runtime image.
-RUN pnpm --filter @praxis/memory deploy --prod /tmp/deploy
+RUN pnpm --filter @colber/memory deploy --prod /tmp/deploy
 
 # ---------- 3) runtime ----------
 FROM node:${NODE_VERSION} AS runtime
 WORKDIR /app
 
 # Non-root user
-RUN addgroup -S praxis && adduser -S praxis -G praxis
+RUN addgroup -S colber && adduser -S colber -G colber
 
 # Drop in the deployed (pruned) bundle.
-COPY --from=build --chown=praxis:praxis /tmp/deploy/dist ./dist
-COPY --from=build --chown=praxis:praxis /tmp/deploy/node_modules ./node_modules
-COPY --from=build --chown=praxis:praxis /tmp/deploy/package.json ./package.json
-COPY --from=build --chown=praxis:praxis /repo/apps/memory/proto ./proto
-COPY --from=build --chown=praxis:praxis /repo/apps/memory/drizzle ./drizzle
+COPY --from=build --chown=colber:colber /tmp/deploy/dist ./dist
+COPY --from=build --chown=colber:colber /tmp/deploy/node_modules ./node_modules
+COPY --from=build --chown=colber:colber /tmp/deploy/package.json ./package.json
+COPY --from=build --chown=colber:colber /repo/apps/memory/proto ./proto
+COPY --from=build --chown=colber:colber /repo/apps/memory/drizzle ./drizzle
 
-USER praxis
+USER colber
 
 ENV NODE_ENV=production \
     HTTP_HOST=0.0.0.0 \

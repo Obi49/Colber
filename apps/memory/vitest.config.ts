@@ -13,7 +13,7 @@ export default defineConfig({
       exclude: [
         'src/**/*.test.ts',
         'src/server.ts', // composition root, exercised by integration tests at boot
-        'src/config.ts', // pure env-loading wrapper around @praxis/core-config
+        'src/config.ts', // pure env-loading wrapper around @colber/core-config
         'src/db/**', // schema/client/migrate require real Postgres
         'src/domain/memory-repository.ts', // drizzle adapter, exercised via testcontainers
         'src/domain/operator-resolver.ts', // raw SQL adapter, ditto

@@ -1,9 +1,9 @@
 {
-  "name": "@praxis/observability",
+  "name": "@colber/observability",
   "version": "0.1.0",
   "private": true,
-  "license": "UNLICENSED",
-  "description": "Praxis observability service — distributed logging + tracing for agent-to-agent (A2A) interactions. ClickHouse-backed ingestion and query, Postgres-backed alert configs. Exposed as REST + gRPC + MCP.",
+  "license": "Apache-2.0",
+  "description": "Colber observability service — distributed logging + tracing for agent-to-agent (A2A) interactions. ClickHouse-backed ingestion and query, Postgres-backed alert configs. Exposed as REST + gRPC + MCP.",
   "type": "module",
   "main": "./dist/server.js",
   "scripts": {
@@ -27,10 +27,10 @@
     "@fastify/sensible": "^6.0.1",
     "@grpc/grpc-js": "^1.12.4",
     "@grpc/proto-loader": "^0.7.13",
-    "@praxis/core-config": "workspace:*",
-    "@praxis/core-logger": "workspace:*",
-    "@praxis/core-mcp": "workspace:*",
-    "@praxis/core-types": "workspace:*",
+    "@colber/core-config": "workspace:*",
+    "@colber/core-logger": "workspace:*",
+    "@colber/core-mcp": "workspace:*",
+    "@colber/core-types": "workspace:*",
     "drizzle-orm": "^0.36.4",
     "fastify": "^5.1.0",
     "fastify-metrics": "^12.1.0",
@@ -39,8 +39,8 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@praxis/eslint-config": "workspace:*",
-    "@praxis/tsconfig": "workspace:*",
+    "@colber/eslint-config": "workspace:*",
+    "@colber/tsconfig": "workspace:*",
     "@types/node": "^22.9.0",
     "@types/uuid": "^10.0.0",
     "@vitest/coverage-v8": "^2.1.5",

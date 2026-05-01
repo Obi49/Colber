@@ -1,7 +1,7 @@
 /**
  * Embedding provider abstraction.
  *
- * The Praxis memory service is multi-provider by design (Voyage / Cohere /
+ * The Colber memory service is multi-provider by design (Voyage / Cohere /
  * Nomic / OpenAI / self-hosted via Ollama — see CDC R6). The domain layer
  * speaks to this interface only; the concrete implementation is selected at
  * boot time from `MEMORY_EMBEDDING_PROVIDER`.

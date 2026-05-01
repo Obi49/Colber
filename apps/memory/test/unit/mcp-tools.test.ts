@@ -15,7 +15,7 @@ const NOW = new Date('2026-04-27T00:00:00.000Z');
 const buildRegistry = async () => {
   const repo = new InMemoryMemoryRepository();
   const vectors = new InMemoryVectorRepository();
-  const embeddings = new DeterministicStubProvider(64, 'praxis-stub');
+  const embeddings = new DeterministicStubProvider(64, 'colber-stub');
   const encryption = new AesGcmEncryptionService({
     keyB64: randomBytes(32).toString('base64'),
   });
@@ -52,7 +52,7 @@ describe('memory MCP registry', () => {
       },
       { traceId: 't-1' },
     )) as { id: string; embedding: { model: string; dim: number } };
-    expect(out.embedding).toEqual({ model: 'praxis-stub', dim: 64 });
+    expect(out.embedding).toEqual({ model: 'colber-stub', dim: 64 });
     expect(out.id).toMatch(/^[0-9a-f-]{36}$/);
   });
 

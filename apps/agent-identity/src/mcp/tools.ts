@@ -1,11 +1,11 @@
-import { defineMcpTool, McpToolRegistry } from '@praxis/core-mcp';
+import { defineMcpTool, McpToolRegistry } from '@colber/core-mcp';
 import { z } from 'zod';
 
 import type { IdentityService } from '../domain/identity-service.js';
 
 /**
  * MCP tools exposed by the agent-identity service.
- * Names follow the Praxis convention `<module>.<verb>` (cf. ADR §0.2.3).
+ * Names follow the Colber convention `<module>.<verb>` (cf. ADR §0.2.3).
  */
 export const buildIdentityMcpRegistry = (service: IdentityService): McpToolRegistry => {
   const registry = new McpToolRegistry();

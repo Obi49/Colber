@@ -6,7 +6,7 @@
  */
 import { fileURLToPath } from 'node:url';
 
-import { createLogger } from '@praxis/core-logger';
+import { createLogger } from '@colber/core-logger';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';

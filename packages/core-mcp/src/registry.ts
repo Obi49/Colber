@@ -1,4 +1,4 @@
-import { ERROR_CODES, PraxisError } from '@praxis/core-types';
+import { ERROR_CODES, ColberError } from '@colber/core-types';
 
 import type { McpToolContext, McpToolDefinition } from './tool.js';
 
@@ -26,19 +26,19 @@ export class McpToolRegistry {
 
   /**
    * Invoke a tool by name with raw input. Validates input + output through
-   * the tool's Zod schemas; throws `PraxisError(VALIDATION_FAILED)` on
+   * the tool's Zod schemas; throws `ColberError(VALIDATION_FAILED)` on
    * either side.
    */
   public async invoke(name: string, rawInput: unknown, ctx: McpToolContext): Promise<unknown> {
     const tool = this.tools.get(name);
     if (!tool) {
-      throw new PraxisError(ERROR_CODES.NOT_FOUND, `MCP tool not found: ${name}`, 404, {
+      throw new ColberError(ERROR_CODES.NOT_FOUND, `MCP tool not found: ${name}`, 404, {
         tool: name,
       });
     }
     const inputResult = tool.inputSchema.safeParse(rawInput);
     if (!inputResult.success) {
-      throw new PraxisError(ERROR_CODES.VALIDATION_FAILED, `Invalid input for ${name}`, 400, {
+      throw new ColberError(ERROR_CODES.VALIDATION_FAILED, `Invalid input for ${name}`, 400, {
         issues: inputResult.error.issues,
       });
     }
@@ -48,7 +48,7 @@ export class McpToolRegistry {
     const outputResult = tool.outputSchema.safeParse(output);
     if (!outputResult.success) {
       // Output validation failure is a server-side bug — log + 500.
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.INTERNAL_ERROR,
         `Tool ${name} produced invalid output`,
         500,

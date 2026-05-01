@@ -1,4 +1,4 @@
-# Déploiement de la stack Praxis (β / option A)
+# Déploiement de la stack Colber (β / option A)
 
 Ce dossier contient la stack Docker Compose pour la phase β, conçue pour
 **cohabiter** avec les services existants sur la VM (option A).
@@ -16,7 +16,7 @@ Ce dossier contient la stack Docker Compose pour la phase β, conçue pour
 | Données    | `docker-compose.yml`          | Postgres, Redis, NATS, Qdrant, ClickHouse, Neo4j, Ollama (`nomic-embed-text`), Prometheus, Grafana, Traefik |
 | Applicatif | `docker-compose.services.yml` | `agent-identity`, `reputation`, `memory`                                                                    |
 
-Les services applicatifs **rejoignent le réseau `praxis_net`** défini dans le compose data et résolvent les datastores via leurs hostnames internes (`postgres`, `redis`, `neo4j`, `qdrant`, `ollama`).
+Les services applicatifs **rejoignent le réseau `colber_net`** défini dans le compose data et résolvent les datastores via leurs hostnames internes (`postgres`, `redis`, `neo4j`, `qdrant`, `ollama`).
 
 ## Ports exposés sur l'hôte
 
@@ -30,7 +30,7 @@ Les services applicatifs **rejoignent le réseau `praxis_net`** défini dans le 
 
 ```bash
 # 1. Cloner le repo et entrer dans la stack
-cd /home/<user>/Praxis/praxis-stack
+cd /home/<user>/Colber/colber-stack
 
 # 2. Générer les secrets (à faire UNE FOIS par environnement)
 node -e "
@@ -51,7 +51,7 @@ docker compose -f docker-compose.yml -f docker-compose.services.yml up -d
 docker compose -f docker-compose.yml -f docker-compose.services.yml ps
 
 # 5. Smoke E2E (depuis n'importe quel poste avec accès Tailscale)
-PRAXIS_VM=100.83.10.125 python ../.tools/e2e_smoke.py
+COLBER_VM=100.83.10.125 python ../.tools/e2e_smoke.py
 ```
 
 ## Migrations
@@ -63,7 +63,7 @@ dans l'image. Pas d'étape manuelle.
 Pour Neo4j (REPUTATION), les contraintes sont créées au démarrage du
 service via `bootstrapSchema()` (cf. `apps/reputation/src/neo4j/client.ts`).
 
-Pour Qdrant (MEMORY), la collection `praxis_memories` est créée à la
+Pour Qdrant (MEMORY), la collection `colber_memories` est créée à la
 demande au premier `memory.store`.
 
 ## Logs et observabilité
@@ -78,7 +78,7 @@ curl http://100.83.10.125:14011/metrics | head
 curl http://100.83.10.125:14021/metrics | head
 
 # Dashboard Grafana
-open http://100.83.10.125:13000   # admin / praxis_dev
+open http://100.83.10.125:13000   # admin / colber_dev
 ```
 
 ## Rollback
@@ -88,8 +88,8 @@ open http://100.83.10.125:13000   # admin / praxis_dev
 docker compose -f docker-compose.yml -f docker-compose.services.yml stop
 
 # Wipe complet (volumes inclus)
-docker compose -p praxis down -v
-docker network rm praxis_net 2>/dev/null
+docker compose -p colber down -v
+docker network rm colber_net 2>/dev/null
 ```
 
 ## Sécurité — checklist avant tout passage hors β
@@ -99,7 +99,7 @@ docker network rm praxis_net 2>/dev/null
 - [ ] Restreindre les CORS / origines autorisées dans chaque service.
 - [ ] Activer les signatures cryptographiques sur tous les endpoints (actuellement
       `callerDid`/`queryDid` en clair sur memory v1 — voir issue ouverte).
-- [ ] Audit Postgres : `agentstack`/`praxis` user → user dédié par service avec privilèges minimaux.
+- [ ] Audit Postgres : `agentstack`/`colber` user → user dédié par service avec privilèges minimaux.
 - [ ] Backups quotidiens Postgres + Neo4j + Qdrant.
 - [ ] Bug bounty + SAST/SCA en CI.
 
@@ -107,7 +107,7 @@ docker network rm praxis_net 2>/dev/null
 
 | Symptôme                 | Investigation                                                                              |
 | ------------------------ | ------------------------------------------------------------------------------------------ |
-| Service `unhealthy`      | `docker logs praxis-<service>` ; vérifier que la DB/queue dépendante est `healthy`         |
+| Service `unhealthy`      | `docker logs colber-<service>` ; vérifier que la DB/queue dépendante est `healthy`         |
 | `address already in use` | Conflit de port — vérifier `ss -tulnp` sur l'hôte                                          |
-| Embedding `503`          | `docker exec praxis-ollama ollama list` — le modèle a-t-il été pullé ?                     |
+| Embedding `503`          | `docker exec colber-ollama ollama list` — le modèle a-t-il été pullé ?                     |
 | Erreur signature         | Vérifier l'horodatage `signedAt` (skew) et que la clé publique du DID matche le signataire |

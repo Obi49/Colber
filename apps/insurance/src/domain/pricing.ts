@@ -1,4 +1,4 @@
-import { ERROR_CODES, PraxisError } from '@praxis/core-types';
+import { ERROR_CODES, ColberError } from '@colber/core-types';
 
 import type { Quote, SlaTerms } from './types.js';
 import type { ReputationClient } from '../integrations/reputation-client.js';
@@ -70,13 +70,13 @@ export const premium = (
   baseRateBps: number,
 ): number => {
   if (!Number.isFinite(amountUsdc) || amountUsdc < 0) {
-    throw new PraxisError(ERROR_CODES.VALIDATION_FAILED, 'amountUsdc must be ≥ 0', 400);
+    throw new ColberError(ERROR_CODES.VALIDATION_FAILED, 'amountUsdc must be ≥ 0', 400);
   }
   if (!Number.isFinite(riskMultiplier) || riskMultiplier <= 0) {
-    throw new PraxisError(ERROR_CODES.VALIDATION_FAILED, 'riskMultiplier must be > 0', 400);
+    throw new ColberError(ERROR_CODES.VALIDATION_FAILED, 'riskMultiplier must be > 0', 400);
   }
   if (!Number.isInteger(baseRateBps) || baseRateBps < 1 || baseRateBps > 10_000) {
-    throw new PraxisError(ERROR_CODES.VALIDATION_FAILED, 'baseRateBps must be in 1..10000', 400);
+    throw new ColberError(ERROR_CODES.VALIDATION_FAILED, 'baseRateBps must be in 1..10000', 400);
   }
   const base = (amountUsdc * baseRateBps) / 10_000;
   return round6(base * riskMultiplier);
@@ -109,17 +109,17 @@ export class PricingEngine {
 
   public async quote(req: QuoteRequest): Promise<Quote> {
     if (!Number.isFinite(req.amountUsdc) || req.amountUsdc <= 0) {
-      throw new PraxisError(ERROR_CODES.VALIDATION_FAILED, 'amountUsdc must be > 0', 400);
+      throw new ColberError(ERROR_CODES.VALIDATION_FAILED, 'amountUsdc must be > 0', 400);
     }
     if (req.amountUsdc > MAX_AMOUNT_USDC) {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.VALIDATION_FAILED,
         `amountUsdc must be ≤ ${MAX_AMOUNT_USDC}`,
         400,
       );
     }
     if (req.slaTerms.deliveryWindowHours <= 0) {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.VALIDATION_FAILED,
         'slaTerms.deliveryWindowHours must be > 0',
         400,

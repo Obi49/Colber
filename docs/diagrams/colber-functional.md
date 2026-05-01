@@ -1,4 +1,4 @@
-# Praxis — schéma fonctionnel (vue plateforme)
+# Colber — schéma fonctionnel (vue plateforme)
 
 > Vue d'ensemble : acteurs → protocoles d'accès → 5 modules + agent-identity → systèmes externes intégrés.
 > Rendu natif par GitHub. Édition par modification du bloc Mermaid ci-dessous.
@@ -6,7 +6,7 @@
 ```mermaid
 flowchart TB
     %% ─────────────────────────────────────────────────────────────
-    %% Styles (palette Praxis)
+    %% Styles (palette Colber)
     %% ─────────────────────────────────────────────────────────────
     classDef actor fill:#F8FAFC,stroke:#0F172A,stroke-width:1.5px,color:#0F172A
     classDef proto fill:#0F172A,stroke:#0F172A,color:#F8FAFC
@@ -37,9 +37,9 @@ flowchart TB
     Proto["🔌 <b>PROTOCOLES D'ACCÈS</b> · <b>MCP-native</b> · MCP · REST · gRPC<br/><i>Auth: DID:key Ed25519 + JCS RFC 8785</i>"]:::proto
 
     %% ─────────────────────────────────────────────────────────────
-    %% ZONE 3 — PRAXIS PLATFORM
+    %% ZONE 3 — COLBER PLATFORM
     %% ─────────────────────────────────────────────────────────────
-    subgraph PraxisPlatform["🏛️ PRAXIS PLATFORM — 5 modules autour d'agent-identity"]
+    subgraph ColberPlatform["🏛️ COLBER PLATFORM — 5 modules autour d'agent-identity"]
         direction TB
 
         %% Pilier identité au centre
@@ -79,22 +79,22 @@ flowchart TB
     end
 
     %% ─────────────────────────────────────────────────────────────
-    %% Flux INBOUND (acteurs → Praxis)
+    %% Flux INBOUND (acteurs → Colber)
     %% ─────────────────────────────────────────────────────────────
     A1 ==>|"consomme"| Proto
     A2 ==>|"consomme"| Proto
     A3 ==>|"consomme"| Proto
-    Proto ==> PraxisPlatform
+    Proto ==> ColberPlatform
 
     %% ─────────────────────────────────────────────────────────────
-    %% Flux OUTBOUND (Praxis → systèmes externes)
+    %% Flux OUTBOUND (Colber → systèmes externes)
     %% ─────────────────────────────────────────────────────────────
-    PraxisPlatform -->|"consomme"| SE1
-    PraxisPlatform -.->|"intègre P3"| SE2
-    PraxisPlatform -->|"consomme"| SE3
-    PraxisPlatform -->|"consomme"| SE4
-    PraxisPlatform -.->|"exporte P2"| SE5
-    PraxisPlatform -->|"listage"| SE6
+    ColberPlatform -->|"consomme"| SE1
+    ColberPlatform -.->|"intègre P3"| SE2
+    ColberPlatform -->|"consomme"| SE3
+    ColberPlatform -->|"consomme"| SE4
+    ColberPlatform -.->|"exporte P2"| SE5
+    ColberPlatform -->|"listage"| SE6
 
     %% ─────────────────────────────────────────────────────────────
     %% Pied — effet de plateforme
@@ -116,10 +116,10 @@ flowchart TB
 
 **Conventions de flèches :**
 
-- `==>` (épaisses) : flux INBOUND — acteurs consomment Praxis
-- `-->` (simples) : flux OUTBOUND — Praxis intègre/consomme/exporte
+- `==>` (épaisses) : flux INBOUND — acteurs consomment Colber
+- `-->` (simples) : flux OUTBOUND — Colber intègre/consomme/exporte
 - `-.->` (pointillées) : intégrations non encore actives en v1 (P2, P3)
 - `---` (sans tête) : lien d'appartenance (modules ↔ pilier identité)
 - `-.->` (avec label) entre modules : synergies inter-modules (futurs ou v1)
 
-**Référence visuelle :** voir aussi [praxis-functional-hub.md](praxis-functional-hub.md) pour la variante hub & spoke (slide hero / pitch deck).
+**Référence visuelle :** voir aussi [colber-functional-hub.md](colber-functional-hub.md) pour la variante hub & spoke (slide hero / pitch deck).

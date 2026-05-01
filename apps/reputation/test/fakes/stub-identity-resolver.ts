@@ -1,4 +1,4 @@
-import { decodeDidKey } from '@praxis/core-crypto';
+import { decodeDidKey } from '@colber/core-crypto';
 
 import type { IdentityResolver, ResolvedIdentity } from '../../src/domain/identity-resolver.js';
 

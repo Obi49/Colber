@@ -1,5 +1,5 @@
 /**
- * Canonical Praxis telemetry shapes.
+ * Canonical Colber telemetry shapes.
  *
  * The observability service ingests two streams:
  *   - LOG EVENTS — structured log lines (level, message, attributes) tied
@@ -8,7 +8,7 @@
  *                   of work (incoming request, outbound RPC, internal job).
  *
  * Both are aligned with OpenTelemetry semantic conventions but constrained
- * to the subset Praxis cares about. The OTel exporter (sprint 13) will map
+ * to the subset Colber cares about. The OTel exporter (sprint 13) will map
  * these to OTLP — out of scope for this sprint.
  */
 

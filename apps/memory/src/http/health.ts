@@ -42,7 +42,7 @@ export const registerHealthRoutes = (app: FastifyInstance, deps: HealthDeps): vo
       safeCheck(async () => {
         // One-shot probe with a tiny seed string to make sure the provider
         // is reachable. Catches Ollama being down before requests fail.
-        await deps.embeddings.embed('praxis readiness probe');
+        await deps.embeddings.embed('colber readiness probe');
       }),
     ]);
     const healthy = database.ok && vectors.ok && embeddings.ok;

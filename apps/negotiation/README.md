@@ -1,10 +1,10 @@
-# `@praxis/negotiation`
+# `@colber/negotiation`
 
 > A2A negotiation broker — event-sourced negotiations with two strategies
 > (ascending-auction, multi-criteria), Ed25519-signed proposals over JCS
 > (RFC 8785), and multi-party signature settlement.
 
-The fifth Praxis service after `agent-identity`, `reputation`, `memory`,
+The fifth Colber service after `agent-identity`, `reputation`, `memory`,
 and `observability`.
 
 See [`ARCHITECTURE_BREAKDOWN.md` §3.4](../../docs/ARCHITECTURE_BREAKDOWN.md) and
@@ -39,22 +39,22 @@ Out of scope (deferred):
 Prereqs:
 
 - Node 22+, pnpm 9+.
-- Postgres 16 reachable (the `praxis-stack` runs it on `15432`).
-- Create the `praxis_negotiation` database:
+- Postgres 16 reachable (the `colber-stack` runs it on `15432`).
+- Create the `colber_negotiation` database:
 
   ```sh
-  docker exec -i praxis-postgres psql -U praxis -d praxis -c \
-    "CREATE DATABASE praxis_negotiation OWNER praxis;"
+  docker exec -i colber-postgres psql -U colber -d colber -c \
+    "CREATE DATABASE colber_negotiation OWNER colber;"
   ```
 
 ```sh
 pnpm install
-pnpm --filter @praxis/negotiation build
+pnpm --filter @colber/negotiation build
 
 cp apps/negotiation/.env.example apps/negotiation/.env
 
-pnpm --filter @praxis/negotiation db:migrate
-pnpm --filter @praxis/negotiation dev
+pnpm --filter @colber/negotiation db:migrate
+pnpm --filter @colber/negotiation dev
 ```
 
 | Surface  | Address (default)               |
@@ -88,9 +88,9 @@ Out of scope for v1.
 ## Tests
 
 ```sh
-pnpm --filter @praxis/negotiation test           # unit + integration (in-memory fakes)
-pnpm --filter @praxis/negotiation test:coverage  # with v8 coverage
-PRAXIS_LIVE_TESTS=1 pnpm --filter @praxis/negotiation test  # opt-in live containers
+pnpm --filter @colber/negotiation test           # unit + integration (in-memory fakes)
+pnpm --filter @colber/negotiation test:coverage  # with v8 coverage
+COLBER_LIVE_TESTS=1 pnpm --filter @colber/negotiation test  # opt-in live containers
 ```
 
 The default test suite uses an in-memory `EventStore` fake — no Postgres

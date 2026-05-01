@@ -1,8 +1,8 @@
 import { fileURLToPath } from 'node:url';
 
+import { ERROR_CODES, ColberError } from '@colber/core-types';
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
-import { ERROR_CODES, PraxisError } from '@praxis/core-types';
 
 import {
   FileClaimRequestSchema,
@@ -15,7 +15,7 @@ import { policyViewToWire, quoteToView, claimToWire } from '../http/views.js';
 
 import type { InsuranceService } from '../domain/insurance-service.js';
 import type { ClaimWire, PolicyViewWire, QuoteWire } from '../http/views.js';
-import type { Logger } from '@praxis/core-logger';
+import type { Logger } from '@colber/core-logger';
 
 const PROTO_PATH = fileURLToPath(new URL('../../proto/insurance.proto', import.meta.url));
 
@@ -54,7 +54,7 @@ interface InsuranceGrpcService extends grpc.UntypedServiceImplementation {
 }
 
 const toGrpcError = (err: unknown): grpc.ServiceError => {
-  if (err instanceof PraxisError) {
+  if (err instanceof ColberError) {
     const code =
       err.statusCode === 404
         ? grpc.status.NOT_FOUND
@@ -86,7 +86,7 @@ const parseJsonOrThrow = <T>(raw: string, label: string): T => {
   try {
     return JSON.parse(raw) as T;
   } catch (cause) {
-    throw new PraxisError(
+    throw new ColberError(
       ERROR_CODES.VALIDATION_FAILED,
       `${label} must be valid JSON: ${cause instanceof Error ? cause.message : String(cause)}`,
       400,
@@ -254,11 +254,11 @@ export const buildGrpcServer = (service: InsuranceService, logger: Logger): Grpc
         oneofs: true,
       });
       const proto = grpc.loadPackageDefinition(packageDef) as unknown as {
-        praxis: {
+        colber: {
           insurance: { v1: { InsuranceService: { service: grpc.ServiceDefinition } } };
         };
       };
-      server.addService(proto.praxis.insurance.v1.InsuranceService.service, handlers);
+      server.addService(proto.colber.insurance.v1.InsuranceService.service, handlers);
 
       return new Promise<number>((resolve, reject) => {
         server.bindAsync(

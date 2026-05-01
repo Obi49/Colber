@@ -1,9 +1,9 @@
 {
-  "name": "@praxis/core-mcp",
+  "name": "@colber/core-mcp",
   "version": "0.1.0",
   "private": true,
-  "license": "UNLICENSED",
-  "description": "MCP tool registration helper for Praxis services. Provides a small in-memory registry, schema validation via Zod, and a uniform error model.",
+  "license": "Apache-2.0",
+  "description": "MCP tool registration helper for Colber services. Provides a small in-memory registry, schema validation via Zod, and a uniform error model.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -26,12 +26,12 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@praxis/core-types": "workspace:*",
+    "@colber/core-types": "workspace:*",
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@praxis/eslint-config": "workspace:*",
-    "@praxis/tsconfig": "workspace:*",
+    "@colber/eslint-config": "workspace:*",
+    "@colber/tsconfig": "workspace:*",
     "@types/node": "^22.9.0",
     "@vitest/coverage-v8": "^2.1.5",
     "eslint": "^9.15.0",

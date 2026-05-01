@@ -1,6 +1,6 @@
-# ARCHITECTURE BREAKDOWN — PRAXIS
+# ARCHITECTURE BREAKDOWN — COLBER
 
-> **Note de rebrand (avril 2026)** : projet initialement nommé _AgentStack_, renommé **Praxis**.
+> **Note de rebrand (avril 2026)** : projet initialement nommé _AgentStack_, renommé **Colber**.
 
 **Document de décomposition technique — v1.0**
 **Auteur : Johan (Chef de projet) — Avril 2026**
@@ -10,7 +10,7 @@
 
 ## 0. Lecture du document
 
-Ce document décompose l'architecture Praxis à 4 niveaux :
+Ce document décompose l'architecture Colber à 4 niveaux :
 
 1. **Vue système (C1)** — contexte, acteurs, flux externes.
 2. **Vue conteneurs (C2)** — couches techniques et runtimes principaux.
@@ -473,7 +473,7 @@ Conformément à CDC §4.1 — cible globale 99,9 % an 1, 99,95 % an 2.
 
 ## 5. WBS — Work Breakdown Structure
 
-### Niveau 0 : PRAXIS
+### Niveau 0 : COLBER
 
 - **1. Plateforme transverse**
   - 1.1 agent-identity

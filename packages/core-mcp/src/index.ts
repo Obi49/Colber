@@ -1,5 +1,5 @@
 /**
- * @praxis/core-mcp — Praxis-internal helper for declaring MCP tools.
+ * @colber/core-mcp — Colber-internal helper for declaring MCP tools.
  *
  * This package is intentionally a thin abstraction. It does NOT replace
  * `@modelcontextprotocol/sdk` — that SDK can be plugged in later. For

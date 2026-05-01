@@ -1,4 +1,4 @@
-import { ERROR_CODES, PraxisError } from '@praxis/core-types';
+import { ERROR_CODES, ColberError } from '@colber/core-types';
 
 import type { EmbeddingProvider } from './provider.js';
 
@@ -53,7 +53,7 @@ export class OllamaEmbeddingProvider implements EmbeddingProvider {
 
   public async embed(text: string): Promise<Float32Array> {
     if (text.length === 0) {
-      throw new PraxisError(ERROR_CODES.VALIDATION_FAILED, 'embedding text must be non-empty', 400);
+      throw new ColberError(ERROR_CODES.VALIDATION_FAILED, 'embedding text must be non-empty', 400);
     }
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
@@ -66,7 +66,7 @@ export class OllamaEmbeddingProvider implements EmbeddingProvider {
       });
       if (!res.ok) {
         const body = await res.text().catch(() => '');
-        throw new PraxisError(
+        throw new ColberError(
           ERROR_CODES.INTERNAL_ERROR,
           `Ollama embeddings call failed: ${res.status} ${body.slice(0, 200)}`,
           502,
@@ -75,14 +75,14 @@ export class OllamaEmbeddingProvider implements EmbeddingProvider {
       const json = (await res.json()) as OllamaEmbedResponse;
       const vector = json.embedding ?? json.embeddings?.[0] ?? null;
       if (!vector || vector.length === 0) {
-        throw new PraxisError(
+        throw new ColberError(
           ERROR_CODES.INTERNAL_ERROR,
           'Ollama returned an empty embedding',
           502,
         );
       }
       if (vector.length !== this.dim) {
-        throw new PraxisError(
+        throw new ColberError(
           ERROR_CODES.INTERNAL_ERROR,
           `Ollama embedding has dim ${vector.length}, expected ${this.dim}`,
           502,

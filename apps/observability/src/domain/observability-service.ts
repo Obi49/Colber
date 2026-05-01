@@ -1,4 +1,4 @@
-import { ERROR_CODES, PraxisError } from '@praxis/core-types';
+import { ERROR_CODES, ColberError } from '@colber/core-types';
 import { v4 as uuidv4 } from 'uuid';
 
 import { Batcher } from './batcher.js';
@@ -137,14 +137,14 @@ export class ObservabilityService {
 
   public async query(request: QueryRequest): Promise<readonly QueryRow[]> {
     if (Date.parse(request.timeRange.from) >= Date.parse(request.timeRange.to)) {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.VALIDATION_FAILED,
         'timeRange.from must be strictly less than timeRange.to',
         400,
       );
     }
     if (request.limit > this.cfg.maxQueryLimit) {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.VALIDATION_FAILED,
         `limit must be <= ${this.cfg.maxQueryLimit}`,
         400,
@@ -184,7 +184,7 @@ export class ObservabilityService {
   public async getAlert(id: string): Promise<AlertRule> {
     const alert = await this.alerts.findById(id);
     if (!alert) {
-      throw new PraxisError(ERROR_CODES.NOT_FOUND, `Alert rule not found: ${id}`, 404);
+      throw new ColberError(ERROR_CODES.NOT_FOUND, `Alert rule not found: ${id}`, 404);
     }
     return alert;
   }
@@ -206,7 +206,7 @@ export class ObservabilityService {
     },
   ): Promise<AlertRule> {
     if (Object.values(patch).every((v) => v === undefined)) {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.VALIDATION_FAILED,
         'patch must change at least one field',
         400,
@@ -214,7 +214,7 @@ export class ObservabilityService {
     }
     const updated = await this.alerts.update(id, { ...patch, updatedAt: this.now() });
     if (!updated) {
-      throw new PraxisError(ERROR_CODES.NOT_FOUND, `Alert rule not found: ${id}`, 404);
+      throw new ColberError(ERROR_CODES.NOT_FOUND, `Alert rule not found: ${id}`, 404);
     }
     return updated;
   }
@@ -222,7 +222,7 @@ export class ObservabilityService {
   public async deleteAlert(id: string): Promise<void> {
     const deleted = await this.alerts.delete(id);
     if (!deleted) {
-      throw new PraxisError(ERROR_CODES.NOT_FOUND, `Alert rule not found: ${id}`, 404);
+      throw new ColberError(ERROR_CODES.NOT_FOUND, `Alert rule not found: ${id}`, 404);
     }
   }
 
@@ -232,14 +232,14 @@ export class ObservabilityService {
 
   private assertBatchSize(n: number, label: string): void {
     if (n === 0) {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.VALIDATION_FAILED,
         `${label} must contain at least one entry`,
         400,
       );
     }
     if (n > this.cfg.maxEventsPerRequest) {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.VALIDATION_FAILED,
         `${label} must contain at most ${this.cfg.maxEventsPerRequest} entries (got ${n})`,
         400,
@@ -248,7 +248,7 @@ export class ObservabilityService {
   }
 
   private errorReason(err: unknown): string {
-    if (err instanceof PraxisError) {
+    if (err instanceof ColberError) {
       return err.message;
     }
     if (err instanceof Error) {

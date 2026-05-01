@@ -8,8 +8,8 @@
  * change.
  *
  * Two streams:
- *   - LOG events  → `praxis_logs` table.
- *   - SPAN events → `praxis_spans` table.
+ *   - LOG events  → `colber_logs` table.
+ *   - SPAN events → `colber_spans` table.
  *
  * Bulk writes are batched up the call stack by the `Batcher` (see
  * `src/domain/batcher.ts`); this interface is the *flush* boundary.
@@ -25,7 +25,7 @@ export interface TelemetryRepository {
   insertLogs(events: readonly LogEvent[]): Promise<void>;
   /** Insert a batch of trace spans. */
   insertSpans(spans: readonly SpanEvent[]): Promise<void>;
-  /** Run a structured query against `praxis_logs` or `praxis_spans`. */
+  /** Run a structured query against `colber_logs` or `colber_spans`. */
   query(request: QueryRequest): Promise<readonly QueryRow[]>;
   /** Lightweight readiness check. */
   ping(): Promise<void>;

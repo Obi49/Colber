@@ -1,7 +1,7 @@
 import { type z, type ZodSchema } from 'zod';
 
 /**
- * Description of an MCP tool exposed by a Praxis service.
+ * Description of an MCP tool exposed by a Colber service.
  */
 export interface McpToolDefinition<I, O> {
   /** Tool name, formatted `<module>.<verb>` (e.g. `identity.register`). */
@@ -32,9 +32,7 @@ export type InferToolInput<T> = T extends McpToolDefinition<infer I, infer _O> ?
 export type InferToolOutput<T> = T extends McpToolDefinition<infer _I, infer O> ? O : never;
 
 /** Helper to build a tool with full type inference. */
-export const defineMcpTool = <I, O>(
-  def: McpToolDefinition<I, O>,
-): McpToolDefinition<I, O> => def;
+export const defineMcpTool = <I, O>(def: McpToolDefinition<I, O>): McpToolDefinition<I, O> => def;
 
 /** Re-export Zod for convenience at the call site. */
 export type { z };

@@ -8,7 +8,7 @@ importers:
 
   .:
     devDependencies:
-      '@praxis/eslint-config':
+      '@colber/eslint-config':
         specifier: workspace:*
         version: link:tooling/eslint-config
       '@types/node':
@@ -35,6 +35,21 @@ importers:
 
   apps/agent-identity:
     dependencies:
+      '@colber/core-config':
+        specifier: workspace:*
+        version: link:../../packages/core-config
+      '@colber/core-crypto':
+        specifier: workspace:*
+        version: link:../../packages/core-crypto
+      '@colber/core-logger':
+        specifier: workspace:*
+        version: link:../../packages/core-logger
+      '@colber/core-mcp':
+        specifier: workspace:*
+        version: link:../../packages/core-mcp
+      '@colber/core-types':
+        specifier: workspace:*
+        version: link:../../packages/core-types
       '@fastify/cors':
         specifier: ^10.0.1
         version: 10.1.0
@@ -50,21 +65,6 @@ importers:
       '@grpc/proto-loader':
         specifier: ^0.7.13
         version: 0.7.15
-      '@praxis/core-config':
-        specifier: workspace:*
-        version: link:../../packages/core-config
-      '@praxis/core-crypto':
-        specifier: workspace:*
-        version: link:../../packages/core-crypto
-      '@praxis/core-logger':
-        specifier: workspace:*
-        version: link:../../packages/core-logger
-      '@praxis/core-mcp':
-        specifier: workspace:*
-        version: link:../../packages/core-mcp
-      '@praxis/core-types':
-        specifier: workspace:*
-        version: link:../../packages/core-types
       drizzle-orm:
         specifier: ^0.36.4
         version: 0.36.4(@opentelemetry/api@1.9.1)(postgres@3.4.9)
@@ -84,10 +84,10 @@ importers:
         specifier: ^3.23.8
         version: 3.25.76
     devDependencies:
-      '@praxis/eslint-config':
+      '@colber/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint-config
-      '@praxis/tsconfig':
+      '@colber/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
       '@types/node':
@@ -123,6 +123,21 @@ importers:
 
   apps/insurance:
     dependencies:
+      '@colber/core-config':
+        specifier: workspace:*
+        version: link:../../packages/core-config
+      '@colber/core-crypto':
+        specifier: workspace:*
+        version: link:../../packages/core-crypto
+      '@colber/core-logger':
+        specifier: workspace:*
+        version: link:../../packages/core-logger
+      '@colber/core-mcp':
+        specifier: workspace:*
+        version: link:../../packages/core-mcp
+      '@colber/core-types':
+        specifier: workspace:*
+        version: link:../../packages/core-types
       '@fastify/cors':
         specifier: ^10.0.1
         version: 10.1.0
@@ -138,21 +153,6 @@ importers:
       '@grpc/proto-loader':
         specifier: ^0.7.13
         version: 0.7.15
-      '@praxis/core-config':
-        specifier: workspace:*
-        version: link:../../packages/core-config
-      '@praxis/core-crypto':
-        specifier: workspace:*
-        version: link:../../packages/core-crypto
-      '@praxis/core-logger':
-        specifier: workspace:*
-        version: link:../../packages/core-logger
-      '@praxis/core-mcp':
-        specifier: workspace:*
-        version: link:../../packages/core-mcp
-      '@praxis/core-types':
-        specifier: workspace:*
-        version: link:../../packages/core-types
       drizzle-orm:
         specifier: ^0.36.4
         version: 0.36.4(@opentelemetry/api@1.9.1)(postgres@3.4.9)
@@ -172,10 +172,10 @@ importers:
         specifier: ^3.23.8
         version: 3.25.76
     devDependencies:
-      '@praxis/eslint-config':
+      '@colber/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint-config
-      '@praxis/tsconfig':
+      '@colber/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
       '@types/node':
@@ -205,6 +205,21 @@ importers:
 
   apps/memory:
     dependencies:
+      '@colber/core-config':
+        specifier: workspace:*
+        version: link:../../packages/core-config
+      '@colber/core-crypto':
+        specifier: workspace:*
+        version: link:../../packages/core-crypto
+      '@colber/core-logger':
+        specifier: workspace:*
+        version: link:../../packages/core-logger
+      '@colber/core-mcp':
+        specifier: workspace:*
+        version: link:../../packages/core-mcp
+      '@colber/core-types':
+        specifier: workspace:*
+        version: link:../../packages/core-types
       '@fastify/cors':
         specifier: ^10.0.1
         version: 10.1.0
@@ -220,21 +235,6 @@ importers:
       '@grpc/proto-loader':
         specifier: ^0.7.13
         version: 0.7.15
-      '@praxis/core-config':
-        specifier: workspace:*
-        version: link:../../packages/core-config
-      '@praxis/core-crypto':
-        specifier: workspace:*
-        version: link:../../packages/core-crypto
-      '@praxis/core-logger':
-        specifier: workspace:*
-        version: link:../../packages/core-logger
-      '@praxis/core-mcp':
-        specifier: workspace:*
-        version: link:../../packages/core-mcp
-      '@praxis/core-types':
-        specifier: workspace:*
-        version: link:../../packages/core-types
       '@qdrant/js-client-rest':
         specifier: ^1.12.0
         version: 1.17.0(typescript@5.9.3)
@@ -257,10 +257,10 @@ importers:
         specifier: ^3.23.8
         version: 3.25.76
     devDependencies:
-      '@praxis/eslint-config':
+      '@colber/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint-config
-      '@praxis/tsconfig':
+      '@colber/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
       '@types/node':
@@ -290,6 +290,21 @@ importers:
 
   apps/negotiation:
     dependencies:
+      '@colber/core-config':
+        specifier: workspace:*
+        version: link:../../packages/core-config
+      '@colber/core-crypto':
+        specifier: workspace:*
+        version: link:../../packages/core-crypto
+      '@colber/core-logger':
+        specifier: workspace:*
+        version: link:../../packages/core-logger
+      '@colber/core-mcp':
+        specifier: workspace:*
+        version: link:../../packages/core-mcp
+      '@colber/core-types':
+        specifier: workspace:*
+        version: link:../../packages/core-types
       '@fastify/cors':
         specifier: ^10.0.1
         version: 10.1.0
@@ -308,21 +323,6 @@ importers:
       '@noble/ed25519':
         specifier: ^2.2.3
         version: 2.3.0
-      '@praxis/core-config':
-        specifier: workspace:*
-        version: link:../../packages/core-config
-      '@praxis/core-crypto':
-        specifier: workspace:*
-        version: link:../../packages/core-crypto
-      '@praxis/core-logger':
-        specifier: workspace:*
-        version: link:../../packages/core-logger
-      '@praxis/core-mcp':
-        specifier: workspace:*
-        version: link:../../packages/core-mcp
-      '@praxis/core-types':
-        specifier: workspace:*
-        version: link:../../packages/core-types
       drizzle-orm:
         specifier: ^0.36.4
         version: 0.36.4(@opentelemetry/api@1.9.1)(postgres@3.4.9)
@@ -342,10 +342,10 @@ importers:
         specifier: ^3.23.8
         version: 3.25.76
     devDependencies:
-      '@praxis/eslint-config':
+      '@colber/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint-config
-      '@praxis/tsconfig':
+      '@colber/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
       '@types/node':
@@ -378,6 +378,18 @@ importers:
       '@clickhouse/client':
         specifier: ^1.8.1
         version: 1.18.3
+      '@colber/core-config':
+        specifier: workspace:*
+        version: link:../../packages/core-config
+      '@colber/core-logger':
+        specifier: workspace:*
+        version: link:../../packages/core-logger
+      '@colber/core-mcp':
+        specifier: workspace:*
+        version: link:../../packages/core-mcp
+      '@colber/core-types':
+        specifier: workspace:*
+        version: link:../../packages/core-types
       '@fastify/cors':
         specifier: ^10.0.1
         version: 10.1.0
@@ -393,18 +405,6 @@ importers:
       '@grpc/proto-loader':
         specifier: ^0.7.13
         version: 0.7.15
-      '@praxis/core-config':
-        specifier: workspace:*
-        version: link:../../packages/core-config
-      '@praxis/core-logger':
-        specifier: workspace:*
-        version: link:../../packages/core-logger
-      '@praxis/core-mcp':
-        specifier: workspace:*
-        version: link:../../packages/core-mcp
-      '@praxis/core-types':
-        specifier: workspace:*
-        version: link:../../packages/core-types
       drizzle-orm:
         specifier: ^0.36.4
         version: 0.36.4(@opentelemetry/api@1.9.1)(postgres@3.4.9)
@@ -424,10 +424,10 @@ importers:
         specifier: ^3.23.8
         version: 3.25.76
     devDependencies:
-      '@praxis/eslint-config':
+      '@colber/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint-config
-      '@praxis/tsconfig':
+      '@colber/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
       '@types/node':
@@ -457,6 +457,21 @@ importers:
 
   apps/reputation:
     dependencies:
+      '@colber/core-config':
+        specifier: workspace:*
+        version: link:../../packages/core-config
+      '@colber/core-crypto':
+        specifier: workspace:*
+        version: link:../../packages/core-crypto
+      '@colber/core-logger':
+        specifier: workspace:*
+        version: link:../../packages/core-logger
+      '@colber/core-mcp':
+        specifier: workspace:*
+        version: link:../../packages/core-mcp
+      '@colber/core-types':
+        specifier: workspace:*
+        version: link:../../packages/core-types
       '@fastify/cors':
         specifier: ^10.0.1
         version: 10.1.0
@@ -475,21 +490,6 @@ importers:
       '@noble/ed25519':
         specifier: ^2.2.3
         version: 2.3.0
-      '@praxis/core-config':
-        specifier: workspace:*
-        version: link:../../packages/core-config
-      '@praxis/core-crypto':
-        specifier: workspace:*
-        version: link:../../packages/core-crypto
-      '@praxis/core-logger':
-        specifier: workspace:*
-        version: link:../../packages/core-logger
-      '@praxis/core-mcp':
-        specifier: workspace:*
-        version: link:../../packages/core-mcp
-      '@praxis/core-types':
-        specifier: workspace:*
-        version: link:../../packages/core-types
       drizzle-orm:
         specifier: ^0.36.4
         version: 0.36.4(@opentelemetry/api@1.9.1)(postgres@3.4.9)
@@ -515,10 +515,10 @@ importers:
         specifier: ^3.23.8
         version: 3.25.76
     devDependencies:
-      '@praxis/eslint-config':
+      '@colber/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint-config
-      '@praxis/tsconfig':
+      '@colber/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
       '@types/node':
@@ -555,10 +555,10 @@ importers:
         specifier: ^3.23.8
         version: 3.25.76
     devDependencies:
-      '@praxis/eslint-config':
+      '@colber/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint-config
-      '@praxis/tsconfig':
+      '@colber/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
       '@types/node':
@@ -579,20 +579,20 @@ importers:
 
   packages/core-crypto:
     dependencies:
+      '@colber/core-types':
+        specifier: workspace:*
+        version: link:../core-types
       '@noble/ed25519':
         specifier: ^2.2.3
         version: 2.3.0
       '@noble/hashes':
         specifier: ^1.5.0
         version: 1.8.0
-      '@praxis/core-types':
-        specifier: workspace:*
-        version: link:../core-types
     devDependencies:
-      '@praxis/eslint-config':
+      '@colber/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint-config
-      '@praxis/tsconfig':
+      '@colber/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
       '@types/node':
@@ -620,10 +620,10 @@ importers:
         specifier: ^11.3.0
         version: 11.3.0
     devDependencies:
-      '@praxis/eslint-config':
+      '@colber/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint-config
-      '@praxis/tsconfig':
+      '@colber/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
       '@types/node':
@@ -644,17 +644,17 @@ importers:
 
   packages/core-mcp:
     dependencies:
-      '@praxis/core-types':
+      '@colber/core-types':
         specifier: workspace:*
         version: link:../core-types
       zod:
         specifier: ^3.23.8
         version: 3.25.76
     devDependencies:
-      '@praxis/eslint-config':
+      '@colber/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint-config
-      '@praxis/tsconfig':
+      '@colber/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
       '@types/node':
@@ -675,10 +675,10 @@ importers:
 
   packages/core-types:
     devDependencies:
-      '@praxis/eslint-config':
+      '@colber/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint-config
-      '@praxis/tsconfig':
+      '@colber/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
       '@types/node':

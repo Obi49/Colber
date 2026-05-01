@@ -1,4 +1,4 @@
-import { ERROR_CODES, PraxisError } from '@praxis/core-types';
+import { ERROR_CODES, ColberError } from '@colber/core-types';
 import { v4 as uuidv4 } from 'uuid';
 
 import { validateTransition } from '../../src/domain/escrow.js';
@@ -52,7 +52,7 @@ export class InMemoryPolicyStore implements PolicyStore {
     const totalLocked = this.sumLockedExposureSync();
     if (totalLocked + input.policy.amountUsdc > input.maxGlobalExposureUsdc) {
       return Promise.reject(
-        new PraxisError(
+        new ColberError(
           ERROR_CODES.VALIDATION_FAILED,
           `global exposure cap reached (${totalLocked} + ${input.policy.amountUsdc} > ${input.maxGlobalExposureUsdc})`,
           400,
@@ -137,13 +137,13 @@ export class InMemoryPolicyStore implements PolicyStore {
     const stored = this.escrows.get(input.holdingId);
     if (!stored) {
       return Promise.reject(
-        new PraxisError(ERROR_CODES.NOT_FOUND, `escrow holding ${input.holdingId} not found`, 404),
+        new ColberError(ERROR_CODES.NOT_FOUND, `escrow holding ${input.holdingId} not found`, 404),
       );
     }
 
     const verdict = validateTransition(stored.holding.status, input.to);
     if (verdict.kind === 'reject') {
-      return Promise.reject(new PraxisError(ERROR_CODES.VALIDATION_FAILED, verdict.reason, 400));
+      return Promise.reject(new ColberError(ERROR_CODES.VALIDATION_FAILED, verdict.reason, 400));
     }
     if (verdict.kind === 'noop') {
       return Promise.resolve({ holding: stored.holding, events: [...stored.events] });

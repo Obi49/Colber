@@ -1,4 +1,4 @@
-import { ERROR_CODES, PraxisError } from '@praxis/core-types';
+import { ERROR_CODES, ColberError } from '@colber/core-types';
 
 import type { NegotiationState, Proposal, ProposalRecord, Strategy } from '../negotiation-types.js';
 
@@ -61,11 +61,11 @@ export const findProposal = (
 
 /**
  * Common precondition: proposal author must be a registered party.
- * Throws `PraxisError(VALIDATION_FAILED)` so the HTTP layer maps to 400.
+ * Throws `ColberError(VALIDATION_FAILED)` so the HTTP layer maps to 400.
  */
 export const assertPartyAllowed = (state: NegotiationState, fromDid: string): void => {
   if (!state.partyDids.includes(fromDid)) {
-    throw new PraxisError(
+    throw new ColberError(
       ERROR_CODES.VALIDATION_FAILED,
       `fromDid ${fromDid} is not a party of negotiation ${state.negotiationId}`,
       400,

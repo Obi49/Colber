@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package praxis.reputation.v1;
+package colber.reputation.v1;
 
-// Praxis — Reputation gRPC contract (v1).
+// Colber — Reputation gRPC contract (v1).
 // Mirror of the REST + MCP surfaces. Used for inter-service calls
 // inside the cluster (gRPC over Linkerd / Istio service mesh).
 

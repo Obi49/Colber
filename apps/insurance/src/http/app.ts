@@ -12,7 +12,7 @@ import { registerHealthRoutes, type HealthDeps } from './health.js';
 import { registerInsuranceRoutes } from './routes.js';
 
 import type { InsuranceService } from '../domain/insurance-service.js';
-import type { Logger } from '@praxis/core-logger';
+import type { Logger } from '@colber/core-logger';
 
 export interface BuildAppDeps extends HealthDeps {
   readonly logger: Logger;

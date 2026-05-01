@@ -1,4 +1,4 @@
-# Praxis — schémas
+# Colber — schémas
 
 > Versions Mermaid (`.md`) prêtes à l'emploi : rendues nativement par GitHub, éditables sans outil externe.
 > Pour les versions SVG vectorielles produites par Claude Design, voir le brief [../DESIGN_BRIEF.md](../DESIGN_BRIEF.md).
@@ -7,12 +7,12 @@
 
 | Schéma                                                 | Type                                 | Cible                                   |
 | ------------------------------------------------------ | ------------------------------------ | --------------------------------------- |
-| [praxis-functional.md](praxis-functional.md)           | Mermaid `flowchart TB` (grille)      | Doc technique, README, onboarding       |
-| [praxis-functional-hub.md](praxis-functional-hub.md)   | Mermaid `flowchart TB` (hub & spoke) | Slide hero, pitch deck, page d'accueil  |
-| [praxis-workflow-a2a.md](praxis-workflow-a2a.md)       | Mermaid `sequenceDiagram`            | Doc technique détaillée, onboarding dev |
-| [praxis-workflow-phases.md](praxis-workflow-phases.md) | Mermaid `flowchart LR` (4 phases)    | Slide synthétique, page d'accueil       |
+| [colber-functional.md](colber-functional.md)           | Mermaid `flowchart TB` (grille)      | Doc technique, README, onboarding       |
+| [colber-functional-hub.md](colber-functional-hub.md)   | Mermaid `flowchart TB` (hub & spoke) | Slide hero, pitch deck, page d'accueil  |
+| [colber-workflow-a2a.md](colber-workflow-a2a.md)       | Mermaid `sequenceDiagram`            | Doc technique détaillée, onboarding dev |
+| [colber-workflow-phases.md](colber-workflow-phases.md) | Mermaid `flowchart LR` (4 phases)    | Slide synthétique, page d'accueil       |
 
-## Code couleur Praxis
+## Code couleur Colber
 
 Couleurs cohérentes dans tous les schémas et la documentation :
 

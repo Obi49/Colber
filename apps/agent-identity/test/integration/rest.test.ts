@@ -2,9 +2,9 @@
  * REST integration tests using fastify's `inject` (no real HTTP socket needed).
  * Uses the in-memory repository fake — no real DB connection.
  */
-import { getSignatureProvider, toBase64 } from '@praxis/core-crypto';
-import { createLogger, type Logger } from '@praxis/core-logger';
-import { ERROR_CODES } from '@praxis/core-types';
+import { getSignatureProvider, toBase64 } from '@colber/core-crypto';
+import { createLogger, type Logger } from '@colber/core-logger';
+import { ERROR_CODES } from '@colber/core-types';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { IdentityService } from '../../src/domain/identity-service.js';
@@ -211,7 +211,7 @@ describe('REST /v1/identity/*', () => {
     }
     const { data } = regBody;
 
-    const message = new TextEncoder().encode('praxis-rest-test');
+    const message = new TextEncoder().encode('colber-rest-test');
     const signature = await ed.sign(message, kp.privateKey);
 
     const res = await app.inject({

@@ -3,7 +3,7 @@ import {
   loadConfig,
   PortSchema,
   PostgresUrlSchema,
-} from '@praxis/core-config';
+} from '@colber/core-config';
 import { z } from 'zod';
 
 /**

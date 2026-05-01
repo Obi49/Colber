@@ -1,4 +1,4 @@
-import { ERROR_CODES } from '@praxis/core-types';
+import { ERROR_CODES } from '@colber/core-types';
 import { describe, expect, it } from 'vitest';
 
 import { validateLogEvent, validateSpanEvent } from '../../src/domain/telemetry-validation.js';
@@ -80,7 +80,7 @@ describe('validateLogEvent', () => {
     expect(() => validateLogEvent({ ...baseLog, message: '' })).toThrowError(/message/);
   });
 
-  it('produces a PraxisError(VALIDATION_FAILED)', () => {
+  it('produces a ColberError(VALIDATION_FAILED)', () => {
     try {
       validateLogEvent({ ...baseLog, level: 'panic' });
     } catch (err) {

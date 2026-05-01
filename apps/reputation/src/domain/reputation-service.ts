@@ -1,5 +1,5 @@
-import { fromBase64, getSignatureProvider } from '@praxis/core-crypto';
-import { ERROR_CODES, PraxisError } from '@praxis/core-types';
+import { fromBase64, getSignatureProvider } from '@colber/core-crypto';
+import { ERROR_CODES, ColberError } from '@colber/core-types';
 import { v7 as uuidv7 } from 'uuid';
 
 import {
@@ -85,7 +85,7 @@ export class ReputationService {
   /** Returns the platform Ed25519 public key (base64-decoded raw bytes). */
   public getPlatformPublicKey(): Uint8Array {
     if (!this.platformKey) {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.INTERNAL_ERROR,
         'ReputationService.init() must be called before getPlatformPublicKey()',
         500,
@@ -192,7 +192,7 @@ export class ReputationService {
     // Validation — shape errors here mean the HTTP/MCP layer let something
     // through that should have been caught at the edge. Map to 400.
     if (input.rating < 1 || input.rating > 5 || !Number.isInteger(input.rating)) {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.VALIDATION_FAILED,
         `rating must be an integer in 1..5 (got ${input.rating})`,
         400,
@@ -201,7 +201,7 @@ export class ReputationService {
     for (const dim of ['delivery', 'quality', 'communication'] as const) {
       const v = input.dimensions[dim];
       if (!Number.isInteger(v) || v < 1 || v > 5) {
-        throw new PraxisError(
+        throw new ColberError(
           ERROR_CODES.VALIDATION_FAILED,
           `dimensions.${dim} must be an integer in 1..5 (got ${v})`,
           400,
@@ -210,7 +210,7 @@ export class ReputationService {
     }
     const signedAt = new Date(input.signedAt);
     if (Number.isNaN(signedAt.getTime())) {
-      throw new PraxisError(ERROR_CODES.VALIDATION_FAILED, 'signedAt must be ISO-8601', 400);
+      throw new ColberError(ERROR_CODES.VALIDATION_FAILED, 'signedAt must be ISO-8601', 400);
     }
 
     // Idempotency: same feedbackId → return existing record as a 200.
@@ -223,7 +223,7 @@ export class ReputationService {
         existingById.txId !== input.txId ||
         existingById.rating !== input.rating
       ) {
-        throw new PraxisError(
+        throw new ColberError(
           ERROR_CODES.CONFLICT,
           `feedbackId ${input.feedbackId} was previously submitted with a different payload`,
           409,
@@ -239,7 +239,7 @@ export class ReputationService {
       input.txId,
     );
     if (existingByTriple) {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.CONFLICT,
         `Feedback for (fromDid, toDid, txId) already exists with feedbackId ${existingByTriple.feedbackId}`,
         409,
@@ -252,13 +252,13 @@ export class ReputationService {
     // Resolve the issuer's public key.
     const issuer = await this.identity.resolve(input.fromDid);
     if (!issuer) {
-      throw new PraxisError(ERROR_CODES.DID_NOT_FOUND, `fromDid not found: ${input.fromDid}`, 404);
+      throw new ColberError(ERROR_CODES.DID_NOT_FOUND, `fromDid not found: ${input.fromDid}`, 404);
     }
     if (issuer.revoked) {
-      throw new PraxisError(ERROR_CODES.DID_REVOKED, `fromDid is revoked: ${input.fromDid}`, 410);
+      throw new ColberError(ERROR_CODES.DID_REVOKED, `fromDid is revoked: ${input.fromDid}`, 410);
     }
     if (issuer.signatureScheme !== 'Ed25519') {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.VALIDATION_FAILED,
         `Unsupported signature scheme for issuer: ${issuer.signatureScheme}`,
         400,
@@ -279,12 +279,12 @@ export class ReputationService {
     try {
       signature = fromBase64(input.signature);
     } catch {
-      throw new PraxisError(ERROR_CODES.INVALID_SIGNATURE, 'signature must be valid base64', 400);
+      throw new ColberError(ERROR_CODES.INVALID_SIGNATURE, 'signature must be valid base64', 400);
     }
     const provider = getSignatureProvider('Ed25519');
     const result = await provider.verify(canonicalPayload, signature, issuer.publicKey);
     if (!result.valid) {
-      throw new PraxisError(
+      throw new ColberError(
         ERROR_CODES.INVALID_SIGNATURE,
         `Feedback signature verification failed: ${result.reason ?? 'unknown'}`,
         400,

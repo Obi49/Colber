@@ -1,4 +1,4 @@
-import { defineMcpTool, McpToolRegistry } from '@praxis/core-mcp';
+import { defineMcpTool, McpToolRegistry } from '@colber/core-mcp';
 import { z } from 'zod';
 
 import {
@@ -14,7 +14,7 @@ import type { ReputationService } from '../domain/reputation-service.js';
 
 /**
  * MCP tools exposed by the reputation service.
- * Names follow the Praxis convention `<module>.<verb>` (cf. ADR §0.2.3).
+ * Names follow the Colber convention `<module>.<verb>` (cf. ADR §0.2.3).
  */
 export const buildReputationMcpRegistry = (service: ReputationService): McpToolRegistry => {
   const registry = new McpToolRegistry();

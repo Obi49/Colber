@@ -1,5 +1,5 @@
-import { encodeDidKey, getSignatureProvider, toBase64 } from '@praxis/core-crypto';
-import { ERROR_CODES } from '@praxis/core-types';
+import { encodeDidKey, getSignatureProvider, toBase64 } from '@colber/core-crypto';
+import { ERROR_CODES } from '@colber/core-types';
 import { v4 as uuidv4 } from 'uuid';
 import { describe, expect, it } from 'vitest';
 

@@ -30,11 +30,11 @@ const DEFAULT_REDACTIONS = [
 ];
 
 /**
- * Creates a pino logger with Praxis defaults:
+ * Creates a pino logger with Colber defaults:
  *  - JSON in non-dev, pino-pretty in dev (if `pretty`).
  *  - ISO timestamps.
  *  - Common redactions for credentials.
- *  - Service name + commit SHA (if `PRAXIS_COMMIT_SHA` is set) attached.
+ *  - Service name + commit SHA (if `COLBER_COMMIT_SHA` is set) attached.
  */
 export const createLogger = (options: LoggerFactoryOptions): Logger => {
   const { serviceName, level = 'info', pretty = false, base = {} } = options;
@@ -44,7 +44,7 @@ export const createLogger = (options: LoggerFactoryOptions): Logger => {
     base: {
       service: serviceName,
       env: process.env.NODE_ENV ?? 'development',
-      commit: process.env.PRAXIS_COMMIT_SHA ?? null,
+      commit: process.env.COLBER_COMMIT_SHA ?? null,
       ...base,
     },
     timestamp: pino.stdTimeFunctions.isoTime,

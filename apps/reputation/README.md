@@ -1,6 +1,6 @@
-# `@praxis/reputation`
+# `@colber/reputation`
 
-> Agentic reputation oracle for the Praxis platform. Other Praxis modules
+> Agentic reputation oracle for the Colber platform. Other Colber modules
 > (INSURANCE, NEGOTIATION) and third-party clients query this service to
 > learn how trustworthy a given agent is.
 
@@ -21,25 +21,25 @@ See [`ARCHITECTURE_BREAKDOWN.md` §3.1](../../docs/ARCHITECTURE_BREAKDOWN.md) an
 Prereqs:
 
 - Node 22+, pnpm 9+
-- The `praxis-stack` Docker stack running with Postgres (15432), Redis (16379)
+- The `colber-stack` Docker stack running with Postgres (15432), Redis (16379)
   and Neo4j (17687):
   ```sh
-  cd ../../praxis-stack && docker compose up -d postgres redis neo4j
+  cd ../../colber-stack && docker compose up -d postgres redis neo4j
   ```
 
 ```sh
 # from the repo root
 pnpm install
-pnpm --filter @praxis/reputation build
+pnpm --filter @colber/reputation build
 
 # create a local .env from the example (DEV creds only)
 cp apps/reputation/.env.example apps/reputation/.env
 
 # apply migrations against the running Postgres
-pnpm --filter @praxis/reputation db:migrate
+pnpm --filter @colber/reputation db:migrate
 
 # start in watch mode
-pnpm --filter @praxis/reputation dev
+pnpm --filter @colber/reputation dev
 ```
 
 The service exposes:
@@ -66,7 +66,7 @@ a per-dependency status block.
 | `DATABASE_URL`                          | —                         | Postgres URL                                                          |
 | `NEO4J_BOLT_URL`                        | `bolt://localhost:17687`  | Neo4j bolt URL                                                        |
 | `NEO4J_USERNAME`                        | `neo4j`                   |                                                                       |
-| `NEO4J_PASSWORD`                        | `praxis_dev`              |                                                                       |
+| `NEO4J_PASSWORD`                        | `colber_dev`              |                                                                       |
 | `NEO4J_DATABASE`                        | `neo4j`                   |                                                                       |
 | `REDIS_URL`                             | `redis://localhost:16379` |                                                                       |
 | `REPUTATION_SCORE_TX_DELTA`             | `10`                      | Points awarded per successful transaction                             |
@@ -112,7 +112,7 @@ v2 rollout invalidates every v1 cache entry without a flush.
 ## REST endpoints
 
 All responses follow the `{ ok: true, data } | { ok: false, error }` envelope
-defined in `@praxis/core-types`.
+defined in `@colber/core-types`.
 
 ### `GET /v1/reputation/score/:agentDid`
 
@@ -254,7 +254,7 @@ Zod-defined in `src/mcp/tools.ts` and round-trip via the in-process
 ## gRPC
 
 Proto contract: [`proto/reputation.proto`](./proto/reputation.proto).
-Service: `praxis.reputation.v1.ReputationService` with `Score`, `History`,
+Service: `colber.reputation.v1.ReputationService` with `Score`, `History`,
 `Verify`, `Feedback` RPCs. Inter-service usage only — never exposed to the
 public edge.
 
@@ -297,7 +297,7 @@ read.
 To verify a feedback's signature we need the issuer's public key.
 
 1. `did:key:z6Mk…` — decoded directly from the DID string via
-   `@praxis/core-crypto`. No DB lookup. This is the common case in MVP.
+   `@colber/core-crypto`. No DB lookup. This is the common case in MVP.
 2. Anything else (`did:web`, `did:ethr`) — read from the `agents` table that
    the agent-identity service writes to. We share the Postgres database in
    dev and rely on column stability (`did`, `public_key`, `signature_scheme`,
@@ -314,14 +314,14 @@ fronted by an `IdentityResolver` interface so unit tests can stub it.
 ## Tests
 
 ```sh
-pnpm --filter @praxis/reputation test          # unit + integration (in-memory fakes)
-pnpm --filter @praxis/reputation test:coverage # with v8 coverage, ≥ 80% target on domain/
+pnpm --filter @colber/reputation test          # unit + integration (in-memory fakes)
+pnpm --filter @colber/reputation test:coverage # with v8 coverage, ≥ 80% target on domain/
 ```
 
 Integration tests do **not** require running services — they use in-memory
 fakes from `test/fakes/`. The live integration suite under `test/live/` is
-gated behind `PRAXIS_LIVE_TESTS=1` and intentionally not wired in CI.
-Filling it in requires `pnpm --filter @praxis/reputation add -D testcontainers
+gated behind `COLBER_LIVE_TESTS=1` and intentionally not wired in CI.
+Filling it in requires `pnpm --filter @colber/reputation add -D testcontainers
 @testcontainers/postgresql @testcontainers/neo4j` first.
 
 ---
@@ -340,5 +340,5 @@ Filling it in requires `pnpm --filter @praxis/reputation add -D testcontainers
 
 ```sh
 # from the repo root
-docker build -f apps/reputation/Dockerfile -t praxis/reputation:dev .
+docker build -f apps/reputation/Dockerfile -t colber/reputation:dev .
 ```

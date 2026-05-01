@@ -3,7 +3,7 @@
  * Uses the in-memory `PolicyStore` + `ReputationClient` fakes — no real
  * Postgres / reputation upstream needed.
  */
-import { createLogger, type Logger } from '@praxis/core-logger';
+import { createLogger, type Logger } from '@colber/core-logger';
 import { v4 as uuidv4 } from 'uuid';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 

@@ -2,7 +2,7 @@ import type { Brand } from './brand.js';
 
 /**
  * W3C Decentralized Identifier.
- * For Praxis MVP we only support `did:key` (Ed25519 multibase).
+ * For Colber MVP we only support `did:key` (Ed25519 multibase).
  * Future support: `did:web`, `did:ethr`. See ARCHITECTURE_BREAKDOWN §3.6.1.
  */
 export type Did = Brand<string, 'Did'>;
@@ -17,12 +17,11 @@ export type SignatureScheme = (typeof SIGNATURE_SCHEMES)[number];
 
 /**
  * Lightweight format check for a `did:key:z6Mk…` Ed25519 DID.
- * Cryptographic validation lives in `@praxis/core-crypto`.
+ * Cryptographic validation lives in `@colber/core-crypto`.
  */
 const DID_KEY_ED25519_PATTERN = /^did:key:z6Mk[1-9A-HJ-NP-Za-km-z]{43,46}$/;
 
-export const isDidKey = (value: string): value is Did =>
-  DID_KEY_ED25519_PATTERN.test(value);
+export const isDidKey = (value: string): value is Did => DID_KEY_ED25519_PATTERN.test(value);
 
 /**
  * Parses the method out of a DID string.
@@ -41,6 +40,6 @@ export const parseDidMethod = (did: string): DidMethod | undefined => {
 
 /**
  * Brands a string as a Did. Caller is responsible for validation
- * (typically via `@praxis/core-crypto`).
+ * (typically via `@colber/core-crypto`).
  */
 export const asDid = (value: string): Did => value as Did;

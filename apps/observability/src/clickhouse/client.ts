@@ -10,9 +10,9 @@ import type { Attributes, LogEvent, SpanEvent } from '../domain/telemetry-types.
  * ClickHouse-backed `TelemetryRepository`.
  *
  * Storage strategy:
- *  - `praxis_logs`  partitioned by `toYYYYMMDD(timestamp)`,
+ *  - `colber_logs`  partitioned by `toYYYYMMDD(timestamp)`,
  *                   ORDER BY (timestamp, traceId, spanId), TTL 30 days.
- *  - `praxis_spans` partitioned by `toYYYYMMDD(start_timestamp)`,
+ *  - `colber_spans` partitioned by `toYYYYMMDD(start_timestamp)`,
  *                   ORDER BY (start_timestamp, traceId, spanId), TTL 30 days.
  *
  * Attributes + resource maps are stored as PARALLEL ARRAYS
@@ -252,7 +252,7 @@ export class ClickHouseTelemetryRepository implements TelemetryRepository {
       return;
     }
     await this.client.insert({
-      table: 'praxis_logs',
+      table: 'colber_logs',
       values: events.map(logToRow),
       format: 'JSONEachRow',
     });
@@ -263,7 +263,7 @@ export class ClickHouseTelemetryRepository implements TelemetryRepository {
       return;
     }
     await this.client.insert({
-      table: 'praxis_spans',
+      table: 'colber_spans',
       values: spans.map(spanToRow),
       format: 'JSONEachRow',
     });
@@ -293,7 +293,7 @@ export class ClickHouseTelemetryRepository implements TelemetryRepository {
 }
 
 export const buildLogsDdl = (db: string, ttlDays: number): string =>
-  `CREATE TABLE IF NOT EXISTS ${db}.praxis_logs (
+  `CREATE TABLE IF NOT EXISTS ${db}.colber_logs (
     timestamp DateTime64(3, 'UTC'),
     trace_id String,
     span_id String,
@@ -316,7 +316,7 @@ export const buildLogsDdl = (db: string, ttlDays: number): string =>
   SETTINGS index_granularity = 8192`;
 
 export const buildSpansDdl = (db: string, ttlDays: number): string =>
-  `CREATE TABLE IF NOT EXISTS ${db}.praxis_spans (
+  `CREATE TABLE IF NOT EXISTS ${db}.colber_spans (
     trace_id String,
     span_id String,
     parent_span_id String DEFAULT '',

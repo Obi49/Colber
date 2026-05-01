@@ -1,12 +1,12 @@
 import { fileURLToPath } from 'node:url';
 
+import { ERROR_CODES, ColberError } from '@colber/core-types';
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
-import { ERROR_CODES, PraxisError } from '@praxis/core-types';
 
 import type { MemoryService, MemoryType } from '../domain/memory-service.js';
 import type { Visibility } from '../domain/permissions.js';
-import type { Logger } from '@praxis/core-logger';
+import type { Logger } from '@colber/core-logger';
 
 const PROTO_PATH = fileURLToPath(new URL('../../proto/memory.proto', import.meta.url));
 
@@ -60,7 +60,7 @@ interface MemoryGrpcService extends grpc.UntypedServiceImplementation {
 }
 
 const toGrpcError = (err: unknown): grpc.ServiceError => {
-  if (err instanceof PraxisError) {
+  if (err instanceof ColberError) {
     const code =
       err.statusCode === 404
         ? grpc.status.NOT_FOUND
@@ -97,12 +97,12 @@ const parsePayloadJson = (raw: string | undefined): Record<string, unknown> | un
     if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
       return parsed as Record<string, unknown>;
     }
-    throw new PraxisError(ERROR_CODES.VALIDATION_FAILED, 'payload_json must be a JSON object', 400);
+    throw new ColberError(ERROR_CODES.VALIDATION_FAILED, 'payload_json must be a JSON object', 400);
   } catch (cause) {
-    if (cause instanceof PraxisError) {
+    if (cause instanceof ColberError) {
       throw cause;
     }
-    throw new PraxisError(
+    throw new ColberError(
       ERROR_CODES.VALIDATION_FAILED,
       `payload_json must be valid JSON: ${cause instanceof Error ? cause.message : String(cause)}`,
       400,
@@ -118,14 +118,14 @@ const isVisibility = (v: string): v is Visibility =>
 
 const requireVisibility = (v: string): Visibility => {
   if (!isVisibility(v)) {
-    throw new PraxisError(ERROR_CODES.VALIDATION_FAILED, `unknown visibility: ${v}`, 400);
+    throw new ColberError(ERROR_CODES.VALIDATION_FAILED, `unknown visibility: ${v}`, 400);
   }
   return v;
 };
 
 const requireMemoryType = (v: string): MemoryType => {
   if (!isMemoryType(v)) {
-    throw new PraxisError(ERROR_CODES.VALIDATION_FAILED, `unknown memory type: ${v}`, 400);
+    throw new ColberError(ERROR_CODES.VALIDATION_FAILED, `unknown memory type: ${v}`, 400);
   }
   return v;
 };
@@ -289,9 +289,9 @@ export const buildGrpcServer = (service: MemoryService, logger: Logger): GrpcSer
         oneofs: true,
       });
       const proto = grpc.loadPackageDefinition(packageDef) as unknown as {
-        praxis: { memory: { v1: { MemoryService: { service: grpc.ServiceDefinition } } } };
+        colber: { memory: { v1: { MemoryService: { service: grpc.ServiceDefinition } } } };
       };
-      server.addService(proto.praxis.memory.v1.MemoryService.service, handlers);
+      server.addService(proto.colber.memory.v1.MemoryService.service, handlers);
 
       return new Promise<number>((resolve, reject) => {
         server.bindAsync(

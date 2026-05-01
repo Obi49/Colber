@@ -1,15 +1,15 @@
 import { fileURLToPath } from 'node:url';
 
+import { ERROR_CODES, ColberError } from '@colber/core-types';
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
-import { ERROR_CODES, PraxisError } from '@praxis/core-types';
 
 import { AlertCreateRequestSchema, QueryRequestSchema } from '../http/schemas.js';
 
 import type { AlertRule, AlertScope } from '../domain/alert-types.js';
 import type { ObservabilityService } from '../domain/observability-service.js';
 import type { QueryFilter, QueryScope } from '../domain/query-types.js';
-import type { Logger } from '@praxis/core-logger';
+import type { Logger } from '@colber/core-logger';
 
 const PROTO_PATH = fileURLToPath(new URL('../../proto/observability.proto', import.meta.url));
 
@@ -87,7 +87,7 @@ interface ObservabilityGrpcService extends grpc.UntypedServiceImplementation {
 }
 
 const toGrpcError = (err: unknown): grpc.ServiceError => {
-  if (err instanceof PraxisError) {
+  if (err instanceof ColberError) {
     const code =
       err.statusCode === 404
         ? grpc.status.NOT_FOUND
@@ -119,7 +119,7 @@ const parseJsonOrThrow = <T>(raw: string, label: string): T => {
   try {
     return JSON.parse(raw) as T;
   } catch (cause) {
-    throw new PraxisError(
+    throw new ColberError(
       ERROR_CODES.VALIDATION_FAILED,
       `${label} must be valid JSON: ${cause instanceof Error ? cause.message : String(cause)}`,
       400,
@@ -138,7 +138,7 @@ const decodeFilter = (msg: QueryFilterMsg): QueryFilter => {
     typeof value !== 'boolean' &&
     !Array.isArray(value)
   ) {
-    throw new PraxisError(
+    throw new ColberError(
       ERROR_CODES.VALIDATION_FAILED,
       `filter[${msg.field}].value must be a scalar or array of scalars`,
       400,
@@ -205,11 +205,11 @@ export const buildGrpcServer = (
       try {
         const req = call.request;
         if (!isQueryScope(req.scope)) {
-          throw new PraxisError(ERROR_CODES.VALIDATION_FAILED, `unknown scope: ${req.scope}`, 400);
+          throw new ColberError(ERROR_CODES.VALIDATION_FAILED, `unknown scope: ${req.scope}`, 400);
         }
         const tr = req.time_range;
         if (!tr) {
-          throw new PraxisError(ERROR_CODES.VALIDATION_FAILED, 'time_range is required', 400);
+          throw new ColberError(ERROR_CODES.VALIDATION_FAILED, 'time_range is required', 400);
         }
         const filters = (req.filters ?? []).map(decodeFilter);
         // Reuse the zod schema for limit/offset bounds.
@@ -244,7 +244,7 @@ export const buildGrpcServer = (
       try {
         const r = call.request;
         if (!isAlertScope(r.scope)) {
-          throw new PraxisError(ERROR_CODES.VALIDATION_FAILED, `unknown scope: ${r.scope}`, 400);
+          throw new ColberError(ERROR_CODES.VALIDATION_FAILED, `unknown scope: ${r.scope}`, 400);
         }
         const conditionFilters = (r.condition.filters ?? []).map(decodeFilter);
         const channels = (r.notification?.channels ?? []).map((c) => ({
@@ -304,7 +304,7 @@ export const buildGrpcServer = (
         // Validate scope eagerly so the type narrows before assembling the
         // patch object literal (the patch shape has `scope: AlertScope`).
         if (r.scope !== undefined && r.scope.length > 0 && !isAlertScope(r.scope)) {
-          throw new PraxisError(ERROR_CODES.VALIDATION_FAILED, `unknown scope: ${r.scope}`, 400);
+          throw new ColberError(ERROR_CODES.VALIDATION_FAILED, `unknown scope: ${r.scope}`, 400);
         }
         const condition = r.condition
           ? {
@@ -365,11 +365,11 @@ export const buildGrpcServer = (
         oneofs: true,
       });
       const proto = grpc.loadPackageDefinition(packageDef) as unknown as {
-        praxis: {
+        colber: {
           observability: { v1: { ObservabilityService: { service: grpc.ServiceDefinition } } };
         };
       };
-      server.addService(proto.praxis.observability.v1.ObservabilityService.service, handlers);
+      server.addService(proto.colber.observability.v1.ObservabilityService.service, handlers);
 
       return new Promise<number>((resolve, reject) => {
         server.bindAsync(

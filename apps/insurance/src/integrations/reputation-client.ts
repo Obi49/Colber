@@ -1,4 +1,4 @@
-import type { Logger } from '@praxis/core-logger';
+import type { Logger } from '@colber/core-logger';
 
 /**
  * Thin HTTP client for the `reputation` service.
