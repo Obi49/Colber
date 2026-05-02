@@ -1,0 +1,22 @@
+# Next.js build artifacts
+.next
+out
+dist
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Testing
+coverage
+.nyc_output
+
+# Misc
+.DS_Store
+*.log
+*.local
+
+# Editors
+.vscode/*
+!.vscode/extensions.json
+.idea

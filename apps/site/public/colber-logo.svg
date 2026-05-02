@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 48" role="img" aria-label="Colber">
+  <title>Colber</title>
+  <style>
+    .wordmark { font-family: Inter, system-ui, sans-serif; font-weight: 700; font-size: 32px; letter-spacing: -0.02em; }
+    .dot { fill: #1E3A8A; }
+  </style>
+  <text x="0" y="34" class="wordmark" fill="currentColor">Colber</text>
+  <circle cx="118" cy="14" r="3" class="dot" />
+</svg>

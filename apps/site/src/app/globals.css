@@ -1,0 +1,55 @@
+@import 'tailwindcss';
+
+/*
+ * Theme tokens. Tailwind v4 reads these via the `@theme` directive and
+ * exposes them as utility classes (e.g. `bg-background`, `text-foreground`,
+ * `text-brand-reputation`). Brand colours mirror the Mermaid palette used
+ * in docs/diagrams/colber-functional.md so the site and the diagrams feel
+ * like they share an identity.
+ */
+@theme {
+  --color-background: oklch(0.99 0 0);
+  --color-foreground: oklch(0.15 0 0);
+  --color-muted: oklch(0.96 0 0);
+  --color-muted-foreground: oklch(0.45 0 0);
+  --color-accent: oklch(0.96 0 0);
+  --color-accent-foreground: oklch(0.15 0 0);
+
+  /* Brand palette — keep in sync with docs/diagrams/colber-functional.md. */
+  --color-brand-identity: #475569;
+  --color-brand-reputation: #1e3a8a;
+  --color-brand-memory: #7c3aed;
+  --color-brand-observability: #0891b2;
+  --color-brand-negotiation: #ea580c;
+  --color-brand-insurance: #059669;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular,
+    'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Smooth-scroll for anchor navigation (Hero CTA → #quickstart, etc.). */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 4rem;
+}
+
+/* Make Mermaid SVG inherit the current text colour for dark mode parity. */
+.mermaid-container svg {
+  max-width: 100%;
+  height: auto !important;
+}
