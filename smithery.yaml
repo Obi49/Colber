@@ -1,0 +1,167 @@
+# Smithery.ai server manifest for Colber.
+# https://smithery.ai/docs/server-yaml
+#
+# Smithery picks this up automatically when the repo is connected via
+# https://smithery.ai → "Submit a server" → point at github.com/Obi49/Colber.
+#
+# This declares how to launch `@colber/mcp` (the official MCP server
+# published on npm) and the optional configuration users can supply
+# at install time.
+
+# Display metadata --------------------------------------------------------
+
+name: colber
+displayName: Colber
+description: >-
+  Trust, coordination & continuity infrastructure for the agent economy.
+  27 tools across 6 modules: identity (DID:key + Ed25519), reputation
+  (cryptographic attestations), memory (semantic search), observability
+  (distributed A2A tracing), negotiation (multi-party signed settlement),
+  insurance (escrow + claims).
+homepage: https://colber.dev
+repository: https://github.com/Obi49/Colber
+license: Apache-2.0
+icon: https://colber.dev/colber-logo.svg
+
+categories:
+  - agent-infrastructure
+  - memory
+  - observability
+  - trust
+  - reputation
+
+keywords:
+  - agent
+  - ai-agent
+  - agentic-economy
+  - reputation
+  - memory
+  - observability
+  - negotiation
+  - insurance
+  - did
+  - ed25519
+  - mcp
+  - a2a
+  - x402
+
+# How to start the server ------------------------------------------------
+#
+# We use `stdio` because that is the canonical MCP transport for local
+# clients (Claude Desktop, Claude Code, Cline, Continue). The `@colber/mcp`
+# binary also supports HTTP/SSE via `--transport=http`, but smithery's
+# default install flow targets stdio.
+
+startCommand:
+  type: stdio
+
+  # JSON Schema for the per-install config the user fills on Smithery.
+  configSchema:
+    type: object
+    additionalProperties: false
+    required: []
+    properties:
+      baseUrls:
+        type: string
+        title: Backend service URLs
+        description: >-
+          Optional JSON map of Colber service base URLs. If empty, the
+          server uses local ports 14001/14011/14021/14031/14041/14051,
+          which only works when the colber-stack is running locally.
+          For remote deployments, pass the public URLs of each service.
+          Example:
+          {"identity":"https://identity.colber.dev","reputation":"https://reputation.colber.dev",
+           "memory":"https://memory.colber.dev","observability":"https://observability.colber.dev",
+           "negotiation":"https://negotiation.colber.dev","insurance":"https://insurance.colber.dev"}
+        default: ''
+      authToken:
+        type: string
+        title: Bearer token
+        description: >-
+          Optional bearer token forwarded as the Authorization header on
+          every backend call. Useful when the deployment requires auth
+          (production / multi-tenant). Leave empty for unauthenticated
+          local development.
+        default: ''
+      logLevel:
+        type: string
+        title: Log level
+        description: pino log level for stderr output (stdout is reserved for MCP JSON-RPC).
+        enum: [trace, debug, info, warn, error]
+        default: info
+
+  # Smithery uses this to actually spawn the process when a user
+  # installs Colber. We translate the configSchema into env vars that
+  # `@colber/mcp` reads at startup.
+  commandFunction: |-
+    (config) => ({
+      command: "npx",
+      args: ["-y", "@colber/mcp@latest"],
+      env: {
+        COLBER_MCP_TRANSPORT: "stdio",
+        COLBER_BASE_URLS: config.baseUrls || "",
+        COLBER_AUTH_TOKEN: config.authToken || "",
+        COLBER_LOG_LEVEL: config.logLevel || "info"
+      }
+    })
+
+# Tools advertised by the server ----------------------------------------
+#
+# Smithery indexes these for search. Keep in sync with
+# `apps/mcp-server/src/tools/` and the README's "Available tools" section.
+
+tools:
+  - name: colber_identity_register
+    description: Register a new agent identity from an Ed25519 public key.
+  - name: colber_identity_resolve
+    description: Resolve a DID to its agent record.
+  - name: colber_identity_verify
+    description: Verify an Ed25519 signature against a registered DID.
+  - name: colber_reputation_score
+    description: Get the current reputation score for a DID, with cryptographic attestation.
+  - name: colber_reputation_history
+    description: Paginated history of reputation events for a DID.
+  - name: colber_reputation_verify
+    description: Verify a reputation attestation offline using the platform public key.
+  - name: colber_reputation_feedback
+    description: Submit signed feedback (positive or negative) about another agent.
+  - name: colber_memory_store
+    description: Store a memory (text + metadata) with semantic embedding.
+  - name: colber_memory_retrieve
+    description: Retrieve memory by ID or semantic search.
+  - name: colber_memory_update
+    description: Update an existing memory's content or permissions.
+  - name: colber_memory_share
+    description: Grant another agent access to a private memory.
+  - name: colber_observability_log
+    description: Ingest structured A2A log events.
+  - name: colber_observability_trace
+    description: Ingest distributed tracing spans.
+  - name: colber_observability_query
+    description: Query logs and spans with a typed filter DSL.
+  - name: colber_observability_alert_create
+    description: Create an alert rule on logs or spans.
+  - name: colber_observability_alert_get
+    description: Get a single alert rule by ID.
+  - name: colber_observability_alert_patch
+    description: Update an alert rule.
+  - name: colber_observability_alert_list
+    description: List alert rules for an operator.
+  - name: colber_observability_alert_delete
+    description: Delete an alert rule.
+  - name: colber_negotiation_start
+    description: Open a new negotiation between agents (auction or multi-criteria).
+  - name: colber_negotiation_propose
+    description: Submit a signed proposal in an open negotiation.
+  - name: colber_negotiation_counter
+    description: Counter-propose in response to a prior proposal.
+  - name: colber_negotiation_settle
+    description: Finalize the negotiation with signatures from every party.
+  - name: colber_insurance_quote
+    description: Get a premium quote for a delivery deal (priced by reputation).
+  - name: colber_insurance_subscribe
+    description: Create a policy and lock simulated escrow.
+  - name: colber_insurance_claim
+    description: File a claim against an active policy.
+  - name: colber_insurance_status
+    description: Read the full status of a policy (terms, escrow, claims, payouts).
