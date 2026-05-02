@@ -223,15 +223,6 @@ importers:
 
   apps/mcp-server:
     dependencies:
-      '@colber/core-config':
-        specifier: workspace:*
-        version: link:../../packages/core-config
-      '@colber/core-logger':
-        specifier: workspace:*
-        version: link:../../packages/core-logger
-      '@colber/sdk':
-        specifier: workspace:*
-        version: link:../sdk-typescript
       '@modelcontextprotocol/sdk':
         specifier: ^1.0.0
         version: 1.29.0(zod@3.25.76)
@@ -242,9 +233,18 @@ importers:
         specifier: ^3.23.8
         version: 3.25.76
     devDependencies:
+      '@colber/core-config':
+        specifier: workspace:*
+        version: link:../../packages/core-config
+      '@colber/core-logger':
+        specifier: workspace:*
+        version: link:../../packages/core-logger
       '@colber/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint-config
+      '@colber/sdk':
+        specifier: workspace:*
+        version: link:../sdk-typescript
       '@colber/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
@@ -257,6 +257,9 @@ importers:
       eslint:
         specifier: ^9.15.0
         version: 9.39.4(jiti@2.6.1)
+      tsup:
+        specifier: ^8.3.5
+        version: 8.5.1(jiti@2.6.1)(postcss@8.5.12)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3)
       typescript:
         specifier: ^5.6.3
         version: 5.9.3

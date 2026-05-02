@@ -2,6 +2,16 @@
   "name": "@colber/mcp",
   "version": "0.1.0",
   "description": "Official Model Context Protocol (MCP) server for Colber — exposes the 5 modules (reputation, memory, observability, negotiation, insurance) + identity as MCP tools to any compatible agent (Claude Desktop, Claude Code, Cline, Continue, …).",
+  "homepage": "https://colber.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Obi49/Colber.git",
+    "directory": "apps/mcp-server"
+  },
+  "bugs": {
+    "url": "https://github.com/Obi49/Colber/issues"
+  },
+  "author": "Johan / Colber <dof1502.mwm27@gmail.com>",
   "type": "module",
   "main": "./dist/server.js",
   "bin": {
@@ -29,7 +39,7 @@
     "claude"
   ],
   "scripts": {
-    "build": "tsc -b",
+    "build": "tsup",
     "clean": "rm -rf dist .turbo *.tsbuildinfo coverage",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
@@ -41,9 +51,6 @@
     "start:http": "node dist/server.js --transport=http"
   },
   "dependencies": {
-    "@colber/sdk": "workspace:*",
-    "@colber/core-config": "workspace:*",
-    "@colber/core-logger": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.0.0",
     "pino": "^9.5.0",
     "zod": "^3.23.8"
@@ -51,9 +58,13 @@
   "devDependencies": {
     "@colber/eslint-config": "workspace:*",
     "@colber/tsconfig": "workspace:*",
+    "@colber/sdk": "workspace:*",
+    "@colber/core-config": "workspace:*",
+    "@colber/core-logger": "workspace:*",
     "@types/node": "^22.9.0",
     "@vitest/coverage-v8": "^2.1.5",
     "eslint": "^9.15.0",
+    "tsup": "^8.3.5",
     "typescript": "^5.6.3",
     "vitest": "^2.1.5"
   }

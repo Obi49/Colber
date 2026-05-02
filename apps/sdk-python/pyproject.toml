@@ -8,22 +8,33 @@ version = "0.1.0"
 description = "Official Python SDK for the Colber platform (identity, reputation, memory, observability, negotiation, insurance)."
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "UNLICENSED" }
-authors = [{ name = "Colber Platform" }]
+license = { text = "Apache-2.0" }
+authors = [{ name = "Johan / Colber", email = "dof1502.mwm27@gmail.com" }]
 keywords = [
     "colber",
     "agent",
-    "ai",
+    "ai-agent",
+    "agentic-economy",
     "did",
     "ed25519",
     "reputation",
-    "insurance",
     "memory",
+    "observability",
+    "negotiation",
+    "insurance",
+    "mcp",
+    "a2a",
 ]
 classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
     "Typing :: Typed",
 ]
 dependencies = [
@@ -41,8 +52,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Obi49/Colber"
+Homepage = "https://colber.dev"
 Repository = "https://github.com/Obi49/Colber"
+Issues = "https://github.com/Obi49/Colber/issues"
+Documentation = "https://github.com/Obi49/Colber#readme"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/colber_sdk"]

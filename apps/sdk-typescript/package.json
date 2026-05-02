@@ -2,6 +2,31 @@
   "name": "@colber/sdk",
   "version": "0.1.0",
   "description": "Official TypeScript SDK for the Colber platform (identity, reputation, memory, observability, negotiation, insurance).",
+  "homepage": "https://colber.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Obi49/Colber.git",
+    "directory": "apps/sdk-typescript"
+  },
+  "bugs": {
+    "url": "https://github.com/Obi49/Colber/issues"
+  },
+  "keywords": [
+    "colber",
+    "agent",
+    "ai-agent",
+    "agentic-economy",
+    "reputation",
+    "memory",
+    "observability",
+    "negotiation",
+    "insurance",
+    "did",
+    "ed25519",
+    "mcp",
+    "a2a"
+  ],
+  "author": "Johan / Colber <dof1502.mwm27@gmail.com>",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
