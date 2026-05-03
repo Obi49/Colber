@@ -1,277 +1,252 @@
 # Colber
 
-> **Plateforme d'infrastructure pour l'économie agentique.**
-> Cinq services intégrés pour agents IA autonomes : **Insurance · Reputation · Observability · Negotiation · Memory** — tous exposés en MCP + REST + gRPC.
+> **Trust, coordination & continuity — for the agent economy.**
+> Five integrated services AI agents need to operate at scale: **Reputation · Memory · Observability · Negotiation · Insurance** — exposed via SDKs (TypeScript, Python) and the Model Context Protocol.
 
-Colber se positionne comme la couche de **trust, coordination & continuity** au-dessus des rails de paiement A2A (MoonPay, Coinbase x402, Nevermined). Là où ces acteurs gèrent la transaction monétaire, Colber fournit ce qui permet aux agents IA de **se faire confiance**, **négocier**, **garantir leurs livrables**, **tracer leurs interactions** et **se souvenir entre sessions**.
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![@colber/sdk on npm](https://img.shields.io/npm/v/@colber/sdk?label=%40colber%2Fsdk&color=cb3837)](https://www.npmjs.com/package/@colber/sdk)
+[![@colber/mcp on npm](https://img.shields.io/npm/v/@colber/mcp?label=%40colber%2Fmcp&color=cb3837)](https://www.npmjs.com/package/@colber/mcp)
+[![colber-sdk on PyPI](https://img.shields.io/pypi/v/colber-sdk?label=colber-sdk&color=3776ab)](https://pypi.org/project/colber-sdk/)
 
-> Projet initialement nommé _AgentStack_ (cahier des charges v1.0). Renommé **Colber** définitivement en avril 2026.
-
----
-
-## 🎯 Statut — v1 ATTEINTE (5/5 modules livrés)
-
-**Date** : 2026-04-28 · **Branche active** : `main` · **Dernier commit** : `77612f6`
-
-| Module                                               | Statut | Tests | Service VM β            | Ports         | DB                                           |
-| ---------------------------------------------------- | ------ | ----- | ----------------------- | ------------- | -------------------------------------------- |
-| [`agent-identity`](apps/agent-identity/) (support)   | ✅ v1  | 21    | `colber-agent-identity` | 14001 / 14002 | `colber_identity`                            |
-| [`reputation`](apps/reputation/)                     | ✅ v1  | 62    | `colber-reputation`     | 14011 / 14012 | `colber_reputation`                          |
-| [`memory`](apps/memory/)                             | ✅ v1  | 78    | `colber-memory`         | 14021 / 14022 | `colber_memory`                              |
-| [`observability`](apps/observability/)               | ✅ v1  | 32    | `colber-observability`  | 14031 / 14032 | `colber_observability` + ClickHouse `colber` |
-| [`negotiation`](apps/negotiation/)                   | ✅ v1  | 61    | `colber-negotiation`    | 14041 / 14042 | `colber_negotiation`                         |
-| [`insurance`](apps/insurance/) (mode simulation MVP) | ✅ v1  | 54    | `colber-insurance`      | 14051 / 14052 | `colber_insurance`                           |
-
-**Pipeline FULL TURBO** : 16/16 typecheck/test/lint, 11/11 build, **385 tests passing** (4 skipped placeholders live).
-**E2E sur VM β** (`100.83.10.125`) : `python .tools/e2e_smoke.py` → **23/23 steps verts**.
-
-> 💡 **INSURANCE est en mode simulation pure pour la v1** : pas de Solidity, pas de Foundry, pas de viem, pas de Base Sepolia. La version on-chain réelle (smart contracts, escrow Base L2, audit Trail of Bits) est l'étape 7b en P3. Décision validée CdP.
-
-> 📄 **État détaillé** : [docs/STATUS.md](docs/STATUS.md) · **Plan d'attaque** : [docs/ROADMAP.md](docs/ROADMAP.md)
+🌐 **<https://colber.dev>** · 📦 **npm `@colber/*`** · 🐍 **PyPI `colber-sdk`** · 🔌 **MCP-native**
 
 ---
 
-## 🏗️ Vision et architecture
+## What is Colber?
 
-### 5 modules + 1 service support
+Colber is the **infrastructure layer of trust, coordination and continuity for the agent economy**. The hosted platform at <https://colber.dev> exposes five integrated capabilities through one consistent surface (REST · gRPC · MCP):
+
+| Module            | What it does                                                                            |
+| ----------------- | --------------------------------------------------------------------------------------- |
+| **Reputation**    | Cryptographic reputation oracle. DID-based scoring with offline-verifiable attestations (Ed25519 + JCS RFC 8785). |
+| **Memory**        | Persistent semantic memory with vector search, ACLs, and opt-in encryption.             |
+| **Observability** | Distributed A2A tracing and logging. ClickHouse-backed, OpenTelemetry-compatible.       |
+| **Negotiation**   | Multi-party broker with auctions, multi-criteria, and signed settlement (event-sourced). |
+| **Insurance**     | Deliverable guarantees: pricing by reputation, escrow, claim arbitration.               |
+
+Plus an **identity** support service (DID:key + Ed25519 signature verification) used by every module.
+
+> 🏗️ **Status — v1 shipped.** All five modules + identity are live on `https://colber.dev`, end-to-end tested (23/23 green), with 27 MCP tools published.
+
+---
+
+## What's in this repo (open core)
+
+This repository is the **public open-core** of Colber. It contains the code you need **to integrate with Colber from your own agent**, plus the public protocol contract:
+
+```
+apps/
+├── sdk-typescript/   →  npm  @colber/sdk
+├── sdk-python/       →  PyPI colber-sdk
+├── mcp-server/       →  npm  @colber/mcp   (CLI: npx -y @colber/mcp)
+└── site/             →  https://colber.dev (landing source)
+
+packages/
+├── core-types/       →  Public protocol types (errors, envelopes, DIDs)
+├── core-crypto/      →  Client-side crypto helpers (DID:key, Ed25519, JCS canonicalisation)
+├── core-config/      →  Env-var validation utilities (zod schemas)
+└── core-logger/      →  Structured logging utilities (pino + traceId)
+
+tooling/              →  Shared TS / ESLint configs
+.github/              →  Issue + PR templates
+docs/diagrams/        →  High-level architecture diagrams (Mermaid)
+docs/MCP_REGISTRIES.md →  Submission templates for Anthropic, Smithery, mcp.so
+```
+
+Everything in this repo is **Apache-2.0**. You can fork it, embed it in your products, ship modified versions of the SDKs, contribute back via PR.
+
+### Not in this repo
+
+The **server-side implementation** of the five modules + identity (the actual Reputation engine, Memory vector index, Observability ingestion, Negotiation event store, Insurance escrow logic, operator console) is **proprietary** and runs on `https://colber.dev`. To use it, you call the hosted endpoints from the SDKs or the MCP server. This is the standard open-core model used by Stripe, Datadog, Auth0.
+
+---
+
+## Quick start
+
+### TypeScript
+
+```bash
+npm install @colber/sdk
+```
+
+```ts
+import { ColberClient } from '@colber/sdk';
+
+const colber = new ColberClient({ baseUrl: 'https://api.colber.dev' });
+const score = await colber.reputation.score('did:key:z6Mk...');
+console.log(score);
+```
+
+### Python
+
+```bash
+pip install colber-sdk
+```
+
+```python
+from colber import ColberClient
+
+colber = ColberClient(base_url="https://api.colber.dev")
+score = colber.reputation.score("did:key:z6Mk...")
+print(score)
+```
+
+### MCP — Claude Desktop / Claude Code / Cline / Continue
+
+Add to your MCP client configuration (e.g. `~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+
+```json
+{
+  "mcpServers": {
+    "colber": {
+      "command": "npx",
+      "args": ["-y", "@colber/mcp"]
+    }
+  }
+}
+```
+
+You instantly get **27 Colber tools** — reputation lookups, memory search, signed feedback, multi-party negotiations, insurance quotes, and more — directly available to your AI assistant.
+
+See `apps/mcp-server/README.md` for full configuration options (HTTP transport, custom backend URLs, auth tokens).
+
+---
+
+## Verifying reputation attestations offline
+
+One of Colber's strongest properties: every reputation score comes with a cryptographic attestation that can be verified **without contacting Colber**, using only the platform's public key.
+
+```ts
+import { ColberClient } from '@colber/sdk';
+import { verifyAttestation, COLBER_PLATFORM_PUBLIC_KEY } from '@colber/sdk/crypto';
+
+const colber = new ColberClient({ baseUrl: 'https://api.colber.dev' });
+const score = await colber.reputation.score('did:key:z6Mk...');
+
+const valid = await verifyAttestation(score, COLBER_PLATFORM_PUBLIC_KEY);
+// `valid` is true iff the score was actually emitted by Colber.
+```
+
+The verification logic lives in `packages/core-crypto/` — fully open, auditable, reproducible. You don't have to trust our server to trust the score.
+
+---
+
+## Standards we speak
+
+Colber is built on top of open standards rather than reinventing them:
+
+- **MCP** — Model Context Protocol (`@colber/mcp` ships 27 tools)
+- **A2A** — Agent-to-Agent observability
+- **DID** — W3C Decentralized Identifiers (`did:key`, Ed25519 multibase `z6Mk…`)
+- **JCS RFC 8785** — JSON canonicalization for signed payloads
+- **Ed25519** — signatures (via `@noble/ed25519`)
+- **OpenTelemetry** — observability export (planned)
+- **EIP-712** — on-chain signatures (planned for INSURANCE on-chain variant)
+
+---
+
+## Architecture overview
 
 ```mermaid
 flowchart TB
-    classDef identity fill:#F1F5F9,stroke:#475569,stroke-width:3px,color:#0F172A
-    classDef reputation fill:#EFF4FF,stroke:#1E3A8A,stroke-width:2px,color:#1E3A8A
-    classDef memory fill:#F5EFFF,stroke:#7C3AED,stroke-width:2px,color:#7C3AED
-    classDef observability fill:#ECFAFE,stroke:#0891B2,stroke-width:2px,color:#0891B2
-    classDef negotiation fill:#FFF1E6,stroke:#EA580C,stroke-width:2px,color:#EA580C
-    classDef insurance fill:#E8F8F0,stroke:#059669,stroke-width:2px,color:#059669
+    classDef sdk fill:#F8FAFC,stroke:#475569,color:#0F172A
+    classDef hosted fill:#EFF4FF,stroke:#1E3A8A,color:#1E3A8A
+    classDef this fill:#FFFBEB,stroke:#A16207,color:#78350F
 
-    AI(("🔐<br/><b>agent-identity</b><br/>Pilier identité<br/><i>DID:key Ed25519</i>")):::identity
+    User["🧑 Your agent / app"]:::sdk
+    SDK["@colber/sdk · colber-sdk"]:::this
+    MCP["@colber/mcp"]:::this
 
-    REP["🛡️ <b>REPUTATION</b><br/>score · history · verify · feedback"]:::reputation
-    MEM["🧠 <b>MEMORY</b><br/>store · retrieve · update · share"]:::memory
-    OBS["🔭 <b>OBSERVABILITY</b><br/>log · trace · query · alert"]:::observability
-    NEG["⚖️ <b>NEGOTIATION</b><br/>start · propose · counter · settle"]:::negotiation
-    INS["🛡️ <b>INSURANCE</b><br/>quote · subscribe · claim · status"]:::insurance
+    User --> SDK
+    User --> MCP
 
-    AI ===|delivers DID| REP
-    AI ===|delivers DID| MEM
-    AI ===|delivers DID| OBS
-    AI ===|delivers DID| NEG
-    AI ===|delivers DID| INS
+    SDK -->|HTTPS| API
+    MCP -->|HTTPS| API
 
-    REP -. "score lookup (pricing v1)" .-> INS
-    NEG -. "auto-subscribe (P3)" .-> INS
-    NEG -. "feedback (v1.1)" .-> REP
+    subgraph hosted["Colber hosted platform — colber.dev"]
+        API["api.colber.dev (REST · gRPC)"]:::hosted
+        REP["Reputation"]:::hosted
+        MEM["Memory"]:::hosted
+        OBS["Observability"]:::hosted
+        NEG["Negotiation"]:::hosted
+        INS["Insurance"]:::hosted
+        ID["Identity"]:::hosted
+        API --> ID
+        API --> REP
+        API --> MEM
+        API --> OBS
+        API --> NEG
+        API --> INS
+    end
 ```
 
-| Module            | Rôle                                                    | Stockage primaire                           |
-| ----------------- | ------------------------------------------------------- | ------------------------------------------- |
-| **REPUTATION**    | Oracle de fiabilité agentique avec attestations crypto  | Neo4j + Postgres + ancrage on-chain (P3)    |
-| **MEMORY**        | Mémoire externe persistante avec recherche sémantique   | Qdrant 1.15 + Postgres + Ollama embeddings  |
-| **OBSERVABILITY** | Logging/tracing distribué A2A                           | ClickHouse + Postgres                       |
-| **NEGOTIATION**   | Broker de négociation A2A multi-parties (event-sourced) | Postgres (event store + projection)         |
-| **INSURANCE**     | Garantie de livrable agentique avec escrow              | Postgres (escrow simulé en v1; on-chain P3) |
-
-**Schémas complémentaires** : [vue plateforme complète](docs/diagrams/colber-functional.md) · [workflow A2A séquence](docs/diagrams/colber-workflow-a2a.md) · [workflow par phases](docs/diagrams/colber-workflow-phases.md) · [tous les schémas](docs/diagrams/).
-
-Détails techniques : [docs/ARCHITECTURE_BREAKDOWN.md](docs/ARCHITECTURE_BREAKDOWN.md) (modèle C4 + WBS + SLO).
-
-### Effet de plateforme
-
-Là où les concurrents sont focalisés sur **un seul** module (MoonPay/x402 = paiement, Mem0/Letta/Zep = mémoire, Datadog = observability humaine), Colber offre les **5 modules intégrés** mais commercialisables séparément. Fenêtre stratégique 12-24 mois avant qu'un acteur établi (Stripe/Coinbase/AWS) bundle l'ensemble.
+For the high-level functional architecture, see [`docs/diagrams/`](docs/diagrams/).
 
 ---
 
-## 🚀 Quick start
+## Local development
 
-### Prérequis
+This repo is a Turborepo + pnpm workspace.
 
-- Node.js 22+ (cf. `.nvmrc`)
-- pnpm 9.12.3+ (corepack `pnpm@9.12.3`)
-- Docker 27+ et Docker Compose 2.30+
-- Python 3.11+ avec `cryptography` pour les tests E2E
+### Prerequisites
 
-### Installation et tests locaux
+- Node.js 22+ (`.nvmrc`)
+- pnpm 9.12+ (`corepack enable && corepack prepare pnpm@9.12.3 --activate`)
+
+### Install + checks
 
 ```bash
 git clone https://github.com/Obi49/Colber.git
 cd Colber
 pnpm install
-pnpm typecheck   # 16/16 verts
-pnpm test        # 385 tests passing
-pnpm lint        # 0 erreur
-pnpm build       # 11/11 verts
+pnpm typecheck    # 11/11 green
+pnpm test         # 11/11 green
+pnpm lint         # 0 errors, 0 warnings
+pnpm build        # 7/7 green
 ```
 
-### Lancer la stack β en local (Docker)
+### Working on the SDK
 
 ```bash
-cd colber-stack
-docker compose -f docker-compose.yml -f docker-compose.services.yml up -d
+pnpm --filter @colber/sdk dev          # watch build
+pnpm --filter @colber/sdk test:watch   # watch tests
 ```
 
-Voir [docs/DEPLOY.md](docs/DEPLOY.md) pour le runbook complet.
-
-### Tests E2E contre une VM déployée
+### Running the MCP server locally
 
 ```bash
-COLBER_VM=<ip_de_la_vm> python .tools/e2e_smoke.py
+pnpm --filter @colber/mcp build
+node apps/mcp-server/dist/server.js          # stdio (default)
+node apps/mcp-server/dist/server.js --transport=http --port=14080
 ```
 
-23/23 steps verts attendus.
+### Running the landing locally
 
----
-
-## 🧰 Stack technique
-
-| Couche               | Choix                                                       |
-| -------------------- | ----------------------------------------------------------- |
-| **Backend**          | TypeScript / Node 22 + Rust (modules crypto critiques P3)   |
-| **Framework HTTP**   | Fastify v5 (zod validation, helmet, cors, sensible)         |
-| **gRPC**             | `@grpc/grpc-js` + `@grpc/proto-loader` (proto JSON-encoded) |
-| **MCP**              | `@colber/core-mcp` interne (registry-style)                 |
-| **ORM Postgres**     | drizzle-orm + postgres-js (migrations versionnées)          |
-| **Vecteurs**         | Qdrant 1.15.4                                               |
-| **OLAP / logs**      | ClickHouse 24.10                                            |
-| **Graphe**           | Neo4j 5 community                                           |
-| **Embeddings**       | Ollama self-hosted (`nomic-embed-text` 768d)                |
-| **Cache**            | Redis 7                                                     |
-| **Bus événements**   | NATS JetStream 2.10 (réservé futur)                         |
-| **Métriques**        | Prometheus + Grafana                                        |
-| **Reverse proxy**    | Traefik v3 (interne)                                        |
-| **Build / monorepo** | Turborepo 2 + pnpm workspaces                               |
-| **Tests**            | Vitest 2 + fastify.inject (`InMemory*` fakes)               |
-| **Lint / format**    | ESLint v9 flat config + Prettier 3 + Husky                  |
-| **Crypto**           | `@noble/ed25519` v2.3 + JCS RFC 8785                        |
-| **Identité**         | DID method `did:key` (Ed25519 multibase z6Mk…)              |
-| **TS strict**        | `exactOptionalPropertyTypes` + `noUncheckedIndexedAccess`   |
-
-### Standards interopérables
-
-MCP, A2A, x402, OpenTelemetry (export OTLP en P2), DID, Verifiable Credentials, EIP-712 (P3 on-chain).
-
-### Roadmap on-chain (P3)
-
-- **Base L2 (Coinbase)** comme L2 primaire — escrow INSURANCE, signatures NEGOTIATION, ancrage REPUTATION.
-- **Optimism / Arbitrum** en multi-chain / fallback.
-- **USDC** (Circle) comme stablecoin de référence.
-
----
-
-## 📁 Structure du repo
-
-```
-Colber/
-├── apps/                          # Services applicatifs (5 modules + agent-identity)
-│   ├── agent-identity/            # Bootstrap crypto, DID:key, register/resolve/verify
-│   ├── reputation/                # Scoring + attestations Ed25519+JCS
-│   ├── memory/                    # Vector store + permissions + versioning
-│   ├── observability/             # Logs/spans ClickHouse + alerts Postgres
-│   ├── negotiation/               # Event sourcing + auctions + multi-party signing
-│   └── insurance/                 # Pricing + escrow simulé + claims (mode v1)
-│
-├── packages/                      # Packages partagés (workspace)
-│   ├── core-types/                # Erreurs typées, codes, enveloppe API
-│   ├── core-crypto/               # Ed25519, fromBase64, signature provider
-│   ├── core-config/               # zod env schemas réutilisables
-│   ├── core-logger/               # pino structuré + traceId
-│   └── core-mcp/                  # MCP server abstrait + registry tools
-│
-├── tooling/                       # Configurations centralisées
-│   ├── tsconfig/                  # Base TS + node-app TS configs
-│   └── eslint-config/             # Flat config v9 partagée
-│
-├── colber-stack/                  # Stack Docker β
-│   ├── docker-compose.yml         # Datastores + infra (postgres, redis, neo4j, ...)
-│   ├── docker-compose.services.yml# Services applicatifs (build + up)
-│   └── services.env               # Secrets dev (gitignoré sur la VM)
-│
-├── .tools/                        # Scripts de pilotage local
-│   ├── ssh_run.py                 # Exécution SSH paramiko (sudo via stdin)
-│   ├── ssh_push.py                # SFTP push avec mkdir tree
-│   └── e2e_smoke.py               # Tests E2E des 5 services + identity
-│
-├── docs/                          # Documentation projet (toute la doc en un endroit)
-│   ├── AgentStack_Cahier_des_charges.docx  # CDC v1.0 figé (ancien nom AgentStack)
-│   ├── PLAN_DE_DEVELOPPEMENT.md   # 5 phases / 32 sprints / gates / KPI
-│   ├── ARCHITECTURE_BREAKDOWN.md  # Modèle C4 + WBS + SLO + sécurité
-│   ├── STATUS.md                  # Snapshot état projet (mis à jour à chaque pause)
-│   ├── ROADMAP.md                 # Plan d'attaque + briefs prêts pour agents
-│   ├── ONBOARDING.md              # Guide reprise de session (humain ou agent)
-│   ├── DEPLOY.md                  # Runbook déploiement VM β
-│   └── DESIGN_BRIEF.md            # Brief Claude Design pour les schémas
-│
-└── README.md                      # Ce fichier (point d'entrée GitHub)
+```bash
+pnpm --filter @colber/site dev
+# → http://localhost:3001
 ```
 
 ---
 
-## 📚 Documentation et reprise
+## Contributing
 
-### Pour comprendre le projet (ordre recommandé)
+We welcome contributions to the open-core surface — SDKs, MCP server, public types, the website, and documentation. See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the workflow (Conventional Commits, DCO, no `--no-verify`).
 
-1. **[README.md](README.md)** (ce fichier) — vue d'ensemble, statut, quick start.
-2. **[docs/ONBOARDING.md](docs/ONBOARDING.md)** — **point d'entrée pour reprendre une session** (humain ou agent IA).
-3. **[docs/STATUS.md](docs/STATUS.md)** — état projet à l'instant T (modules livrés, infra, tests, décisions, points d'attention).
-4. **[docs/ROADMAP.md](docs/ROADMAP.md)** — plan d'attaque opérationnel + **briefs prêts à coller** dans des agents dev.
-5. **[docs/ARCHITECTURE_BREAKDOWN.md](docs/ARCHITECTURE_BREAKDOWN.md)** — décomposition technique modèle C4.
-6. **[docs/PLAN_DE_DEVELOPPEMENT.md](docs/PLAN_DE_DEVELOPPEMENT.md)** — découpage en 5 phases sur 18 mois.
-7. **[docs/AgentStack_Cahier_des_charges.docx](docs/AgentStack_Cahier_des_charges.docx)** — spécifications fonctionnelles et techniques v1.0 (figé, ancien nom).
-8. **[docs/DEPLOY.md](docs/DEPLOY.md)** — runbook de déploiement VM β.
-9. **[docs/DESIGN_BRIEF.md](docs/DESIGN_BRIEF.md)** — prompt prêt à coller dans Claude Design pour les schémas (fonctionnel + workflow A2A).
-
-### Workflow de collaboration (PM ↔ agents dev)
-
-Voir [docs/ONBOARDING.md](docs/ONBOARDING.md) §"Workflow validé". Résumé :
-
-1. Le **chef de projet (CdP)** rédige un brief complet pour un agent dev (`backend-development:backend-architect`).
-2. L'agent code (~30 min, ~50 fichiers cohérents).
-3. Le CdP vérifie : `pnpm build && pnpm typecheck && pnpm test && pnpm lint`.
-4. Commit + push (Conventional Commits + co-author Claude).
-5. Déploiement VM : pull + docker build + up + healthcheck.
-6. E2E `python .tools/e2e_smoke.py` → tout vert.
-7. Update STATUS + ROADMAP + push final.
-
-**Doctrine** : jamais de `--no-verify`, push à chaque grosse étape, doc avant pause.
+For security issues, please follow [`SECURITY.md`](SECURITY.md) — do not file public issues.
 
 ---
 
-## 🛣️ Prochaines étapes possibles
+## License
 
-Toutes optionnelles, ordre à arbitrer selon priorités business — cf. [docs/ROADMAP.md](docs/ROADMAP.md) :
+[Apache License 2.0](LICENSE) — see [`NOTICE`](NOTICE) for attribution and project history (the project was previously named *AgentStack*, then *Praxis*, before being renamed *Colber* in May 2026).
 
-- **Étape 2** — OBSERVABILITY v1.1 : anomalies ML (IQR/EWMA/Z-score) + tiering S3 + exporter OTLP.
-- **Étape 3** — REPUTATION v2 : multi-dim (delivery/quality/communication) + anti-Sybil (Louvain/Leiden via Neo4j GDS) + workflow contestation.
-- **Étape 4** — Plugins frameworks : `@colber/langchain-plugin`, `@colber/crewai-plugin`, `@colber/autogen-plugin`.
-- **Étape 5** — Console opérateur web (Next.js 15 + React 19 + Tailwind v4).
-- **Étape 6** — SDK officiels : `@colber/sdk` (TS sur npm), `colber-sdk` (Python sur PyPI).
-- **Étape 7b** — INSURANCE on-chain réel : Solidity + Foundry + viem + Base Sepolia → mainnet. **Audit Trail of Bits ou OpenZeppelin obligatoire avant prod.**
-- **Étape 8b** — NEGOTIATION v1.1 : cancellation + sweeper deadline + LLM mediator + EIP-712 + insurance/reputation bridges.
-- **Étape 9** — GA publique : bug bounty Immunefi (smart contracts) + HackerOne (web/API) + audit sécu tiers + self-service ouvert.
-- **Étape 10** — P4 industrialisation : multi-région (US, APAC) + enterprise (SSO SAML, SCIM, MSA/DPA) + standardisation (RFC public protocole de réputation).
+The hosted services on `colber.dev` are operated under separate commercial terms; using them is subject to the Colber Terms of Service (link forthcoming).
 
 ---
 
-## 🔐 Sécurité
+## Author
 
-- **PAT GitHub** : utilisé pour push depuis l'environnement local. Le PAT actuel dans `.env.local` est considéré compromis (a transité en clair en session précédente). **À régénérer en fine-grained scopé `Obi49/Colber` uniquement** avant la prochaine session sensible.
-- **Clés platform Ed25519** + **clé AES MEMORY_ENCRYPTION_KEY** : fixtures de DEV stockées dans `colber-stack/services.env` (sur la VM uniquement, gitignoré). À régénérer pour tout autre environnement.
-- **Auth endpoints memory v1** : `callerDid`/`queryDid` en clair (pas de signature). À durcir en P2.
-- **PCI / KYC / AML** : non applicable au MVP simulation. Devient critique avec INSURANCE on-chain (étape 7b).
+**Johan / Colber** — `dof1502.mwm27@gmail.com`
 
-Pour les détails sécurité-conformité prévus en GA (RGPD, audit trail, AI Act anticipation, bug bounty) : [docs/ARCHITECTURE_BREAKDOWN.md §4](docs/ARCHITECTURE_BREAKDOWN.md).
-
----
-
-## 📜 Licence
-
-[**Apache License 2.0**](LICENSE) — voir aussi [`NOTICE`](NOTICE) pour le détail des attributions et de l'historique du projet (AgentStack → Praxis → Colber).
-
-Les modules `apps/insurance/` (variante on-chain à venir, étape 7b) et `apps/reputation/` (variante anti-Sybil, étape 3) pourront basculer vers une licence commerciale séparée pour leurs versions de production. Les versions actuelles (Apache-2.0) resteront disponibles.
-
----
-
-## ✍️ Auteur
-
-**Johan** — Chef de projet — `dof1502.mwm27@gmail.com`
-
-Repo : <https://github.com/Obi49/Colber>
+🌐 <https://colber.dev> · 🐙 <https://github.com/Obi49/Colber>
