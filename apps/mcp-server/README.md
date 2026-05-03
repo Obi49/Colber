@@ -208,6 +208,6 @@ Apache-2.0 — see the [LICENSE](../../LICENSE) file at the repo root.
 ## Links
 
 - [Colber](https://colber.dev) — official site.
-- [GitHub repository](https://github.com/Obi49/Praxis) (renaming to `Colber`).
+- [GitHub repository](https://github.com/Obi49/Colber).
 - [Model Context Protocol spec](https://modelcontextprotocol.io).
 - [Anthropic MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk).

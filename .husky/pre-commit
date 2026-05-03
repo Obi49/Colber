@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# Praxis — pre-commit hook
+# Colber — pre-commit hook
 # Runs lint-staged (format + lint on staged files) then a fast typecheck.
 
 pnpm exec lint-staged

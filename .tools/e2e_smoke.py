@@ -33,7 +33,7 @@ from datetime import datetime, timedelta, timezone
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
-VM = os.environ.get("COLBER_VM", "100.83.10.125")
+VM = os.environ.get("COLBER_VM", "127.0.0.1")
 IDENTITY = f"http://{VM}:14001"
 REPUTATION = f"http://{VM}:14011"
 MEMORY = f"http://{VM}:14021"

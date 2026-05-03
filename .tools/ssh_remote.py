@@ -3,10 +3,10 @@
 Generic SSH runner — host/user/password supplied via env vars or argv.
 
 Usage:
-    SSH_HOST=82.165.185.57 SSH_USER=foo SSH_PASS='bar' \
+    SSH_HOST=203.0.113.10 SSH_USER=foo SSH_PASS='bar' \
         python .tools/ssh_remote.py "uname -a"
 
-    python .tools/ssh_remote.py --host 82.165.185.57 --user foo --pass 'bar' "uname -a"
+    python .tools/ssh_remote.py --host 203.0.113.10 --user foo --pass 'bar' "uname -a"
 
     # Use stdin for the command (handles multi-line):
     cat my-script.sh | SSH_HOST=... SSH_USER=... SSH_PASS=... \
