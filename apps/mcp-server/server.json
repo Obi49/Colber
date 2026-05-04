@@ -1,0 +1,44 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.Obi49/colber-mcp",
+  "description": "Trust + coordination infrastructure for the agent economy. 27 tools across 6 Colber modules.",
+  "repository": {
+    "url": "https://github.com/Obi49/Colber",
+    "source": "github",
+    "subfolder": "apps/mcp-server"
+  },
+  "version": "0.1.1",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@colber/mcp",
+      "version": "0.1.1",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "COLBER_BASE_URLS",
+          "description": "Optional JSON map of Colber service base URLs. Defaults to local ports 14001/14011/14021/14031/14041/14051. For the hosted Colber API, use api.colber.dev path-based URLs.",
+          "format": "string",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "COLBER_AUTH_TOKEN",
+          "description": "Optional bearer token forwarded to the backend services. Leave empty for unauthenticated local development.",
+          "format": "string",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "COLBER_LOG_LEVEL",
+          "description": "pino log level for stderr output (stdout is reserved for MCP JSON-RPC). One of: trace, debug, info, warn, error. Defaults to info.",
+          "format": "string",
+          "isRequired": false,
+          "isSecret": false
+        }
+      ]
+    }
+  ]
+}
