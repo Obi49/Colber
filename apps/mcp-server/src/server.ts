@@ -1,6 +1,10 @@
-#!/usr/bin/env node
 /**
  * `@colber/mcp` — entry point.
+ *
+ * The shebang `#!/usr/bin/env node` is injected at build time by the tsup
+ * banner (apps/mcp-server/tsup.config.ts), not present in the source. This
+ * avoids the double-shebang bug that produced an "Invalid or unexpected
+ * token" SyntaxError on line 2 of the bundled `dist/server.js`.
  *
  * Usage (stdio, default — for local clients like Claude Desktop):
  *   npx -y @colber/mcp
