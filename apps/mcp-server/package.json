@@ -1,6 +1,7 @@
 {
   "name": "@colber/mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
+  "mcpName": "io.github.Obi49/colber-mcp",
   "description": "Official Model Context Protocol (MCP) server for Colber — exposes the 5 modules (reputation, memory, observability, negotiation, insurance) + identity as MCP tools to any compatible agent (Claude Desktop, Claude Code, Cline, Continue, …).",
   "homepage": "https://colber.dev",
   "repository": {
