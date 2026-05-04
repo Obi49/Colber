@@ -81,7 +81,12 @@ export interface ConfigOverrides {
  * is malformed (e.g. non-numeric port, invalid log level, bad JSON).
  */
 export const loadAppConfig = (overrides: ConfigOverrides = {}): AppConfig => {
-  const env = loadConfig(EnvSchema, { loadDotenv: process.env.NODE_ENV !== 'test' });
+  // `@colber/mcp` is consumed via `npx -y @colber/mcp` or a Docker container.
+  // Env always comes from `process.env`, never from a `.env` file. Keeping
+  // dotenv disabled also avoids tsup inlining the CJS `dotenv` module into
+  // the ESM bundle, which crashes at startup on the synthetic `require('fs')`
+  // shim (`Dynamic require of "fs" is not supported`).
+  const env = loadConfig(EnvSchema, { loadDotenv: false });
 
   const transport: Transport =
     overrides.transportOverride !== undefined
