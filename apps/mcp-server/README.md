@@ -170,7 +170,7 @@ A complete example lives in [`.env.example`](./.env.example).
 
 ## HTTP transport
 
-For shared / cloud deployments, run the SSE transport instead:
+For shared / cloud deployments, run the Streamable HTTP transport instead:
 
 ```bash
 npx @colber/mcp --transport=http --port=14080
@@ -178,8 +178,12 @@ npx @colber/mcp --transport=http --port=14080
 
 The server then exposes:
 
-- `GET /mcp/sse` — server → client SSE stream.
-- `POST /mcp/messages?sessionId=...` — client → server JSON-RPC.
+- `POST /mcp` — client → server JSON-RPC frames (the SDK responds inline,
+  either as JSON or as an SSE stream depending on content negotiation).
+- `GET  /mcp` — opens the standalone server → client SSE stream for
+  out-of-band notifications. Both directions require an `Mcp-Session-Id`
+  header; clients receive their session id in the response of the initial
+  `initialize` POST.
 - `GET /healthz` — health probe (`{ status: "ok", tools: 27 }`).
 
 ## Local development

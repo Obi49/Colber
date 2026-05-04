@@ -1,25 +1,34 @@
 /**
- * HTTP / SSE transport for `@colber/mcp`.
+ * Streamable HTTP transport for `@colber/mcp`.
  *
- * Wires the MCP `Server` to the SDK's `SSEServerTransport` over a Node
- * `http.Server`. Two paths:
- *   - `GET  /mcp/sse`     opens an SSE stream for server → client messages.
- *   - `POST /mcp/messages` carries client → server JSON-RPC frames.
+ * Wires the MCP `Server` to the SDK's `StreamableHTTPServerTransport` over a
+ * Node `http.Server`. A single endpoint, `POST | GET /mcp`, serves both
+ * directions of the JSON-RPC channel:
+ *   - `POST /mcp` carries client → server frames (`initialize`, `tools/list`,
+ *     `tools/call`, …). The SDK responds inline (JSON or SSE depending on
+ *     content negotiation).
+ *   - `GET  /mcp` opens the standalone server → client SSE stream used for
+ *     out-of-band notifications.
  *
- * Used when running `@colber/mcp` as a remote (shared) MCP server inside
- * a Docker / k8s cluster. For local clients (Claude Desktop), prefer the
- * stdio transport — it's lighter and avoids HTTP framing overhead.
+ * Replaces the legacy SSE transport pair (`/mcp/sse` + `/mcp/messages`).
+ * Modern MCP clients (Smithery scanner, Anthropic hosted Apps, mcp-remote)
+ * speak Streamable HTTP only.
  *
- * NOTE on SDK API: the `SSEServerTransport` constructor in
- * `@modelcontextprotocol/sdk` v1.x takes `(messagePath, response)` and
- * exposes a `.handlePostMessage(req, res)` method for the client → server
- * direction. We implement a minimal router around that.
+ * Stateful mode: each successful `initialize` POST gets a fresh sessionId
+ * (UUID), returned via the `Mcp-Session-Id` response header. The SDK
+ * enforces presence + validity of that header on subsequent requests.
  */
 
-import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
+import { randomUUID } from 'node:crypto';
+import {
+  createServer,
+  type IncomingMessage,
+  type Server as HttpServer,
+  type ServerResponse,
+} from 'node:http';
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 
 import type { Logger } from '../logger.js';
@@ -34,10 +43,18 @@ export interface HttpTransportOptions {
   readonly serverVersion?: string;
 }
 
-const SSE_PATH = '/mcp/sse';
-const MESSAGES_PATH = '/mcp/messages';
+export interface HttpTransportHandle {
+  /** Close the underlying HTTP server. Resolves once existing sockets are drained. */
+  readonly close: () => Promise<void>;
+  /** Bound port — useful for tests that listen on port 0. */
+  readonly port: number;
+}
 
-const buildHttpServer = (opts: HttpTransportOptions): Server => {
+const MCP_PATH = '/mcp';
+const HEALTH_PATH = '/healthz';
+const SESSION_HEADER = 'mcp-session-id';
+
+const buildMcpServer = (opts: HttpTransportOptions): Server => {
   const server = new Server(
     {
       name: opts.serverName ?? 'colber',
@@ -64,82 +81,160 @@ const buildHttpServer = (opts: HttpTransportOptions): Server => {
   return server;
 };
 
-interface ConnectionState {
-  readonly transport: SSEServerTransport;
+interface SessionState {
+  readonly transport: StreamableHTTPServerTransport;
   readonly server: Server;
 }
 
-export const startHttpTransport = async (opts: HttpTransportOptions): Promise<void> => {
-  // We track active SSE sessions by sessionId so the POST /messages handler
-  // can route to the right transport instance.
-  const sessions = new Map<string, ConnectionState>();
+const writeJson = (res: ServerResponse, status: number, body: unknown): void => {
+  res.writeHead(status, { 'content-type': 'application/json' });
+  res.end(JSON.stringify(body));
+};
 
-  const httpServer = createServer((req: IncomingMessage, res: ServerResponse) => {
-    const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);
+const readSessionId = (req: IncomingMessage): string | undefined => {
+  const raw = req.headers[SESSION_HEADER];
+  if (typeof raw === 'string' && raw.length > 0) {
+    return raw;
+  }
+  // Node lower-cases header names; we read via the lowercase key above. The
+  // array form only happens for set-cookie-like headers, which `mcp-session-id`
+  // is not — but guard defensively to keep TS happy.
+  if (Array.isArray(raw) && raw.length > 0 && raw[0] !== undefined) {
+    return raw[0];
+  }
+  return undefined;
+};
 
-    // Health endpoint — useful for Docker HEALTHCHECK + k8s probes.
-    if (req.method === 'GET' && url.pathname === '/healthz') {
-      res.writeHead(200, { 'content-type': 'application/json' });
-      res.end(JSON.stringify({ status: 'ok', tools: opts.registry.size() }));
-      return;
-    }
+export const startHttpTransport = async (
+  opts: HttpTransportOptions,
+): Promise<HttpTransportHandle> => {
+  // One transport + Server per active MCP session, keyed by `Mcp-Session-Id`.
+  const sessions = new Map<string, SessionState>();
 
-    if (req.method === 'GET' && url.pathname === SSE_PATH) {
-      const transport = new SSEServerTransport(MESSAGES_PATH, res);
-      const server = buildHttpServer(opts);
-      sessions.set(transport.sessionId, { transport, server });
+  const handleMcp = (req: IncomingMessage, res: ServerResponse): void => {
+    const sessionId = readSessionId(req);
 
-      // Tear down when the client disconnects.
-      res.on('close', () => {
-        sessions.delete(transport.sessionId);
-        opts.logger.debug({ sessionId: transport.sessionId }, 'sse session closed');
-      });
-
-      // `connect()` is fire-and-forget here — it resolves when the underlying
-      // transport's `start()` resolves, which for SSE is immediate.
-      void server.connect(transport).catch((err: unknown) => {
-        opts.logger.error({ err }, 'sse connect failed');
-      });
-      opts.logger.info({ sessionId: transport.sessionId }, 'sse session opened');
-      return;
-    }
-
-    if (req.method === 'POST' && url.pathname === MESSAGES_PATH) {
-      const sessionId = url.searchParams.get('sessionId');
-      if (sessionId === null) {
-        res.writeHead(400, { 'content-type': 'application/json' });
-        res.end(JSON.stringify({ error: 'missing sessionId query parameter' }));
-        return;
-      }
+    if (sessionId !== undefined) {
       const session = sessions.get(sessionId);
       if (session === undefined) {
-        res.writeHead(404, { 'content-type': 'application/json' });
-        res.end(JSON.stringify({ error: 'unknown sessionId' }));
+        // The SDK would also return 404 here, but it requires constructing a
+        // throwaway transport first. Short-circuiting saves the allocation.
+        writeJson(res, 404, { error: 'unknown session', sessionId });
         return;
       }
-      void session.transport.handlePostMessage(req, res).catch((err: unknown) => {
-        opts.logger.error({ err, sessionId }, 'handlePostMessage failed');
+      void session.transport.handleRequest(req, res).catch((err: unknown) => {
+        opts.logger.error({ err, sessionId }, 'streamable handleRequest failed');
       });
       return;
     }
 
-    res.writeHead(404, { 'content-type': 'application/json' });
-    res.end(JSON.stringify({ error: 'not found', path: url.pathname }));
+    // No session header. For an `initialize` POST this is expected — we mint
+    // a new transport. For any other call the SDK will reject with 400.
+    if (req.method !== 'POST' && req.method !== 'GET') {
+      writeJson(res, 405, { error: 'method not allowed' });
+      return;
+    }
+
+    // `transport` and `server` are bound below; the SDK's `onsessioninitialized`
+    // / `onclose` callbacks are invoked asynchronously after `handleRequest`
+    // begins, so the closures over them are safe (the bindings exist by then).
+    const state: { transport?: StreamableHTTPServerTransport; server?: Server } = {};
+
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: () => randomUUID(),
+      onsessioninitialized: (id: string) => {
+        if (state.transport !== undefined && state.server !== undefined) {
+          sessions.set(id, { transport: state.transport, server: state.server });
+          opts.logger.info({ sessionId: id }, 'mcp session opened');
+        }
+      },
+      onsessionclosed: (id: string) => {
+        sessions.delete(id);
+        opts.logger.info({ sessionId: id }, 'mcp session closed (DELETE)');
+      },
+    });
+
+    transport.onclose = () => {
+      const id = transport.sessionId;
+      if (id !== undefined && sessions.delete(id)) {
+        opts.logger.info({ sessionId: id }, 'mcp session closed');
+      }
+    };
+    transport.onerror = (err: Error) => {
+      opts.logger.error({ err, sessionId: transport.sessionId }, 'mcp transport error');
+    };
+
+    const server = buildMcpServer(opts);
+    state.transport = transport;
+    state.server = server;
+
+    // SDK 1.29.0: the `Transport` interface declares `onclose?: () => void`,
+    // but `StreamableHTTPServerTransport.onclose` is typed `(() => void) |
+    // undefined`. Under our tsconfig's `exactOptionalPropertyTypes: true`
+    // the two are not assignable (the optional form forbids an explicit
+    // `undefined`). Cast bridges this — runtime shape is identical, same
+    // pattern as the `result as never` cast in stdio.ts.
+    void server
+      .connect(transport as never)
+      .then(() => transport.handleRequest(req, res))
+      .catch((err: unknown) => {
+        opts.logger.error({ err }, 'streamable initialize failed');
+      });
+  };
+
+  const httpServer: HttpServer = createServer((req: IncomingMessage, res: ServerResponse) => {
+    const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);
+
+    if (url.pathname === HEALTH_PATH) {
+      if (req.method !== 'GET') {
+        writeJson(res, 405, { error: 'method not allowed' });
+        return;
+      }
+      writeJson(res, 200, { status: 'ok', tools: opts.registry.size() });
+      return;
+    }
+
+    if (url.pathname === MCP_PATH) {
+      handleMcp(req, res);
+      return;
+    }
+
+    writeJson(res, 404, { error: 'not found', path: url.pathname });
   });
 
   await new Promise<void>((resolve) => {
     httpServer.listen(opts.port, opts.host, () => resolve());
   });
 
+  const address = httpServer.address();
+  const boundPort = typeof address === 'object' && address !== null ? address.port : opts.port;
+
   opts.logger.info(
     {
       host: opts.host,
-      port: opts.port,
+      port: boundPort,
       tools: opts.registry.size(),
       transport: 'http',
-      sse: SSE_PATH,
-      messages: MESSAGES_PATH,
+      mcp: MCP_PATH,
     },
     'colber-mcp ready (http)',
   );
+
+  const close = async (): Promise<void> => {
+    // Close every active MCP session first so in-flight SSE streams shut down
+    // cleanly, then close the listening server.
+    await Promise.allSettled(Array.from(sessions.values()).map((s) => s.transport.close()));
+    sessions.clear();
+    await new Promise<void>((resolve, reject) => {
+      httpServer.close((err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+  };
+
+  return { close, port: boundPort };
 };
