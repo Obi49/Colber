@@ -24,8 +24,15 @@ export default defineConfig({
   platform: 'node',
   // Inline internal workspace packages so the published mcp server is
   // self-contained — users only need `@modelcontextprotocol/sdk`, `pino`,
-  // `zod` from npm; everything Colber-specific is baked in.
+  // `zod`, `dotenv` from npm; everything Colber-specific is baked in.
   noExternal: [/^@colber\//],
+  // `dotenv` reaches us transitively through `@colber/core-config` (which
+  // is inlined via noExternal). It is CJS, and bundling it into our ESM
+  // output crashes Node 22 at startup with "Dynamic require of 'fs' is
+  // not supported" via tsup's `__require2` shim. Keeping it external
+  // (and a runtime dep — see package.json) lets Node's native CJS↔ESM
+  // interop resolve it from node_modules at load time.
+  external: ['dotenv'],
   // Shebang so `npx -y @colber/mcp` runs the entry without `node ` prefix.
   banner: { js: '#!/usr/bin/env node' },
 });
