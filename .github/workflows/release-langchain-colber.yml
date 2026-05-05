@@ -1,0 +1,137 @@
+# Release workflow for the `langchain-colber` PyPI package.
+#
+# Triggers on a tag of the form `langchain-colber-v<MAJOR>.<MINOR>.<PATCH>`
+# pushed to the public repository (Obi49/Colber). The job builds the
+# sdist + wheel from `apps/langchain-colber/`, publishes to PyPI via
+# Trusted Publishers (OIDC, no API token in repo secrets), and creates
+# a GitHub Release with the artifacts attached.
+#
+# One-time setup BEFORE the first tag is pushed:
+#   1. Go to https://pypi.org/manage/account/publishing/
+#   2. Add a "pending publisher" with:
+#        Project name:    langchain-colber
+#        Owner:           Obi49
+#        Repository:      Colber
+#        Workflow name:   release-langchain-colber.yml
+#        Environment:     pypi
+#   3. In Obi49/Colber GitHub Settings → Environments → "pypi"
+#      (no secrets required — OIDC handles it).
+#
+# Cutting a release:
+#   cd apps/langchain-colber
+#   # Bump version in pyproject.toml
+#   git commit -am "chore(release): langchain-colber@X.Y.Z"
+#   git tag langchain-colber-vX.Y.Z
+#   git push origin main langchain-colber-vX.Y.Z
+
+name: Release langchain-colber
+
+on:
+  push:
+    tags:
+      - 'langchain-colber-v*'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Tag or branch to build (e.g. langchain-colber-v0.1.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build sdist + wheel
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install hatch
+        run: pip install --upgrade hatch
+
+      - name: Resolve version + verify tag match
+        id: version
+        working-directory: apps/langchain-colber
+        run: |
+          PKG_VERSION=$(hatch version)
+          echo "version=${PKG_VERSION}" >> "$GITHUB_OUTPUT"
+          if [[ "$GITHUB_REF" == refs/tags/langchain-colber-v* ]]; then
+            TAG_VERSION="${GITHUB_REF#refs/tags/langchain-colber-v}"
+            if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+              echo "::error::Tag version ($TAG_VERSION) does not match pyproject.toml ($PKG_VERSION)"
+              exit 1
+            fi
+          fi
+          echo "Building langchain-colber ${PKG_VERSION}"
+
+      - name: Run tests
+        working-directory: apps/langchain-colber
+        run: |
+          pip install -e '.[dev]'
+          pytest -q
+
+      - name: Build distributions
+        working-directory: apps/langchain-colber
+        run: hatch build -t sdist -t wheel
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: apps/langchain-colber/dist/
+          if-no-files-found: error
+
+  publish-pypi:
+    name: Publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/langchain-colber/${{ needs.build.outputs.version }}/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish via Trusted Publisher (OIDC)
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+          print-hash: true
+
+  github-release:
+    name: GitHub Release
+    needs: [build, publish-pypi]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/langchain-colber-v')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${{ needs.build.outputs.version }}"
+          gh release create "$TAG" \
+            --title "langchain-colber v${VERSION}" \
+            --notes "PyPI: https://pypi.org/project/langchain-colber/${VERSION}/" \
+            dist/*
