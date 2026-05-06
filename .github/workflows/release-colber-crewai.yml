@@ -1,0 +1,137 @@
+# Release workflow for the `colber-crewai` PyPI package.
+#
+# Triggers on a tag of the form `colber-crewai-v<MAJOR>.<MINOR>.<PATCH>`
+# pushed to the public repository (Obi49/Colber). The job builds the
+# sdist + wheel from `apps/colber-crewai/`, publishes to PyPI via
+# Trusted Publishers (OIDC, no API token in repo secrets), and creates
+# a GitHub Release with the artifacts attached.
+#
+# One-time setup BEFORE the first tag is pushed:
+#   1. Go to https://pypi.org/manage/account/publishing/
+#   2. Add a "pending publisher" with:
+#        Project name:    colber-crewai
+#        Owner:           Obi49
+#        Repository:      Colber
+#        Workflow name:   release-colber-crewai.yml
+#        Environment:     pypi
+#   3. In Obi49/Colber GitHub Settings → Environments → "pypi"
+#      (no secrets required — OIDC handles it).
+#
+# Cutting a release:
+#   cd apps/colber-crewai
+#   # Bump version in pyproject.toml
+#   git commit -am "chore(release): colber-crewai@X.Y.Z"
+#   git tag colber-crewai-vX.Y.Z
+#   git push origin main colber-crewai-vX.Y.Z
+
+name: Release colber-crewai
+
+on:
+  push:
+    tags:
+      - 'colber-crewai-v*'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Tag or branch to build (e.g. colber-crewai-v0.1.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build sdist + wheel
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install hatch
+        run: pip install --upgrade hatch
+
+      - name: Resolve version + verify tag match
+        id: version
+        working-directory: apps/colber-crewai
+        run: |
+          PKG_VERSION=$(hatch version)
+          echo "version=${PKG_VERSION}" >> "$GITHUB_OUTPUT"
+          if [[ "$GITHUB_REF" == refs/tags/colber-crewai-v* ]]; then
+            TAG_VERSION="${GITHUB_REF#refs/tags/colber-crewai-v}"
+            if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+              echo "::error::Tag version ($TAG_VERSION) does not match pyproject.toml ($PKG_VERSION)"
+              exit 1
+            fi
+          fi
+          echo "Building colber-crewai ${PKG_VERSION}"
+
+      - name: Run tests
+        working-directory: apps/colber-crewai
+        run: |
+          pip install -e '.[dev]'
+          pytest -q
+
+      - name: Build distributions
+        working-directory: apps/colber-crewai
+        run: hatch build -t sdist -t wheel
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: dist
+          path: apps/colber-crewai/dist/
+          if-no-files-found: error
+
+  publish-pypi:
+    name: Publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/colber-crewai/${{ needs.build.outputs.version }}/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish via Trusted Publisher (OIDC)
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+          print-hash: true
+
+  github-release:
+    name: GitHub Release
+    needs: [build, publish-pypi]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/colber-crewai-v')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/download-artifact@v5
+        with:
+          name: dist
+          path: dist/
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${{ needs.build.outputs.version }}"
+          gh release create "$TAG" \
+            --title "colber-crewai v${VERSION}" \
+            --notes "PyPI: https://pypi.org/project/colber-crewai/${VERSION}/" \
+            dist/*
