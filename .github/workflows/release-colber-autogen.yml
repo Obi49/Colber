@@ -1,0 +1,145 @@
+# Release workflow for the `colber-autogen` PyPI package.
+#
+# Triggers on a tag of the form `colber-autogen-v<MAJOR>.<MINOR>.<PATCH>`
+# pushed to the public repository (Obi49/Colber). The job builds the
+# sdist + wheel from `apps/colber-autogen/`, publishes to PyPI via
+# Trusted Publishers (OIDC, no API token in repo secrets), and creates
+# a GitHub Release with the artifacts attached.
+#
+# One-time setup BEFORE the first tag is pushed:
+#   1. Go to https://pypi.org/manage/account/publishing/
+#   2. Add a "pending publisher" with:
+#        Project name:    colber-autogen
+#        Owner:           Obi49
+#        Repository:      Colber
+#        Workflow name:   release-colber-autogen.yml
+#        Environment:     pypi
+#   3. In Obi49/Colber GitHub Settings → Environments → "pypi"
+#      (no secrets required — OIDC handles it).
+#
+# Cutting a release:
+#   cd apps/colber-autogen
+#   # Bump version in pyproject.toml
+#   git commit -am "chore(release): colber-autogen@X.Y.Z"
+#   git tag colber-autogen-vX.Y.Z
+#   git push origin main colber-autogen-vX.Y.Z
+
+name: Release colber-autogen
+
+on:
+  push:
+    tags:
+      - 'colber-autogen-v*'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Tag or branch to build (e.g. colber-autogen-v0.1.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+# Force all JavaScript-based actions to run on Node.js 24 instead of the
+# deprecated Node.js 20 default. Cleaner than chasing major bumps across
+# checkout/setup-python/upload-artifact/download-artifact whose breaking
+# changes (artifact format, etc.) would need separate vetting. Opt-out
+# path documented in the GitHub Actions deprecation notice.
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
+jobs:
+  build:
+    name: Build sdist + wheel
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install hatch
+        run: pip install --upgrade hatch
+
+      - name: Resolve version + verify tag match
+        id: version
+        working-directory: apps/colber-autogen
+        run: |
+          PKG_VERSION=$(hatch version)
+          echo "version=${PKG_VERSION}" >> "$GITHUB_OUTPUT"
+          if [[ "$GITHUB_REF" == refs/tags/colber-autogen-v* ]]; then
+            TAG_VERSION="${GITHUB_REF#refs/tags/colber-autogen-v}"
+            if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+              echo "::error::Tag version ($TAG_VERSION) does not match pyproject.toml ($PKG_VERSION)"
+              exit 1
+            fi
+          fi
+          echo "Building colber-autogen ${PKG_VERSION}"
+
+      - name: Run tests
+        working-directory: apps/colber-autogen
+        run: |
+          pip install -e '.[dev]'
+          pytest -q
+
+      - name: Build distributions
+        working-directory: apps/colber-autogen
+        run: hatch build -t sdist -t wheel
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: dist
+          path: apps/colber-autogen/dist/
+          if-no-files-found: error
+
+  publish-pypi:
+    name: Publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/colber-autogen/${{ needs.build.outputs.version }}/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish via Trusted Publisher (OIDC)
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+          print-hash: true
+
+  github-release:
+    name: GitHub Release
+    needs: [build, publish-pypi]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/colber-autogen-v')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/download-artifact@v5
+        with:
+          name: dist
+          path: dist/
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${{ needs.build.outputs.version }}"
+          gh release create "$TAG" \
+            --title "colber-autogen v${VERSION}" \
+            --notes "PyPI: https://pypi.org/project/colber-autogen/${VERSION}/" \
+            dist/*
