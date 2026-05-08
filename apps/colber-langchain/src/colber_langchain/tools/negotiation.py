@@ -18,9 +18,7 @@ class _StartArgs(BaseModel):
             "canonicalisation can't safely round-trip floats)."
         )
     )
-    created_by: str = Field(
-        description="DID of the party opening the negotiation."
-    )
+    created_by: str = Field(description="DID of the party opening the negotiation.")
     idempotency_key: str = Field(
         description=(
             "Idempotency key for the start call (UUIDv4 recommended). "
@@ -38,24 +36,16 @@ class _ProposeArgs(BaseModel):
             "canonical form of the envelope."
         )
     )
-    public_key: str = Field(
-        description="Base64 Ed25519 public key of ``fromDid``."
-    )
+    public_key: str = Field(description="Base64 Ed25519 public key of ``fromDid``.")
 
 
 class _CounterArgs(BaseModel):
     negotiation_id: str = Field(description="Negotiation to counter against.")
-    counter_to: str = Field(
-        description="``proposalId`` being countered."
-    )
+    counter_to: str = Field(description="``proposalId`` being countered.")
     proposal: dict[str, Any] = Field(
-        description=(
-            "Signed counter-proposal envelope (same shape as ``propose``)."
-        )
+        description=("Signed counter-proposal envelope (same shape as ``propose``).")
     )
-    public_key: str = Field(
-        description="Base64 Ed25519 public key of the proposer."
-    )
+    public_key: str = Field(description="Base64 Ed25519 public key of the proposer.")
 
 
 class _SettleArgs(BaseModel):
@@ -69,8 +59,7 @@ class _SettleArgs(BaseModel):
     )
     public_keys: list[dict[str, str]] = Field(
         description=(
-            "List of ``{did, publicKey}`` objects so the service can verify "
-            "each signature."
+            "List of ``{did, publicKey}`` objects so the service can verify each signature."
         ),
         min_length=1,
     )
@@ -166,12 +155,8 @@ class NegotiationSettleTool(ColberToolBase):
     def _call_colber(self, **kwargs: Any) -> Any:
         signatures_raw = kwargs["signatures"]
         public_keys_raw = kwargs["public_keys"]
-        signatures = [
-            {str(k): str(v) for k, v in dict(sig).items()} for sig in signatures_raw
-        ]
-        public_keys = [
-            {str(k): str(v) for k, v in dict(pk).items()} for pk in public_keys_raw
-        ]
+        signatures = [{str(k): str(v) for k, v in dict(sig).items()} for sig in signatures_raw]
+        public_keys = [{str(k): str(v) for k, v in dict(pk).items()} for pk in public_keys_raw]
         winning = kwargs.get("winning_proposal_id")
         return self._client.negotiation.settle(
             negotiation_id=str(kwargs["negotiation_id"]),

@@ -2,7 +2,7 @@
 
 CrewAI integration for the [Colber](https://colber.dev) platform — step / task observability callbacks, long-term semantic memory backed by `colber-memory`, and a 5-service toolkit. Apache-2.0.
 
-This is the second framework plugin in the "Lego" GTM lever (after `langchain-colber`). It depends only on `crewai>=0.80` and the published `colber-sdk` PyPI release, so it stays lightweight and is independently versionable.
+This is the second framework plugin in the "Lego" GTM lever (after `colber-langchain`). It depends only on `crewai>=0.80` and the published `colber-sdk` PyPI release, so it stays lightweight and is independently versionable.
 
 ## Install
 
@@ -143,4 +143,4 @@ These are noted as Wave 2.3+ follow-ups in the Colber ROADMAP.
 
 ## License
 
-Apache-2.0 — same license as `colber-sdk`, `langchain-colber`, and `@colber/mcp`.
+Apache-2.0 — same license as `colber-sdk`, `colber-langchain`, and `@colber/mcp`.

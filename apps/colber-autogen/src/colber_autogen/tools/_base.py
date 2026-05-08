@@ -80,7 +80,7 @@ class ColberToolBase(BaseTool[ArgsT, str]):  # type: ignore[type-var]
         AutoGen's ``BaseTool`` exposes its ``args_model`` to the model
         as the JSON schema under the tool's name. Mixing operations
         under one tool would balloon the schema and confuse the LLM.
-        Mirrors the langchain-colber + colber-crewai design.
+        Mirrors the colber-langchain + colber-crewai design.
     """
 
     #: Sentinel exposed by :meth:`ColberToolkit.get_tools` to filter

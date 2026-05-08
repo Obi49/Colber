@@ -61,9 +61,7 @@ class _ClaimArgs(BaseModel):
         default_factory=dict,
         description="Free-form evidence payload supporting the claim.",
     )
-    idempotency_key: str = Field(
-        description="Idempotency key (UUIDv4 recommended)."
-    )
+    idempotency_key: str = Field(description="Idempotency key (UUIDv4 recommended).")
 
 
 class InsuranceQuoteTool(ColberToolBase):

@@ -2,7 +2,7 @@
 
 AutoGen 0.4+ integration for the [Colber](https://colber.dev) platform — per-tool observability instrumentation, an `autogen_core.memory.Memory` adapter backed by `colber-memory`, and a 5-service toolkit of typed `BaseTool[Args, Result]` subclasses. Apache-2.0.
 
-This is the third framework plugin in the "Lego" GTM lever (after `langchain-colber` and `colber-crewai`). It depends only on `autogen-agentchat>=0.4` + `autogen-core>=0.4` and the published `colber-sdk` PyPI release, so it stays lightweight and is independently versionable.
+This is the third framework plugin in the "Lego" GTM lever (after `colber-langchain` and `colber-crewai`). It depends only on `autogen-agentchat>=0.4` + `autogen-core>=0.4` and the published `colber-sdk` PyPI release, so it stays lightweight and is independently versionable.
 
 > **AutoGen 0.4 only.** This plugin targets the Microsoft 2024-2025 redesign (`autogen-agentchat` + `autogen-core`). It does **not** depend on the legacy `pyautogen` 0.2 line.
 
@@ -167,4 +167,4 @@ These are noted as Wave 2.4+ follow-ups in the Colber ROADMAP.
 
 ## License
 
-Apache-2.0 — same license as `colber-sdk`, `langchain-colber`, `colber-crewai`, and `@colber/mcp`.
+Apache-2.0 — same license as `colber-sdk`, `colber-langchain`, `colber-crewai`, and `@colber/mcp`.

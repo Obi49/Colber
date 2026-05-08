@@ -15,10 +15,7 @@ class _StoreArgs(BaseModel):
         "principal allowed to update or share it."
     )
     type: str = Field(
-        description=(
-            "Memory category. One of: ``fact``, ``event``, ``preference``, "
-            "``relation``."
-        ),
+        description=("Memory category. One of: ``fact``, ``event``, ``preference``, ``relation``."),
         pattern="^(fact|event|preference|relation)$",
     )
     text: str = Field(
@@ -62,10 +59,7 @@ class _QueryArgs(BaseModel):
 class _ShareArgs(BaseModel):
     id: str = Field(description="Memory id returned by ``colber_memory_store``.")
     caller_did: str = Field(
-        description=(
-            "DID of the agent issuing the share grant — must be the memory "
-            "owner."
-        )
+        description=("DID of the agent issuing the share grant — must be the memory owner.")
     )
     share_with: list[str] = Field(
         description="List of DIDs that should gain read access.",
@@ -150,9 +144,7 @@ class MemoryShareTool(ColberToolBase):
             caller_did=str(kwargs["caller_did"]),
             share_with=share_with,
             expires_at=(
-                str(kwargs["expires_at"])
-                if kwargs.get("expires_at") is not None
-                else None
+                str(kwargs["expires_at"]) if kwargs.get("expires_at") is not None else None
             ),
         )
 

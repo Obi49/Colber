@@ -53,13 +53,10 @@ def build_client_from_env() -> ColberClient:
         try:
             parsed = json.loads(explicit)
         except json.JSONDecodeError as exc:
-            raise ValueError(
-                f"COLBER_BASE_URLS must be valid JSON, got: {explicit!r}"
-            ) from exc
+            raise ValueError(f"COLBER_BASE_URLS must be valid JSON, got: {explicit!r}") from exc
         if not isinstance(parsed, dict):
             raise ValueError(
-                f"COLBER_BASE_URLS must decode to a JSON object, "
-                f"got {type(parsed).__name__}"
+                f"COLBER_BASE_URLS must decode to a JSON object, got {type(parsed).__name__}"
             )
         required = (
             "identity",
@@ -71,9 +68,7 @@ def build_client_from_env() -> ColberClient:
         )
         missing = [name for name in required if name not in parsed]
         if missing:
-            raise ValueError(
-                f"COLBER_BASE_URLS missing entries for: {missing}"
-            )
+            raise ValueError(f"COLBER_BASE_URLS missing entries for: {missing}")
         return ColberClient(cast("BaseUrls", parsed), auth_token=auth_token)
 
     single = os.environ.get("COLBER_BASE_URL")

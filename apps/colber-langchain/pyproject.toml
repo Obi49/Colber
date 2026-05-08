@@ -3,7 +3,7 @@ requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
-name = "langchain-colber"
+name = "colber-langchain"
 version = "0.1.0"
 description = "LangChain integration for the Colber platform — callbacks, memory, and a 6-service toolkit."
 readme = "README.md"
@@ -59,7 +59,7 @@ Issues = "https://github.com/Obi49/Colber/issues"
 Documentation = "https://github.com/Obi49/Colber#readme"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/langchain_colber"]
+packages = ["src/colber_langchain"]
 
 [tool.hatch.build.targets.sdist]
 include = ["src/", "README.md", "pyproject.toml"]
@@ -77,7 +77,7 @@ select = ["E", "F", "W", "I", "B", "UP", "RUF", "PT"]
 [tool.mypy]
 strict = true
 python_version = "3.11"
-files = ["src/langchain_colber"]
+files = ["src/colber_langchain"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

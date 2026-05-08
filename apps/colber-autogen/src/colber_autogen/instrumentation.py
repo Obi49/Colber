@@ -306,7 +306,7 @@ class ColberToolInstrumentation(_BaseObservability):
 
         Useful for tests + bench harnesses (the bench dogfood scenario
         asserts ≥ N spans were emitted). Mirrors the
-        ``langchain-colber`` callback's ``captured_spans`` introspection.
+        ``colber-langchain`` callback's ``captured_spans`` introspection.
         """
         return list(self._span_buffer)
 

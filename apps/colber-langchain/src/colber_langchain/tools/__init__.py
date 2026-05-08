@@ -1,7 +1,7 @@
 """Concrete LangChain :class:`BaseTool` implementations for Colber services.
 
 One module per Colber service, each module exporting one tool per
-operation. Imports are kept narrow so `from langchain_colber.tools
+operation. Imports are kept narrow so `from colber_langchain.tools
 import ColberToolBase` (or any concrete tool) is cheap.
 """
 

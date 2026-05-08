@@ -1,4 +1,4 @@
-"""Tests for the concrete :class:`langchain_colber.ColberToolBase` subclasses."""
+"""Tests for the concrete :class:`colber_langchain.ColberToolBase` subclasses."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from typing import Any
 import pytest
 from langchain_core.tools import ToolException
 
-from langchain_colber import (
+from colber_langchain import (
     IdentityRegisterTool,
     IdentityResolveTool,
     InsuranceClaimTool,
@@ -37,9 +37,7 @@ def test_identity_register_happy_path(
     colber_client: Any,
 ) -> None:
     tool = IdentityRegisterTool(client=colber_client)
-    rendered = tool.invoke(
-        {"public_key": fake_pubkey_b64(), "owner_operator_id": "op-demo"}
-    )
+    rendered = tool.invoke({"public_key": fake_pubkey_b64(), "owner_operator_id": "op-demo"})
     payload = json.loads(rendered)
     assert payload["did"].startswith("did:key:zTest")
     assert "agent_id" in payload

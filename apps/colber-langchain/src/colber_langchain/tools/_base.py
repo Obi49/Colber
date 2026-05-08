@@ -74,9 +74,7 @@ class ColberToolBase(BaseTool):
             # serialise the most useful subset; the original error is
             # preserved on ``__cause__`` for callers who want it.
             payload = _summarise_error(exc)
-            raise ToolException(
-                f"{type(exc).__name__}: {payload}"
-            ) from exc
+            raise ToolException(f"{type(exc).__name__}: {payload}") from exc
         return _serialise_response(response)
 
     async def _arun(self, **kwargs: Any) -> str:

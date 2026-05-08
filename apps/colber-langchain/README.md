@@ -1,4 +1,4 @@
-# langchain-colber
+# colber-langchain
 
 LangChain integration for the [Colber](https://colber.dev) platform — observability callbacks, semantic memory backed by `colber-memory`, and a 6-service toolkit. Apache-2.0.
 
@@ -7,13 +7,13 @@ This is the first public plugin in the "Lego" GTM lever. It depends only on `lan
 ## Install
 
 ```bash
-pip install langchain-colber
+pip install colber-langchain
 ```
 
 For local development inside the Colber monorepo:
 
 ```bash
-pip install -e apps/langchain-colber
+pip install -e apps/colber-langchain
 ```
 
 ## Components
@@ -23,7 +23,7 @@ pip install -e apps/langchain-colber
 Captures LangChain run events as Colber observability spans + structured logs. Attach to any chain / agent via the standard `callbacks=[...]` argument.
 
 ```python
-from langchain_colber import ColberCallbackHandler
+from colber_langchain import ColberCallbackHandler
 
 callback = ColberCallbackHandler(
     agent_did="did:key:z6Mk...",
@@ -43,7 +43,7 @@ Network failures to the observability service are caught and logged at `WARN`; t
 Backs LangChain's `BaseMemory` with the `colber-memory` service (Qdrant + ACL + chiffrement). Cross-agent share semantics are wired in: pass `share_with=[did1, did2, ...]` and every saved memory is automatically shared.
 
 ```python
-from langchain_colber import ColberMemory
+from colber_langchain import ColberMemory
 
 memory = ColberMemory(
     agent_did="did:key:z6Mk...",
@@ -59,7 +59,7 @@ A chat-history flavour (`ColberChatMessageHistory`) is also exported for use wit
 Exposes the 6 Colber services as LangChain tools (one per operation, 14 in total).
 
 ```python
-from langchain_colber import ColberToolkit
+from colber_langchain import ColberToolkit
 
 toolkit = ColberToolkit()
 tools = toolkit.get_tools()  # list[BaseTool]
@@ -93,7 +93,7 @@ You can always pass a pre-built client explicitly:
 
 ```python
 from colber_sdk import ColberClient
-from langchain_colber import ColberToolkit
+from colber_langchain import ColberToolkit
 
 client = ColberClient.from_base_url("https://api.colber.dev", auth_token="...")
 toolkit = ColberToolkit(client=client)

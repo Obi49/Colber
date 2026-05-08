@@ -38,9 +38,7 @@ class _DimensionsModel(BaseModel):
 
 
 class _FeedbackArgs(BaseModel):
-    feedback_id: str = Field(
-        description="Globally unique feedback id (UUIDv4 recommended)."
-    )
+    feedback_id: str = Field(description="Globally unique feedback id (UUIDv4 recommended).")
     from_did: str = Field(description="DID of the feedback issuer.")
     to_did: str = Field(description="DID of the feedback recipient.")
     tx_id: str = Field(
@@ -119,9 +117,7 @@ class ReputationFeedbackTool(ColberToolBase):
             dimensions=dim_payload,
             signed_at=str(kwargs["signed_at"]),
             signature=str(kwargs["signature"]),
-            comment=(
-                str(kwargs["comment"]) if kwargs.get("comment") is not None else None
-            ),
+            comment=(str(kwargs["comment"]) if kwargs.get("comment") is not None else None),
         )
 
 

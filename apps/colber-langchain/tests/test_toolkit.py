@@ -1,4 +1,4 @@
-"""Tests for :class:`langchain_colber.ColberToolkit`."""
+"""Tests for :class:`colber_langchain.ColberToolkit`."""
 
 from __future__ import annotations
 
@@ -7,8 +7,8 @@ from typing import Any
 import pytest
 from langchain_core.tools import BaseTool
 
-from langchain_colber import ColberToolkit
-from langchain_colber.tools import (
+from colber_langchain import ColberToolkit
+from colber_langchain.tools import (
     IdentityRegisterTool,
     IdentityResolveTool,
     InsuranceClaimTool,

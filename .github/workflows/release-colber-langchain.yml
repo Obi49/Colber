@@ -1,39 +1,39 @@
-# Release workflow for the `langchain-colber` PyPI package.
+# Release workflow for the `colber-langchain` PyPI package.
 #
-# Triggers on a tag of the form `langchain-colber-v<MAJOR>.<MINOR>.<PATCH>`
+# Triggers on a tag of the form `colber-langchain-v<MAJOR>.<MINOR>.<PATCH>`
 # pushed to the public repository (Obi49/Colber). The job builds the
-# sdist + wheel from `apps/langchain-colber/`, publishes to PyPI via
+# sdist + wheel from `apps/colber-langchain/`, publishes to PyPI via
 # Trusted Publishers (OIDC, no API token in repo secrets), and creates
 # a GitHub Release with the artifacts attached.
 #
 # One-time setup BEFORE the first tag is pushed:
 #   1. Go to https://pypi.org/manage/account/publishing/
 #   2. Add a "pending publisher" with:
-#        Project name:    langchain-colber
+#        Project name:    colber-langchain
 #        Owner:           Obi49
 #        Repository:      Colber
-#        Workflow name:   release-langchain-colber.yml
+#        Workflow name:   release-colber-langchain.yml
 #        Environment:     pypi
 #   3. In Obi49/Colber GitHub Settings → Environments → "pypi"
 #      (no secrets required — OIDC handles it).
 #
 # Cutting a release:
-#   cd apps/langchain-colber
+#   cd apps/colber-langchain
 #   # Bump version in pyproject.toml
-#   git commit -am "chore(release): langchain-colber@X.Y.Z"
-#   git tag langchain-colber-vX.Y.Z
-#   git push origin main langchain-colber-vX.Y.Z
+#   git commit -am "chore(release): colber-langchain@X.Y.Z"
+#   git tag colber-langchain-vX.Y.Z
+#   git push origin main colber-langchain-vX.Y.Z
 
-name: Release langchain-colber
+name: Release colber-langchain
 
 on:
   push:
     tags:
-      - 'langchain-colber-v*'
+      - 'colber-langchain-v*'
   workflow_dispatch:
     inputs:
       ref:
-        description: 'Tag or branch to build (e.g. langchain-colber-v0.1.0)'
+        description: 'Tag or branch to build (e.g. colber-langchain-v0.1.0)'
         required: true
         type: string
 
@@ -68,33 +68,33 @@ jobs:
 
       - name: Resolve version + verify tag match
         id: version
-        working-directory: apps/langchain-colber
+        working-directory: apps/colber-langchain
         run: |
           PKG_VERSION=$(hatch version)
           echo "version=${PKG_VERSION}" >> "$GITHUB_OUTPUT"
-          if [[ "$GITHUB_REF" == refs/tags/langchain-colber-v* ]]; then
-            TAG_VERSION="${GITHUB_REF#refs/tags/langchain-colber-v}"
+          if [[ "$GITHUB_REF" == refs/tags/colber-langchain-v* ]]; then
+            TAG_VERSION="${GITHUB_REF#refs/tags/colber-langchain-v}"
             if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
               echo "::error::Tag version ($TAG_VERSION) does not match pyproject.toml ($PKG_VERSION)"
               exit 1
             fi
           fi
-          echo "Building langchain-colber ${PKG_VERSION}"
+          echo "Building colber-langchain ${PKG_VERSION}"
 
       - name: Run tests
-        working-directory: apps/langchain-colber
+        working-directory: apps/colber-langchain
         run: |
           pip install -e '.[dev]'
           pytest -q
 
       - name: Build distributions
-        working-directory: apps/langchain-colber
+        working-directory: apps/colber-langchain
         run: hatch build -t sdist -t wheel
 
       - uses: actions/upload-artifact@v5
         with:
           name: dist
-          path: apps/langchain-colber/dist/
+          path: apps/colber-langchain/dist/
           if-no-files-found: error
 
   publish-pypi:
@@ -103,7 +103,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/project/langchain-colber/${{ needs.build.outputs.version }}/
+      url: https://pypi.org/project/colber-langchain/${{ needs.build.outputs.version }}/
     permissions:
       id-token: write
     steps:
@@ -122,7 +122,7 @@ jobs:
     name: GitHub Release
     needs: [build, publish-pypi]
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/langchain-colber-v')
+    if: startsWith(github.ref, 'refs/tags/colber-langchain-v')
     permissions:
       contents: write
     steps:
@@ -140,6 +140,6 @@ jobs:
           TAG="${GITHUB_REF#refs/tags/}"
           VERSION="${{ needs.build.outputs.version }}"
           gh release create "$TAG" \
-            --title "langchain-colber v${VERSION}" \
-            --notes "PyPI: https://pypi.org/project/langchain-colber/${VERSION}/" \
+            --title "colber-langchain v${VERSION}" \
+            --notes "PyPI: https://pypi.org/project/colber-langchain/${VERSION}/" \
             dist/*

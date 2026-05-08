@@ -81,7 +81,7 @@ class ColberCallbackHandler(BaseCallbackHandler):
     Args:
         client: A :class:`colber_sdk.ColberClient`. When omitted, a fresh
             client is built from environment variables (see
-            :func:`langchain_colber._client.build_client_from_env`).
+            :func:`colber_langchain._client.build_client_from_env`).
         agent_did: The DID of the agent running this chain. Stamped on
             every span as the ``agentDid`` attribute so dashboards can
             group by agent. Required.
@@ -412,9 +412,7 @@ class ColberCallbackHandler(BaseCallbackHandler):
         }
         if self._log_input_outputs:
             return_values = getattr(finish, "return_values", {})
-            attributes["langchain.return_values"] = self._truncate(
-                _safe_str(return_values)
-            )
+            attributes["langchain.return_values"] = self._truncate(_safe_str(return_values))
         self._emit_point_span(
             name="agent.finish",
             kind="internal",
@@ -654,9 +652,7 @@ def _iso_now() -> str:
     """Current UTC time in ISO-8601 with millisecond precision and ``Z``."""
     from datetime import UTC, datetime
 
-    return (
-        datetime.now(UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z")
-    )
+    return datetime.now(UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 
 def _iso_add_ms(start_iso: str, duration_ms: float) -> str:

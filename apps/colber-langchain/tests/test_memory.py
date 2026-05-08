@@ -1,4 +1,4 @@
-"""Tests for :class:`langchain_colber.ColberMemory` + :class:`ColberChatMessageHistory`."""
+"""Tests for :class:`colber_langchain.ColberMemory` + :class:`ColberChatMessageHistory`."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from typing import Any
 import pytest
 from langchain_core.messages import HumanMessage
 
-from langchain_colber import ColberChatMessageHistory, ColberMemory
+from colber_langchain import ColberChatMessageHistory, ColberMemory
 
 
 def test_constructor_requires_agent_did(colber_client: Any) -> None:

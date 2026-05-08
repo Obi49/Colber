@@ -1,4 +1,4 @@
-"""Shared fixtures for the langchain-colber test suite.
+"""Shared fixtures for the colber-langchain test suite.
 
 The plugin never makes real network calls in tests:
 
@@ -66,7 +66,7 @@ class FakeColberBackend:
             "/insurance",
         ):
             if path.startswith(prefix + "/"):
-                path = path[len(prefix):]
+                path = path[len(prefix) :]
                 break
         body: dict[str, Any] | None
         if request.content:
@@ -464,11 +464,7 @@ def _last_segment(path: str) -> str:
 
 
 def _iso_now() -> str:
-    return (
-        datetime.now(UTC)
-        .isoformat(timespec="milliseconds")
-        .replace("+00:00", "Z")
-    )
+    return datetime.now(UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 
 def fake_pubkey_b64() -> str:
@@ -521,7 +517,7 @@ def colber_client(fake_backend: FakeColberBackend) -> Iterator[ColberClient]:
 @pytest.fixture
 def make_handler(colber_client: ColberClient) -> Callable[..., Any]:
     """Factory: build a :class:`ColberCallbackHandler` bound to the test client."""
-    from langchain_colber import ColberCallbackHandler
+    from colber_langchain import ColberCallbackHandler
 
     def _build(
         *,
@@ -544,7 +540,7 @@ def make_handler(colber_client: ColberClient) -> Callable[..., Any]:
 @pytest.fixture
 def make_memory(colber_client: ColberClient) -> Callable[..., Any]:
     """Factory: build a :class:`ColberMemory` bound to the test client."""
-    from langchain_colber import ColberMemory
+    from colber_langchain import ColberMemory
 
     def _build(
         *,

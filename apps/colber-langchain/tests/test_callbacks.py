@@ -1,4 +1,4 @@
-"""Tests for :class:`langchain_colber.ColberCallbackHandler`."""
+"""Tests for :class:`colber_langchain.ColberCallbackHandler`."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from uuid import UUID, uuid4
 import pytest
 from langchain_core.agents import AgentAction, AgentFinish
 
-from langchain_colber import ColberCallbackHandler
+from colber_langchain import ColberCallbackHandler
 
 
 def _new_run_id() -> UUID:
@@ -148,9 +148,7 @@ def test_tool_error_emits_log(
         run_id=run_id,
     )
     handler.on_tool_error(error=ValueError("nope"), run_id=run_id)
-    assert any(
-        log["message"] == "langchain.tool.error" for log in fake_backend.logs
-    )
+    assert any(log["message"] == "langchain.tool.error" for log in fake_backend.logs)
     assert fake_backend.spans[-1]["status"] == "error"
 
 

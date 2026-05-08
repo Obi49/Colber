@@ -1,4 +1,4 @@
-"""``langchain_colber`` — LangChain integration for the Colber platform.
+"""``colber_langchain`` — LangChain integration for the Colber platform.
 
 Three first-class building blocks are exported:
 
@@ -16,7 +16,7 @@ Three first-class building blocks are exported:
   agent.
 
 Example:
-    >>> from langchain_colber import (
+    >>> from colber_langchain import (
     ...     ColberCallbackHandler,
     ...     ColberMemory,
     ...     ColberToolkit,
@@ -24,9 +24,9 @@ Example:
     >>> # Build a tool-calling LangChain agent with Colber on every layer.
     >>> # See README.md for a complete quickstart.
 
-The plugin is published as ``langchain-colber`` on PyPI, following the
+The plugin is published as ``colber-langchain`` on PyPI, following the
 ``langchain-<provider>`` convention. The import name is
-``langchain_colber``.
+``colber_langchain``.
 """
 
 from __future__ import annotations

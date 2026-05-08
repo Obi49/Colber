@@ -175,9 +175,7 @@ class ColberMemory(BaseMemory):
 
         hits = list(getattr(response, "hits", []) or [])
         if self.return_messages:
-            messages: list[BaseMessage] = [
-                HumanMessage(content=hit.snippet) for hit in hits
-            ]
+            messages: list[BaseMessage] = [HumanMessage(content=hit.snippet) for hit in hits]
             return {self.memory_key: messages}
         rendered = "\n".join(f"- {hit.snippet}" for hit in hits)
         return {self.memory_key: rendered}
@@ -319,9 +317,7 @@ class ColberChatMessageHistory(BaseChatMessageHistory):
         top_k: int = 20,
     ) -> None:
         if not agent_did:
-            raise ValueError(
-                "ColberChatMessageHistory requires a non-empty agent_did"
-            )
+            raise ValueError("ColberChatMessageHistory requires a non-empty agent_did")
         if top_k <= 0:
             raise ValueError("ColberChatMessageHistory.top_k must be > 0")
         self._agent_did = agent_did

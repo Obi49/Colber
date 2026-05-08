@@ -68,13 +68,13 @@ class ColberToolkit(BaseToolkit):
     Args:
         client: A :class:`colber_sdk.ColberClient`. Optional — defaults
             to one built from environment variables (see
-            :func:`langchain_colber._client.build_client_from_env`).
+            :func:`colber_langchain._client.build_client_from_env`).
         services: Optional sub-list of service names to expose.
             ``None`` (default) returns the full set. Pass e.g.
             ``["negotiation", "insurance"]`` to limit a deal-only agent.
 
     Example:
-        >>> from langchain_colber import ColberToolkit
+        >>> from colber_langchain import ColberToolkit
         >>> toolkit = ColberToolkit()  # doctest: +SKIP
         >>> tools = toolkit.get_tools()  # doctest: +SKIP
         >>> # Plug ``tools`` into any LangChain agent.
